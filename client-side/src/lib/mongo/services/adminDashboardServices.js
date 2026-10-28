@@ -22,6 +22,21 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
+// ✅ Gracefully handle 401 Unauthorized responses
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("auth:unauthorized"));
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 /* ============================================================
    📊 DASHBOARD OVERVIEW (Main Summary Stats)
 ============================================================ */
@@ -164,7 +179,6 @@ export const exportReportsData = async (config) => {
   return data;
 };
 
-
 const adminDashboardServices = {
   // Dashboard Core
   fetchDashboardStats,
@@ -186,7 +200,6 @@ const adminDashboardServices = {
   exportDashboardData,
   exportReportsData,
   getReportsSummary,
-
 };
 
 export default adminDashboardServices;

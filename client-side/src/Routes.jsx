@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { BrowserRouter, Routes as RouterRoutes, Route } from "react-router-dom";
+import { BrowserRouter, Routes as RouterRoutes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "components/ScrollToTop";
 import ErrorBoundary from "components/ErrorBoundary";
 
@@ -126,7 +126,7 @@ const Routes = () => {
             <Route path="/login" element={<AuthLayout><Signin /></AuthLayout>} />
             <Route path="/register" element={<AuthLayout><Signup /></AuthLayout>} />
 
-            {/* Admin Management Routes */}
+            {/* Admin Management Routes (Protected by AdminLayout Gate) */}
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="dashboard" element={<AdminDashboard />} />
@@ -137,8 +137,10 @@ const Routes = () => {
               <Route path="users" element={<UserDashboard />} />
               <Route path="analytics" element={<AnalyticsDashboard />} />
             </Route>
-            <Route path="/admin-dashboard" element={<AdminDashboard />} />
-            <Route path="/reports-dashboard" element={<ReportsDashboard />} />
+
+            {/* Backward compatibility redirects */}
+            <Route path="/admin-dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="/reports-dashboard" element={<Navigate to="/admin/reports" replace />} />
 
             {/* Architectural 404 Route */}
             <Route path="*" element={<NotFound />} />

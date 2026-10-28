@@ -1,35 +1,65 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShieldCheck, ArrowRight, UserCheck } from "lucide-react";
+import axios from "axios";
+import { getApiUrl } from "utils/getApiUrl";
+import { ShieldCheck, ArrowRight, RefreshCw, Mail, Lock, User, Phone } from "lucide-react";
 import { toast } from "react-toastify";
 
 const Signup = () => {
-  const [role, setRole] = useState("buyer"); // "buyer" | "owner" | "advisor"
+  const [roleType, setRoleType] = useState("buyer"); // "buyer" | "owner" | "advisor"
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (!name || !email || !phone || !password) {
       toast.error("Please fill in all required registration fields");
       return;
     }
 
-    const newUser = {
-      name,
-      email,
-      phone,
-      role,
-      city: "Mumbai"
-    };
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
 
-    localStorage.setItem("user", JSON.stringify(newUser));
-    localStorage.setItem("token", "makaan4u-registered-user-token");
-    toast.success("Account created successfully!");
-    navigate("/account");
+    try {
+      setLoading(true);
+      const backendRole = roleType === "advisor" ? "employee" : "customer";
+      const res = await axios.post(
+        `${getApiUrl()}/auth/register`,
+        {
+          name,
+          email,
+          phone,
+          password,
+          role: backendRole,
+        },
+        { withCredentials: true }
+      );
+
+      if (res.data?.success && res.data?.token) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        toast.success("Account created successfully! Welcome to Makaan4U.");
+
+        if (res.data.user?.role === "admin" || res.data.user?.role === "employee") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/account");
+        }
+      } else {
+        toast.error(res.data?.message || "Registration failed");
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || "Registration failed. Please try again.";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,14 +85,14 @@ const Signup = () => {
           {[
             { id: "buyer", label: "Homebuyer / NRI" },
             { id: "owner", label: "Property Owner" },
-            { id: "advisor", label: "RERA Broker" }
+            { id: "advisor", label: "RERA Advisor" },
           ].map((r) => (
             <button
               key={r.id}
               type="button"
-              onClick={() => setRole(r.id)}
+              onClick={() => setRoleType(r.id)}
               className={`py-2 px-2.5 rounded text-center text-xs font-medium border transition-colors ${
-                role === r.id
+                roleType === r.id
                   ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-transparent"
                   : "bg-[var(--color-subtle)] border-[var(--color-border)] text-[var(--color-foreground)]"
               }`}
@@ -78,14 +108,17 @@ const Signup = () => {
           <label className="block text-[11px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)] mb-1">
             Full Name *
           </label>
-          <input
-            type="text"
-            required
-            placeholder="e.g. Rohini Nambiar"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none"
-          />
+          <div className="relative">
+            <User className="w-4 h-4 absolute left-3 top-3 text-[var(--color-muted-foreground)]" />
+            <input
+              type="text"
+              required
+              placeholder="e.g. Rohini Nambiar"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full pl-9 pr-3 py-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -93,28 +126,34 @@ const Signup = () => {
             <label className="block text-[11px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)] mb-1">
               Email Address *
             </label>
-            <input
-              type="email"
-              required
-              placeholder="name@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none"
-            />
+            <div className="relative">
+              <Mail className="w-4 h-4 absolute left-3 top-3 text-[var(--color-muted-foreground)]" />
+              <input
+                type="email"
+                required
+                placeholder="name@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-9 pr-3 py-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
+              />
+            </div>
           </div>
 
           <div>
             <label className="block text-[11px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)] mb-1">
-              Mobile Number (WhatsApp) *
+              Mobile Number *
             </label>
-            <input
-              type="tel"
-              required
-              placeholder="+91 98XXX XXXXX"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none"
-            />
+            <div className="relative">
+              <Phone className="w-4 h-4 absolute left-3 top-3 text-[var(--color-muted-foreground)]" />
+              <input
+                type="tel"
+                required
+                placeholder="+91 98XXX XXXXX"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full pl-9 pr-3 py-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
+              />
+            </div>
           </div>
         </div>
 
@@ -122,22 +161,36 @@ const Signup = () => {
           <label className="block text-[11px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)] mb-1">
             Create Password *
           </label>
-          <input
-            type="password"
-            required
-            placeholder="At least 8 characters"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none"
-          />
+          <div className="relative">
+            <Lock className="w-4 h-4 absolute left-3 top-3 text-[var(--color-muted-foreground)]" />
+            <input
+              type="password"
+              required
+              minLength={6}
+              placeholder="At least 6 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full pl-9 pr-3 py-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
+            />
+          </div>
         </div>
 
         <button
           type="submit"
-          className="w-full py-2.5 bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] font-semibold rounded-sm transition-colors flex items-center justify-center space-x-1 shadow-xs"
+          disabled={loading}
+          className="w-full py-2.5 bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] font-semibold rounded-sm transition-colors flex items-center justify-center space-x-1.5 shadow-xs"
         >
-          <span>Complete Registration</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          {loading ? (
+            <>
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              <span>Registering Account...</span>
+            </>
+          ) : (
+            <>
+              <span>Complete Registration</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </>
+          )}
         </button>
       </form>
 

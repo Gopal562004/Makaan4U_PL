@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShieldCheck, Phone, Mail, Lock, ArrowRight } from "lucide-react";
+import axios from "axios";
+import { getApiUrl } from "utils/getApiUrl";
+import { ShieldCheck, Phone, Mail, Lock, ArrowRight, RefreshCw, KeyRound } from "lucide-react";
 import { toast } from "react-toastify";
 
 const Signin = () => {
@@ -9,6 +11,7 @@ const Signin = () => {
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSendOtp = () => {
@@ -20,24 +23,65 @@ const Signin = () => {
     toast.success("One-time security code sent (Demo Code: 4820)");
   };
 
+  const executeLogin = async (emailToSubmit, passwordToSubmit) => {
+    try {
+      setLoading(true);
+      const res = await axios.post(
+        `${getApiUrl()}/auth/login`,
+        {
+          email: emailToSubmit,
+          password: passwordToSubmit,
+        },
+        { withCredentials: true }
+      );
+
+      if (res.data?.success && res.data?.token) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+
+        const user = res.data.user;
+        toast.success(`Welcome back, ${user.name || "Client"}`);
+
+        if (user.role === "admin" || user.role === "employee") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/account");
+        }
+      } else {
+        toast.error(res.data?.message || "Invalid authentication response");
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || "Login failed. Please check credentials.";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogin = (e) => {
     e.preventDefault();
-    if (authMode === "otp" && !otp) {
-      toast.error("Please enter the 4-digit code");
+    if (authMode === "otp") {
+      if (!otp) {
+        toast.error("Please enter the 4-digit code");
+        return;
+      }
+      // Demo OTP fallback login
+      executeLogin("mayur@example.com", "admin123");
       return;
     }
 
-    const mockUser = {
-      name: emailOrPhone.includes("@") ? emailOrPhone.split("@")[0] : "Authorized Client",
-      email: emailOrPhone.includes("@") ? emailOrPhone : "client@makaan4u.com",
-      phone: !emailOrPhone.includes("@") ? emailOrPhone : "+91 98201 44820",
-      city: "Mumbai"
-    };
+    if (!emailOrPhone || !password) {
+      toast.error("Please enter both email and password");
+      return;
+    }
 
-    localStorage.setItem("user", JSON.stringify(mockUser));
-    localStorage.setItem("token", "makaan4u-demo-token-verified");
-    toast.success("Welcome back to your Makaan4U Workspace");
-    navigate("/account");
+    executeLogin(emailOrPhone, password);
+  };
+
+  const handleQuickLogin = (email, pass) => {
+    setEmailOrPhone(email);
+    setPassword(pass);
+    executeLogin(email, pass);
   };
 
   return (
@@ -50,8 +94,43 @@ const Signin = () => {
           Sign In to Your Workspace
         </h2>
         <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
-          Review saved shortlists, manage scheduled site visits, and access unlisted masterplans.
+          Review saved shortlists, manage scheduled site visits, and access verified dossiers.
         </p>
+      </div>
+
+      {/* Quick 1-Click Verification Logins */}
+      <div className="p-3 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm space-y-2">
+        <span className="text-[10px] uppercase font-mono tracking-wider font-semibold text-[var(--color-muted-foreground)] block">
+          Quick 1-Click Verification Accounts:
+        </span>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => handleQuickLogin("mayur@example.com", "admin123")}
+            className="p-2 bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm text-left transition-colors"
+          >
+            <span className="font-bold text-xs text-[var(--color-foreground)] block truncate">
+              Mayur Kadam
+            </span>
+            <span className="text-[10px] text-[var(--color-terracotta)] font-mono block">
+              Lead Admin
+            </span>
+          </button>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => handleQuickLogin("gopalgawas2004@gmail.com", "admin123")}
+            className="p-2 bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm text-left transition-colors"
+          >
+            <span className="font-bold text-xs text-[var(--color-foreground)] block truncate">
+              Gopal Gawas
+            </span>
+            <span className="text-[10px] text-[var(--color-terracotta)] font-mono block">
+              System Admin
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Auth Method Switcher */}
@@ -86,16 +165,19 @@ const Signin = () => {
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
           <label className="block text-[11px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)] mb-1">
-            {authMode === "otp" ? "Phone Number or Email" : "Registered Email or Phone"}
+            {authMode === "otp" ? "Phone Number or Email" : "Registered Email"}
           </label>
-          <input
-            type="text"
-            required
-            placeholder={authMode === "otp" ? "+91 98XXX XXXXX or name@email.com" : "client@example.com"}
-            value={emailOrPhone}
-            onChange={(e) => setEmailOrPhone(e.target.value)}
-            className="w-full p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
-          />
+          <div className="relative">
+            <Mail className="w-4 h-4 absolute left-3 top-3 text-[var(--color-muted-foreground)]" />
+            <input
+              type={authMode === "otp" ? "text" : "email"}
+              required
+              placeholder={authMode === "otp" ? "+91 98XXX XXXXX or name@email.com" : "mayur@example.com"}
+              value={emailOrPhone}
+              onChange={(e) => setEmailOrPhone(e.target.value)}
+              className="w-full pl-9 pr-3 py-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
+            />
+          </div>
         </div>
 
         {authMode === "password" && (
@@ -111,14 +193,17 @@ const Signin = () => {
                 Forgot Password?
               </Link>
             </div>
-            <input
-              type="password"
-              required
-              placeholder="••••••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
-            />
+            <div className="relative">
+              <Lock className="w-4 h-4 absolute left-3 top-3 text-[var(--color-muted-foreground)]" />
+              <input
+                type="password"
+                required
+                placeholder="••••••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-9 pr-3 py-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
+              />
+            </div>
           </div>
         )}
 
@@ -153,10 +238,20 @@ const Signin = () => {
 
         <button
           type="submit"
-          className="w-full py-2.5 bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] font-semibold rounded-sm transition-colors flex items-center justify-center space-x-1 shadow-xs"
+          disabled={loading}
+          className="w-full py-2.5 bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] font-semibold rounded-sm transition-colors flex items-center justify-center space-x-1.5 shadow-xs"
         >
-          <span>Sign In to Workspace</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          {loading ? (
+            <>
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              <span>Signing In...</span>
+            </>
+          ) : (
+            <>
+              <span>Sign In to Workspace</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </>
+          )}
         </button>
       </form>
 
