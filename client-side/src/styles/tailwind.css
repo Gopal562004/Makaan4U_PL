@@ -6,82 +6,151 @@
 
 @layer base {
   :root {
-    /* Core Colors */
-    --color-background: #fafafa; /* gray-50 */
-    --color-foreground: #1f2937; /* gray-800 */
-    --color-border: #e5e7eb; /* gray-200 */
-    --color-input: #ffffff; /* white */
-    --color-ring: #1e40af; /* blue-700 */
+    /* Day Mode (Light-first, warm neutral palette) */
+    --color-canvas: #FAF8F5;
+    --color-background: #FAF8F5;
+    --color-surface: #FFFFFF;
+    --color-subtle: #F4EFEA;
+    --color-elevated: #FFFFFF;
+    --color-border: #E6DFD5;
+    --color-foreground: #181716;
     
-    /* Card Colors */
-    --color-card: #ffffff; /* white */
-    --color-card-foreground: #1f2937; /* gray-800 */
+    --color-primary: #181716;
+    --color-primary-foreground: #FAF8F5;
+    --color-primary-hover: #2F2C28;
     
-    /* Popover Colors */
-    --color-popover: #ffffff; /* white */
-    --color-popover-foreground: #1f2937; /* gray-800 */
+    --color-secondary: #8A653E;
+    --color-secondary-foreground: #FFFFFF;
     
-    /* Muted Colors */
-    --color-muted: #f3f4f6; /* gray-100 */
-    --color-muted-foreground: #6b7280; /* gray-500 */
+    --color-terracotta: #B84E30;
+    --color-terracotta-hover: #9E3F24;
+    --color-terracotta-subtle: #F9EFEA;
     
-    /* Primary Colors */
-    --color-primary: #1e40af; /* blue-700 */
-    --color-primary-foreground: #ffffff; /* white */
+    --color-bronze: #8C653E;
+    --color-bronze-subtle: #F7F2EB;
     
-    /* Secondary Colors */
-    --color-secondary: #0f766e; /* teal-700 */
-    --color-secondary-foreground: #ffffff; /* white */
+    --color-forest: #274A3D;
+    --color-forest-subtle: #EBF2EE;
     
-    /* Accent Colors */
-    --color-accent: #ea580c; /* orange-600 */
-    --color-accent-foreground: #ffffff; /* white */
+    --color-card: #FFFFFF;
+    --color-card-foreground: #181716;
     
-    /* Success Colors */
-    --color-success: #059669; /* emerald-600 */
-    --color-success-foreground: #ffffff; /* white */
+    --color-popover: #FFFFFF;
+    --color-popover-foreground: #181716;
     
-    /* Warning Colors */
-    --color-warning: #d97706; /* amber-600 */
-    --color-warning-foreground: #ffffff; /* white */
+    --color-muted: #F3EFE9;
+    --color-muted-foreground: #6E675D;
     
-    /* Error/Destructive Colors */
-    --color-error: #dc2626; /* red-600 */
-    --color-error-foreground: #ffffff; /* white */
-    --color-destructive: #dc2626; /* red-600 */
-    --color-destructive-foreground: #ffffff; /* white */
+    --color-input: #FFFFFF;
+    --color-ring: #B84E30;
+    --color-accent: #B84E30;
+    --color-accent-foreground: #FFFFFF;
     
-    /* Text Colors */
-    --color-text-primary: #1f2937; /* gray-800 */
-    --color-text-secondary: #6b7280; /* gray-500 */
+    --color-success: #285943;
+    --color-success-foreground: #FFFFFF;
+    --color-warning: #B56F28;
+    --color-warning-foreground: #FFFFFF;
+    --color-destructive: #B83A3A;
+    --color-destructive-foreground: #FFFFFF;
+  }
+  
+  .dark,
+  [data-theme="dark"] {
+    /* Evening Mode (Deep architectural warm charcoal & cream) */
+    --color-canvas: #121110;
+    --color-background: #121110;
+    --color-surface: #191816;
+    --color-subtle: #22201D;
+    --color-elevated: #282623;
+    --color-border: #2D2B27;
+    --color-foreground: #F2ECE2;
     
-    /* Surface Color */
-    --color-surface: #ffffff; /* white */
+    --color-primary: #F2ECE2;
+    --color-primary-foreground: #181716;
+    --color-primary-hover: #DDD6CA;
     
-    /* Border Radius */
-    --radius: 0.5rem;
+    --color-secondary: #C49A6C;
+    --color-secondary-foreground: #181716;
+    
+    --color-terracotta: #D26445;
+    --color-terracotta-hover: #E07657;
+    --color-terracotta-subtle: #2A1D19;
+    
+    --color-bronze: #C49A6C;
+    --color-bronze-subtle: #2A231B;
+    
+    --color-forest: #427863;
+    --color-forest-subtle: #192A22;
+    
+    --color-card: #191816;
+    --color-card-foreground: #F2ECE2;
+    
+    --color-popover: #191816;
+    --color-popover-foreground: #F2ECE2;
+    
+    --color-muted: #22201D;
+    --color-muted-foreground: #A39A8E;
+    
+    --color-input: #1F1D1A;
+    --color-ring: #D26445;
+    --color-accent: #D26445;
+    --color-accent-foreground: #FFFFFF;
+    
+    --color-success: #3C8463;
+    --color-success-foreground: #FFFFFF;
+    --color-warning: #D48D3B;
+    --color-warning-foreground: #FFFFFF;
+    --color-destructive: #D9534F;
+    --color-destructive-foreground: #FFFFFF;
   }
   
   * {
-    @apply border-border;
+    border-color: var(--color-border);
   }
   
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.011em;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   
-  body, p, span, div {
-    font-family: 'Inter', sans-serif;
+  .font-editorial {
+    font-family: 'Playfair Display', Georgia, serif;
+    letter-spacing: -0.02em;
   }
   
-  .font-mono {
+  .font-mono-numbers {
     font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Day ↔ Evening Theme Transition Engine (400-600ms) */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: background-color 550ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 550ms cubic-bezier(0.4, 0, 0.2, 1),
+              color 550ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 550ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-delay: 0s !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-transitioning,
+  html.theme-transitioning *,
+  html.theme-transitioning *::before,
+  html.theme-transitioning *::after {
+    transition: none !important;
   }
 }
 

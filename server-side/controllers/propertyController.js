@@ -1768,9 +1768,12 @@ export const getProperty = async (req, res) => {
         )
         .lean();
 
-      // If property found using ID → redirect to SEO slug URL
-      if (property && property.slug) {
-        return res.redirect(301, `/property-details/${property.slug}`);
+      // If property found using ID, return it directly for API clients
+      if (property) {
+        return res.status(200).json({
+          success: true,
+          property,
+        });
       }
     }
 

@@ -1,126 +1,60 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Home, ArrowLeft, Search, Sparkles } from "lucide-react";
-import Button from "../components/ui/Button";
+import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet";
+import { MapPin, Search, ArrowRight, Home } from "lucide-react";
+import Header from "../components/ui/Header";
+import Footer from "../components/ui/Footer";
+import MobileNav from "../components/ui/MobileNav";
 
 const NotFound = () => {
-  const navigate = useNavigate();
-
-  const handleGoHome = () => {
-    navigate("/");
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-6">
-      <div className="text-center max-w-lg">
-        {/* Animated Icon */}
-        <div className="flex justify-center mb-8">
-          <div className="relative">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-md shadow-sm flex items-center justify-center border border-gray-100 animate-pulse">
-              <Search className="w-12 h-12 text-blue-400" />
-            </div>
-            <div className="absolute -top-2 -right-2">
-              <Sparkles className="w-6 h-6 text-yellow-400 animate-bounce" />
-            </div>
+    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-foreground)] flex flex-col font-sans transition-colors duration-300">
+      <Helmet>
+        <title>This Address Doesn't Exist — Makaan4U</title>
+      </Helmet>
+
+      <Header />
+
+      <main className="flex-1 flex items-center justify-center px-4 py-16">
+        <div className="max-w-md w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm p-8 text-center space-y-6 shadow-sm">
+          <div className="w-16 h-16 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-full flex items-center justify-center mx-auto text-[var(--color-terracotta)]">
+            <MapPin className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <span className="font-mono text-xs uppercase tracking-widest text-[var(--color-muted-foreground)]">
+              Registry Code 404
+            </span>
+            <h1 className="font-editorial text-3xl font-bold tracking-tight text-[var(--color-foreground)]">
+              This address does not exist.
+            </h1>
+            <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed">
+              The property parcel or URL you are attempting to locate has either been sold, reassigned, or never registered in our directory.
+            </p>
+          </div>
+
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              to="/properties"
+              className="w-full sm:w-auto px-5 py-2.5 bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] text-xs font-semibold rounded-sm transition-colors flex items-center justify-center space-x-1.5"
+            >
+              <span>Back to Properties</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+
+            <Link
+              to="/"
+              className="w-full sm:w-auto px-5 py-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] text-xs font-medium rounded-sm transition-colors flex items-center justify-center space-x-1"
+            >
+              <Home className="w-3.5 h-3.5 mr-1" />
+              <span>Discovery Homepage</span>
+            </Link>
           </div>
         </div>
+      </main>
 
-        {/* Content with Animation */}
-        <div className="space-y-4 mb-8 animate-fade-in">
-          <h1 className="text-7xl font-bold text-gray-900 animate-bounce-in">
-            404
-          </h1>
-          <h2 className="text-2xl font-semibold text-gray-800 animate-slide-up">
-            Page Not Found
-          </h2>
-          <p className="text-gray-600 text-lg leading-relaxed animate-fade-in-delayed">
-            Sorry, we couldn't find the page you're looking for. The page might
-            have been moved or doesn't exist.
-          </p>
-        </div>
-
-        {/* Animated Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up-delayed">
-          <Button
-            variant="outline"
-            icon={ArrowLeft}
-            iconPosition="left"
-            onClick={() => window.history.back()}
-            className="flex-1 sm:flex-none hover:scale-105 transition-transform duration-200"
-          >
-            Go Back
-          </Button>
-
-          <Button
-            variant="primary"
-            icon={Home}
-            iconPosition="left"
-            onClick={handleGoHome}
-            className="flex-1 sm:flex-none hover:scale-105 transition-transform duration-200"
-          >
-            Home Page
-          </Button>
-        </div>
-
-        {/* Subtle Help Text */}
-        <p className="text-gray-400 text-sm mt-8 animate-fade-in">
-          If you believe this is an error, please contact support.
-        </p>
-      </div>
-
-      {/* Add custom animations to global CSS */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes bounceIn {
-          0% {
-            opacity: 0;
-            transform: scale(0.3);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.05);
-          }
-          70% {
-            transform: scale(0.9);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        .animate-fade-in {
-          animation: fadeIn 0.6s ease-out;
-        }
-        .animate-fade-in-delayed {
-          animation: fadeIn 0.6s ease-out 0.3s both;
-        }
-        .animate-slide-up {
-          animation: slideUp 0.6s ease-out 0.2s both;
-        }
-        .animate-slide-up-delayed {
-          animation: slideUp 0.6s ease-out 0.4s both;
-        }
-        .animate-bounce-in {
-          animation: bounceIn 0.8s ease-out;
-        }
-      `}</style>
+      <Footer />
+      <MobileNav />
     </div>
   );
 };

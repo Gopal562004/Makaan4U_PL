@@ -12,7 +12,6 @@ dotenv.config();
 
 // Connect DB
 import connectDB from "./config/database.js";
-// We don't call connectDB() here because it's handled (and awaited) by the Lambda handler
 
 import "./config/cloudinary.js";
 import routes from "./routes/index.js";
@@ -29,20 +28,32 @@ const __dirname = path.dirname(__filename);
 
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://localhost:5173",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:5173",
+  "http://192.168.1.34:3000",
   "http://192.168.1.35:3000",
   "http://172.17.144.1:3000",
   "https://makaan4u-clean.vercel.app",
 ];
 
 // Security headers
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
 
 // CORS
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.includes("localhost") ||
+        origin.includes("127.0.0.1")
+      ) {
+        return callback(null, true);
+      }
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
@@ -56,27 +67,18 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // LogNexis API Monitoring SDK
-app.use(expressMiddleware({ 
-  apiKey: process.env.MONITOR_API_KEY,
-  baseUrl: "https://lognexis-node.onrender.com",
-  debug: process.env.NODE_ENV === "development"
-}));
-
-// Force HTTPS in Production (SEO Boost) - Disabled for AWS Lambda because API Gateway handles HTTPS
-// app.use((req, res, next) => {
-//   if (
-//     process.env.NODE_ENV === "production" &&
-//     req.headers["x-forwarded-proto"] !== "https"
-//   ) {
-//     return res.redirect(`https://${req.headers.host}${req.url}`);
-//   }
-//   next();
-// });
+if (process.env.MONITOR_API_KEY) {
+  app.use(expressMiddleware({ 
+    apiKey: process.env.MONITOR_API_KEY,
+    baseUrl: "https://lognexis-node.onrender.com",
+    debug: process.env.NODE_ENV === "development"
+  }));
+}
 
 // Enable GZIP compression
 app.use(compression());
 
-// Disable caching
+// Disable caching for development/dynamic responses
 app.use((req, res, next) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
   res.setHeader("Pragma", "no-cache");

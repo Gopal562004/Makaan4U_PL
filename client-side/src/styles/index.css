@@ -29,67 +29,28 @@ body {
   transform: translateZ(0);
 }
 
-/* Pure White Custom Scrollbar for entire website */
+/* Adaptive Architectural Scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #e2e8f0 #ffffff;
+  scrollbar-color: var(--color-border) transparent;
 }
 
-/* Webkit browsers (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #ffffff;
-  border-radius: 3px;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
+  background: var(--color-border);
   border-radius: 3px;
-  border: 1px solid #ffffff;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
-}
-
-::-webkit-scrollbar-thumb:active {
-  background: #94a3b8;
-}
-
-::-webkit-scrollbar-corner {
-  background: #ffffff;
-}
-
-/* Dark mode support - Force white background */
-@media (prefers-color-scheme: dark) {
-  * {
-    scrollbar-color: #e2e8f0 #ffffff;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: #ffffff;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border: 1px solid #ffffff;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: #cbd5e1;
-  }
-  
-  ::-webkit-scrollbar-thumb:active {
-    background: #94a3b8;
-  }
-  
-  ::-webkit-scrollbar-corner {
-    background: #ffffff;
-  }
+  background: var(--color-muted-foreground);
 }
 
 /* Additional white scrollbar classes for specific elements */

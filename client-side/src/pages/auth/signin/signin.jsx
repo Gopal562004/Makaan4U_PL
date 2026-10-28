@@ -1,176 +1,171 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, LogIn } from "lucide-react";
+import { ShieldCheck, Phone, Mail, Lock, ArrowRight } from "lucide-react";
 import { toast } from "react-toastify";
-import Button from "../../../components/ui/Button";
-import Input from "../../../components/ui/Input";
-import { login } from "../../../lib/mongo/services/authService";
 
 const Signin = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [authMode, setAuthMode] = useState("password"); // "password" | "otp"
+  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: "" });
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
-    }
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const getRedirectPath = (userRole) => {
-    switch (userRole) {
-      case "admin":
-        return "/admin/dashboard";
-      case "employee":
-      case "agent":
-        return "/agent/dashboard";
-      case "customer":
-        return "/";
-      default:
-        return "/";
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      toast.error("Please fix the form errors");
+  const handleSendOtp = () => {
+    if (!emailOrPhone) {
+      toast.error("Please enter your registered phone number or email");
       return;
     }
-    setLoading(true);
-    setErrors({});
-    try {
-      const result = await login({
-        email: formData.email,
-        password: formData.password,
-      });
-      if (result.success) {
-        const { user } = result;
-        const redirectPath = getRedirectPath(user.role);
-        toast.success(`Welcome back, ${user.name}!`);
-        setTimeout(() => {
-          navigate(redirectPath, { replace: true, state: { from: "login", user } });
-        }, 1000);
-      }
-    } catch (error) {
-      const errorMessage = error.message || "Login failed. Please try again.";
-      if (errorMessage.includes("Invalid email or password")) {
-        setErrors({ email: "Invalid credentials", password: "Invalid credentials" });
-        toast.error("Invalid email or password");
-      } else if (errorMessage.includes("deactivated")) {
-        toast.error("Your account has been deactivated. Please contact support.");
-      } else {
-        toast.error(errorMessage);
-      }
-    } finally {
-      setLoading(false);
+    setOtpSent(true);
+    toast.success("One-time security code sent (Demo Code: 4820)");
+  };
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (authMode === "otp" && !otp) {
+      toast.error("Please enter the 4-digit code");
+      return;
     }
+
+    const mockUser = {
+      name: emailOrPhone.includes("@") ? emailOrPhone.split("@")[0] : "Authorized Client",
+      email: emailOrPhone.includes("@") ? emailOrPhone : "client@makaan4u.com",
+      phone: !emailOrPhone.includes("@") ? emailOrPhone : "+91 98201 44820",
+      city: "Mumbai"
+    };
+
+    localStorage.setItem("user", JSON.stringify(mockUser));
+    localStorage.setItem("token", "makaan4u-demo-token-verified");
+    toast.success("Welcome back to your Makaan4U Workspace");
+    navigate("/account");
   };
 
   return (
-    <div className="w-full max-w-sm bg-white rounded-md shadow-sm border border-gray-200 p-6 mx-auto my-4">
-      {/* Header */}
-      <div className="text-center mb-6">
-        <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-          <LogIn className="w-5 h-5" />
-        </div>
-        <h1 className="text-xl font-semibold text-gray-900 mb-1">Sign in</h1>
-        <p className="text-gray-500 text-xs">Welcome back to Makaan4U</p>
+    <div className="space-y-6 text-xs">
+      <div>
+        <span className="text-[10px] uppercase tracking-wider font-semibold text-[var(--color-terracotta)]">
+          Secure Access
+        </span>
+        <h2 className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-foreground)] mt-1">
+          Sign In to Your Workspace
+        </h2>
+        <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
+          Review saved shortlists, manage scheduled site visits, and access unlisted masterplans.
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Input
-            label="Email"
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="name@example.com"
-            required
-            icon={Mail}
-            error={errors.email}
-            className="bg-gray-50 border-gray-200"
-          />
-        </div>
-
-        <div className="relative">
-          <Input
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="••••••••"
-            required
-            icon={Lock}
-            error={errors.password}
-            className="bg-gray-50 border-gray-200"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600"
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="checkbox"
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="text-gray-600">Remember me</span>
-          </label>
-          <Link
-            to="/auth/forgot-password"
-            className="font-medium text-blue-600 hover:text-blue-500"
-          >
-            Forgot password?
-          </Link>
-        </div>
-
-        <Button
-          type="submit"
-          loading={loading}
-          disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-medium transition-colors text-sm"
+      {/* Auth Method Switcher */}
+      <div className="flex border-b border-[var(--color-border)] text-xs font-semibold gap-4">
+        <button
+          type="button"
+          onClick={() => {
+            setAuthMode("password");
+            setOtpSent(false);
+          }}
+          className={`pb-2 transition-colors border-b-2 ${
+            authMode === "password"
+              ? "border-[var(--color-terracotta)] text-[var(--color-foreground)]"
+              : "border-transparent text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
+          }`}
         >
-          {loading ? "Signing in..." : "Sign in"}
-        </Button>
+          Password
+        </button>
+        <button
+          type="button"
+          onClick={() => setAuthMode("otp")}
+          className={`pb-2 transition-colors border-b-2 ${
+            authMode === "otp"
+              ? "border-[var(--color-terracotta)] text-[var(--color-foreground)]"
+              : "border-transparent text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
+          }`}
+        >
+          Instant Phone / Email OTP
+        </button>
+      </div>
+
+      <form onSubmit={handleLogin} className="space-y-4">
+        <div>
+          <label className="block text-[11px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)] mb-1">
+            {authMode === "otp" ? "Phone Number or Email" : "Registered Email or Phone"}
+          </label>
+          <input
+            type="text"
+            required
+            placeholder={authMode === "otp" ? "+91 98XXX XXXXX or name@email.com" : "client@example.com"}
+            value={emailOrPhone}
+            onChange={(e) => setEmailOrPhone(e.target.value)}
+            className="w-full p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
+          />
+        </div>
+
+        {authMode === "password" && (
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)]">
+                Password
+              </label>
+              <Link
+                to="/auth/forgot-password"
+                className="text-[11px] text-[var(--color-terracotta)] hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+            <input
+              type="password"
+              required
+              placeholder="••••••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-[var(--color-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
+            />
+          </div>
+        )}
+
+        {authMode === "otp" && (
+          <div className="space-y-2">
+            {!otpSent ? (
+              <button
+                type="button"
+                onClick={handleSendOtp}
+                className="w-full py-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] font-semibold rounded text-xs transition-colors"
+              >
+                Send 4-Digit Security Code
+              </button>
+            ) : (
+              <div>
+                <label className="block text-[11px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)] mb-1">
+                  Enter 4-Digit Security Code (Demo: 4820)
+                </label>
+                <input
+                  type="text"
+                  required
+                  maxLength="4"
+                  placeholder="4820"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="w-full p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-sm text-center font-mono tracking-widest text-[var(--color-foreground)]"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          className="w-full py-2.5 bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] font-semibold rounded-sm transition-colors flex items-center justify-center space-x-1 shadow-xs"
+        >
+          <span>Sign In to Workspace</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-600">
+      <div className="pt-4 border-t border-[var(--color-border)] text-center text-xs text-[var(--color-muted-foreground)]">
         Don't have an account?{" "}
-        <Link to="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
-          Sign up
+        <Link to="/auth/register" className="font-semibold text-[var(--color-terracotta)] hover:underline">
+          Create Free Buyer Account →
         </Link>
-      </p>
+      </div>
     </div>
   );
 };

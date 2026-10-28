@@ -1,497 +1,611 @@
 import React, { useState, useEffect } from "react";
+import { getAllProperties } from "../../lib/mongo/services/propertyService";
+import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
-import Header from "../../components/ui/Header";
-import FloatingChat from "../../components/ui/FloatingChat";
-import HeroSection from "./components/HeroSection";
-import TrendingProperties from "./components/TrendingProperties";
-import TestimonialsSection from "./components/TestimonialsSection";
-import Footer from "./components/Footer";
 import {
-  Building2,
-  Users,
+  Search,
   MapPin,
-  Award,
-  Shield,
-  Zap,
-  Globe,
+  ArrowRight,
+  ShieldCheck,
   TrendingUp,
-  ArrowUp,
+  Building,
+  Sparkles,
+  Layers,
+  ChevronRight,
+  Compass,
+  ArrowUpRight,
+  FileCheck2,
+  Scale
 } from "lucide-react";
+import Header from "../../components/ui/Header";
+import Footer from "../../components/ui/Footer";
+import MobileNav from "../../components/ui/MobileNav";
+import PropertyCard from "../../components/ui/PropertyCard";
+import ProjectCard from "../../components/ui/ProjectCard";
+import CompareDrawer from "../../components/ui/CompareDrawer";
+import {
+  PROJECTS,
+  CITIES,
+  LOCALITIES,
+  INSIGHTS_ARTICLES,
+  MARKET_TRENDS_DATA
+} from "../../data/propertyData";
 
 const HomePage = () => {
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState("en");
-  const [user, setUser] = useState(null);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [activePurpose, setActivePurpose] = useState("Buy"); // "Buy" | "Rent" | "Commercial" | "Projects"
+  const [selectedCity, setSelectedCity] = useState("All");
+  const [searchLocation, setSearchLocation] = useState("");
+  const navigate = useNavigate();
+
+  const handleHeroSearch = (e) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (activePurpose) params.set("purpose", activePurpose);
+    if (selectedCity && selectedCity !== "All") params.set("city", selectedCity);
+    if (searchLocation) params.set("search", searchLocation);
+    navigate(`/properties?${params.toString()}`);
+  };
+
+  const [featuredProperties, setFeaturedProperties] = useState([]);
+  const [marqueeProperty, setMarqueeProperty] = useState(null);
+  const [loadingProperties, setLoadingProperties] = useState(true);
 
   useEffect(() => {
-    const savedLanguage = localStorage.getItem("language") || "en";
-    setCurrentLanguage(savedLanguage);
+    let isMounted = true;
+    setLoadingProperties(true);
+    getAllProperties({ limit: 6 })
+      .then((res) => {
+        if (!isMounted) return;
+        if (res?.properties?.length) {
+          setFeaturedProperties(res.properties.slice(0, 4));
+          setMarqueeProperty(res.properties[0]);
+        }
+        setLoadingProperties(false);
+      })
+      .catch(() => {
+        if (isMounted) setLoadingProperties(false);
+      });
 
-    const mockUser = {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@example.com",
-      role: "buyer",
-      avatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
+    return () => {
+      isMounted = false;
     };
-    setUser(mockUser);
-
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const handleChatToggle = () => {
-    setIsChatOpen(!isChatOpen);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-  };
-
-  const handleSearch = (query) => {
-    console.log("Search query:", query);
-  };
-
-  // Stats data
-  const stats = [
-    { icon: Building2, number: "50K+", label: "Properties" },
-    { icon: Users, number: "10K+", label: "Customers" },
-    { icon: MapPin, number: "25+", label: "Cities" },
-    { icon: Award, number: "99%", label: "Satisfaction" },
-  ];
-
-  // Features data
-  const features = [
-    {
-      icon: Shield,
-      title: "Verified Properties",
-      description: "Every listing is thoroughly verified for authenticity.",
-    },
-    {
-      icon: Zap,
-      title: "Instant Notifications",
-      description: "Real-time alerts for new properties.",
-    },
-    {
-      icon: Globe,
-      title: "Virtual Tours",
-      description: "Explore properties from anywhere.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Market Insights",
-      description: "Comprehensive market data and analytics.",
-    },
-  ];
-
-  // SEO Meta Data
-  const seoData = {
-    en: {
-      title: "Makaan4U - Find Your Dream Property | Real Estate Platform",
-      description:
-        "Discover your perfect property with Makaan4U. Browse thousands of verified listings, connect with expert agents, and find your dream home in India's top cities.",
-      keywords:
-        "real estate, property, buy house, sell property, rent apartment, Mumbai, Delhi, Bangalore, Pune, real estate India, property search",
-      canonical: "https://makaan4u.com",
-    },
-    hi: {
-      title: "Makaan4U - अपनी सपनों की संपत्ति खोजें | रियल एस्टेट प्लेटफॉर्म",
-      description:
-        "Makaan4U के साथ अपनी सही संपत्ति खोजें। हजारों सत्यापित लिस्टिंग ब्राउज़ करें, विशेषज्ञ एजेंटों से जुड़ें, और भारत के शीर्ष शहरों में अपना सपनों का घर खोजें।",
-      keywords:
-        "रियल एस्टेट, संपत्ति, घर खरीदें, संपत्ति बेचें, अपार्टमेंट किराए पर, मुंबई, दिल्ली, बैंगलोर, पुणे",
-      canonical: "https://makaan4u.com/hi",
-    },
-    mr: {
-      title:
-        "Makaan4U - तुमची स्वप्नांची मालमत्ता शोधा | रिअल इस्टेट प्लॅटफॉर्म",
-      description:
-        "Makaan4U सह तुमची योग्य मालमत्ता शोधा। हजारो सत्यापित लिस्टिंग ब्राउझ करा, तज्ञ एजंटशी जोडा आणि भारतातील अग्रगण्य शहरांमध्ये तुमचे स्वप्नांचे घर शोधा.",
-      keywords:
-        "रिअल इस्टेट, मालमत्ता, घर खरेदी, मालमत्ता विक्री, अपार्टमेंट भाडे, मुंबई, दिल्ली, बंगळूर, पुणे",
-      canonical: "https://makaan4u.com/mr",
-    },
-  };
-
-  // Structured Data for SEO
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "RealEstateAgent",
-    name: "Makaan4U",
-    description:
-      seoData[currentLanguage]?.description || seoData.en.description,
-    url: "https://makaan4u.com",
-    telephone: "+91-XXXXXXXXXX",
-    address: {
-      "@type": "PostalAddress",
-      addressCountry: "IN",
-      addressRegion: "Maharashtra",
-      addressLocality: "Mumbai",
-    },
-    areaServed: ["IN"],
-    serviceArea: {
-      "@type": "GeoCircle",
-      geoMidpoint: {
-        "@type": "GeoCoordinates",
-        latitude: "19.0760",
-        longitude: "72.8777",
-      },
-      geoRadius: "500000",
-    },
-    hasOfferCatalog: {
-      "@type": "OfferCatalog",
-      name: "Real Estate Services",
-      itemListElement: [
-        {
-          "@type": "Offer",
-          itemOffered: {
-            "@type": "Service",
-            name: "Property Buying",
-            description: "Find and buy your dream property",
-          },
-        },
-        {
-          "@type": "Offer",
-          itemOffered: {
-            "@type": "Service",
-            name: "Property Selling",
-            description: "Sell your property with expert assistance",
-          },
-        },
-        {
-          "@type": "Offer",
-          itemOffered: {
-            "@type": "Service",
-            name: "Property Renting",
-            description: "Rent apartments and houses",
-          },
-        },
-      ],
-    },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      ratingCount: "1250",
-      bestRating: "5",
-      worstRating: "1",
-    },
-    sameAs: [
-      "https://www.facebook.com/makaan4u",
-      "https://www.twitter.com/makaan4u",
-      "https://www.linkedin.com/company/makaan4u",
-      "https://www.instagram.com/makaan4u",
-    ],
-  };
-
-  // FAQ Structured Data
-  const faqStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "How do I search for properties on Makaan4U?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "You can search for properties using our advanced search filters by location, price range, property type, and amenities. Our platform provides detailed property information with photos and virtual tours.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Are all properties verified on Makaan4U?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes, all properties listed on Makaan4U undergo a thorough verification process to ensure authenticity and accuracy of information.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "How can I contact property agents?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "You can directly contact verified agents through their profile pages, schedule appointments, or use our chat feature for instant communication.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Is Makaan4U available in multiple languages?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes, Makaan4U supports multiple languages including English, Hindi, and Marathi to serve users across different regions of India.",
-        },
-      },
-    ],
-  };
-
-  const currentSeoData = seoData[currentLanguage] || seoData.en;
+  const trendingProjects = PROJECTS.slice(0, 3);
+  const editorialArticles = INSIGHTS_ARTICLES.slice(0, 3);
 
   return (
-    <>
+    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-foreground)] flex flex-col font-sans transition-colors duration-300">
       <Helmet>
-        {/* Primary Meta Tags */}
-        <title>{currentSeoData.title}</title>
-        <meta name="description" content={currentSeoData.description} />
-        <meta name="keywords" content={currentSeoData.keywords} />
+        <title>Makaan4U — Verified Indian Residential Real Estate & Architectural Discovery</title>
         <meta
-          name="robots"
-          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+          name="description"
+          content="Discover verified luxury residences, penthouses, gated estates, and new developer launches across Mumbai, NCR, Bangalore, Pune, and Goa with forensic RERA intelligence."
         />
-
-        {/* Canonical URL */}
-        <link rel="canonical" href={currentSeoData.canonical} />
-
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={currentSeoData.canonical} />
-        <meta property="og:title" content={currentSeoData.title} />
-        <meta property="og:description" content={currentSeoData.description} />
-        <meta property="og:image" content="https://makaan4u.com/og-image.jpg" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta
-          property="og:image:alt"
-          content="Makaan4U - Real Estate Platform"
-        />
-        <meta property="og:site_name" content="Makaan4U" />
-        <meta
-          property="og:locale"
-          content={
-            currentLanguage === "hi"
-              ? "hi_IN"
-              : currentLanguage === "mr"
-              ? "mr_IN"
-              : "en_IN"
-          }
-        />
-
-        {/* Twitter Cards */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={currentSeoData.canonical} />
-        <meta property="twitter:title" content={currentSeoData.title} />
-        <meta
-          property="twitter:description"
-          content={currentSeoData.description}
-        />
-        <meta
-          property="twitter:image"
-          content="https://makaan4u.com/twitter-image.jpg"
-        />
-        <meta
-          property="twitter:image:alt"
-          content="Makaan4U - Real Estate Platform"
-        />
-        <meta property="twitter:site" content="@makaan4u" />
-        <meta property="twitter:creator" content="@makaan4u" />
-
-        {/* Additional Meta Tags */}
-        <meta name="author" content="Makaan4U" />
-        <meta name="copyright" content="Makaan4U" />
-        <meta name="language" content={currentLanguage} />
-        <meta name="revisit-after" content="7 days" />
-        <meta name="rating" content="safe for kids" />
-        <meta name="distribution" content="global" />
-
-        {/* Geo Tags */}
-        <meta name="geo.region" content="IN-MH" />
-        <meta name="geo.placename" content="Mumbai" />
-        <meta name="geo.position" content="19.0760;72.8777" />
-        <meta name="ICBM" content="19.0760, 72.8777" />
-
-        {/* Mobile Specific */}
-        <meta name="theme-color" content="#2563eb" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Makaan4U" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="Makaan4U" />
-
-        {/* Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </script>
-
-        <script type="application/ld+json">
-          {JSON.stringify(faqStructuredData)}
-        </script>
-
-        {/* Breadcrumb Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              {
-                "@type": "ListItem",
-                position: 1,
-                name: "Home",
-                item: "https://makaan4u.com",
-              },
-            ],
-          })}
-        </script>
-
-        {/* WebSite Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            name: "Makaan4U",
-            url: "https://makaan4u.com",
-            potentialAction: {
-              "@type": "SearchAction",
-              target: "https://makaan4u.com/search?q={search_term_string}",
-              "query-input": "required name=search_term_string",
-            },
-            description: currentSeoData.description,
-            publisher: {
-              "@type": "Organization",
-              name: "Makaan4U",
-              logo: {
-                "@type": "ImageObject",
-                url: "https://makaan4u.com/logo.png",
-              },
-            },
-          })}
-        </script>
       </Helmet>
 
-      <div className="min-h-screen bg-white">
-        {/* Header */}
-        <div
-          className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-            isScrolled
-              ? "bg-white shadow-sm border-b border-gray-200"
-              : "bg-white"
-          }`}
-        >
-          <Header
-            user={user}
-            notificationCount={3}
-            onLogout={handleLogout}
-            onSearch={handleSearch}
-          />
-        </div>
+      <Header />
 
-        {/* Main Content */}
-        <main className="pt-14 lg:pt-16">
-          {/* Hero Section */}
-          <HeroSection />
+      <main className="flex-1 pb-16 lg:pb-0">
+        {/* ====================================================================
+            SECTION 01: ASYMMETRIC EDITORIAL HERO & DISCOVERY ENGINE
+        ==================================================================== */}
+        <section className="relative border-b border-[var(--color-border)] overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              {/* Left Column: Editorial Statement & Purpose Switcher */}
+              <div className="lg:col-span-7 space-y-6">
+                <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-full text-xs">
+                  <span className="w-2 h-2 rounded-full bg-[var(--color-terracotta)] animate-pulse" />
+                  <span className="font-medium text-[var(--color-foreground)]">
+                    Q3 2026 Residential Market Dispatch Active
+                  </span>
+                </div>
 
-          {/* Stats Section - Compact */}
-          {/* <section className="py-12 bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {stats.map((stat, index) => (
-                  <div key={stat.label} className="text-center">
-                    <div className="flex justify-center mb-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center">
-                        <stat.icon className="w-5 h-5 text-blue-600" />
+                <h1 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--color-foreground)] leading-[1.08]">
+                  Architectural homes. <br />
+                  <span className="italic font-normal text-[var(--color-secondary)]">Forensic verification.</span>
+                </h1>
+
+                <p className="text-sm sm:text-base text-[var(--color-muted-foreground)] max-w-xl leading-relaxed">
+                  Makaan4U provides discerning buyers, owners, and capital allocators with 100% physically inspected properties, clear RERA title registries, and deep micro-market valuations across India’s primary economic hubs.
+                </p>
+
+                {/* Purpose Tab Switcher & Integrated Search Form */}
+                <div className="bg-[var(--color-surface)] border border-[var(--color-border)] p-2 sm:p-2.5 rounded-sm shadow-sm max-w-2xl">
+                  {/* Mode Tabs */}
+                  <div className="flex border-b border-[var(--color-border)] pb-2 px-1 gap-1 text-xs font-semibold">
+                    {[
+                      { id: "Buy", label: "Buy Residences" },
+                      { id: "Rent", label: "Executive Rentals" },
+                      { id: "Commercial", label: "Commercial" },
+                      { id: "Projects", label: "New Launches" }
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setActivePurpose(tab.id)}
+                        className={`px-3 py-1.5 rounded transition-colors ${
+                          activePurpose === tab.id
+                            ? "bg-[var(--color-foreground)] text-[var(--color-surface)]"
+                            : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Search Inputs Bar */}
+                  <form onSubmit={handleHeroSearch} className="flex flex-col sm:flex-row gap-2 pt-2">
+                    {/* City Selector */}
+                    <div className="sm:w-1/3">
+                      <select
+                        value={selectedCity}
+                        onChange={(e) => setSelectedCity(e.target.value)}
+                        className="w-full h-11 px-3 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm text-xs text-[var(--color-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
+                      >
+                        <option value="All">All Indian Metros</option>
+                        {CITIES.map((c) => (
+                          <option key={c.id} value={c.name}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Search Term Input */}
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 absolute left-3 top-3.5 text-[var(--color-muted-foreground)]" />
+                      <input
+                        type="text"
+                        value={searchLocation}
+                        onChange={(e) => setSearchLocation(e.target.value)}
+                        placeholder="Search locality (e.g. Worli, Indiranagar)..."
+                        className="w-full h-11 pl-9 pr-3 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm text-xs text-[var(--color-foreground)] placeholder-[var(--color-muted-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
+                      />
+                    </div>
+
+                    {/* Search Submit */}
+                    <button
+                      type="submit"
+                      className="h-11 px-6 bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] font-semibold text-xs rounded-sm transition-colors flex items-center justify-center space-x-1 whitespace-nowrap"
+                    >
+                      <span>Explore</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </form>
+                </div>
+
+                {/* Micro-market shortcuts */}
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-[var(--color-muted-foreground)]">
+                  <span className="font-semibold text-[var(--color-foreground)]">Popular:</span>
+                  {["Worli Sea Face", "Bandra West", "Golf Course Rd", "Indiranagar", "Assagao"].map((loc) => (
+                    <button
+                      key={loc}
+                      onClick={() => navigate(`/properties?search=${encodeURIComponent(loc)}`)}
+                      className="px-2 py-0.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded hover:border-[var(--color-muted-foreground)] text-[11px]"
+                    >
+                      {loc}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Column: Marquee Architectural Showcase (Not a card grid) */}
+              <div className="lg:col-span-5">
+                <div className="relative">
+                  {/* Subtle Framing Line */}
+                  <div className="absolute -inset-2 border border-[var(--color-border)] rounded-sm pointer-events-none -rotate-1 hidden sm:block" />
+
+                  {loadingProperties ? (
+                    <div className="relative bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm overflow-hidden shadow-lg p-6 space-y-4 animate-pulse">
+                      <div className="h-72 bg-[var(--color-subtle)] rounded-xs" />
+                      <div className="h-4 bg-[var(--color-subtle)] rounded w-1/3" />
+                      <div className="h-6 bg-[var(--color-subtle)] rounded w-3/4" />
+                      <div className="h-3 bg-[var(--color-subtle)] rounded w-full" />
+                    </div>
+                  ) : marqueeProperty ? (
+                    <div className="relative bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm overflow-hidden shadow-lg">
+                      <div className="relative h-72 sm:h-80 w-full overflow-hidden">
+                        <img
+                          src={marqueeProperty?.images?.[0] || marqueeProperty?.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80"}
+                          alt={marqueeProperty?.title || "Property"}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-xs px-2.5 py-1 rounded text-[10px] font-semibold text-white uppercase tracking-wider">
+                          Featured Property
+                        </div>
+                        <div className="absolute bottom-3 left-3 right-3 text-white">
+                          <span className="font-mono text-xl sm:text-2xl font-bold">
+                            {marqueeProperty?.price}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 sm:p-5 space-y-2">
+                        <div className="flex items-center justify-between text-[11px] text-[var(--color-muted-foreground)]">
+                          <span>{marqueeProperty?.locality || marqueeProperty?.city}, {marqueeProperty?.city}</span>
+                          {marqueeProperty?.reraId && (
+                            <span className="font-mono text-emerald-600 font-semibold">
+                              RERA: {marqueeProperty.reraId}
+                            </span>
+                          )}
+                        </div>
+                        <Link
+                          to={`/properties/${marqueeProperty?.slug || marqueeProperty?.id}`}
+                          className="block font-editorial text-lg sm:text-xl font-bold text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] transition-colors"
+                        >
+                          {marqueeProperty?.title}
+                        </Link>
+                        <p className="text-xs text-[var(--color-muted-foreground)] line-clamp-2">
+                          {marqueeProperty?.description || marqueeProperty?.overview}
+                        </p>
+                        <div className="flex items-center justify-between pt-3 border-t border-[var(--color-border)] text-xs">
+                          <span className="text-[var(--color-foreground)] font-medium">
+                            {marqueeProperty?.bedrooms ? `${marqueeProperty.bedrooms} BHK` : ""} {marqueeProperty?.area ? `• ${marqueeProperty.area.toLocaleString()} sq.ft` : marqueeProperty?.carpetArea ? `• ${marqueeProperty.carpetArea}` : ""}
+                          </span>
+                          <Link
+                            to={`/properties/${marqueeProperty?.slug || marqueeProperty?.id}`}
+                            className="font-semibold text-[var(--color-terracotta)] hover:underline inline-flex items-center"
+                          >
+                            <span>View Details</span>
+                            <ArrowUpRight className="w-3.5 h-3.5 ml-0.5" />
+                          </Link>
+                        </div>
                       </div>
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                      {stat.number}
-                    </h3>
-                    <p className="text-gray-600 text-sm">{stat.label}</p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Live Micro-Market Benchmark Ticker */}
+          <div className="border-t border-[var(--color-border)] bg-[var(--color-subtle)] py-2.5 overflow-hidden">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-xs">
+              <span className="font-mono font-bold uppercase tracking-wider text-[10px] text-[var(--color-terracotta)] flex items-center flex-shrink-0 mr-4">
+                <TrendingUp className="w-3 h-3 mr-1" />
+                Live Index:
+              </span>
+              <div className="flex items-center space-x-6 overflow-x-auto whitespace-nowrap text-[11px] font-mono">
+                {MARKET_TRENDS_DATA.map((item) => (
+                  <div key={item.city} className="flex items-center space-x-1.5 flex-shrink-0">
+                    <span className="font-semibold text-[var(--color-foreground)]">{item.city}:</span>
+                    <span className="text-[var(--color-muted-foreground)]">₹{item.avgPrice.toLocaleString("en-IN")}/sq.ft</span>
+                    <span className="text-emerald-600 font-medium">(+{item.yoyGrowth}%)</span>
                   </div>
                 ))}
               </div>
             </div>
-          </section> */}
+          </div>
+        </section>
 
-          {/* Features Section - Premium */}
-          <section className="py-16 bg-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-b from-blue-50 to-transparent rounded-full blur-3xl opacity-50 -z-10"></div>
-            <div className="max-w-7xl mx-auto px-4 lg:px-8 relative z-10">
-              <div className="text-center mb-12">
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-blue-50 text-blue-600 rounded-sm text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-3 border border-blue-100 shadow-sm">
-                  <Shield className="w-3.5 h-3.5" />
-                  Makaan4U Advantage
+        {/* ====================================================================
+            SECTION 02: CITY DISCOVERY PORTALS (Editorial Typography)
+        ==================================================================== */}
+        <section className="py-14 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[var(--color-border)]">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+            <div>
+              <span className="text-[11px] uppercase tracking-widest font-semibold text-[var(--color-terracotta)]">
+                Regional Portals
+              </span>
+              <h2 className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-foreground)] mt-1">
+                Explore Prime Indian Metros
+              </h2>
+            </div>
+            <Link
+              to="/cities"
+              className="text-xs font-semibold text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] transition-colors inline-flex items-center"
+            >
+              <span>View All 6 Cities & Market Indexes</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {CITIES.map((city, idx) => (
+              <Link
+                key={city.id}
+                to={`/cities/${city.id}`}
+                className="group relative bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm overflow-hidden transition-all duration-300"
+              >
+                <div className="relative h-48 w-full overflow-hidden bg-[var(--color-subtle)]">
+                  <img
+                    src={city.coverImage}
+                    alt={city.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute bottom-3 left-3 right-3 text-white">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-amber-300">
+                      {city.state}
+                    </span>
+                    <h3 className="font-editorial text-2xl font-bold text-white group-hover:underline">
+                      {city.name}
+                    </h3>
+                  </div>
                 </div>
-                <h2 className="text-2xl md:text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">
-                  Why Choose Makaan4U
+
+                <div className="p-4 space-y-2.5 text-xs">
+                  <p className="text-[var(--color-muted-foreground)] line-clamp-2 leading-relaxed">
+                    {city.tagline}
+                  </p>
+                  <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border)] font-mono text-[11px]">
+                    <span className="text-[var(--color-muted-foreground)]">
+                      Avg: <strong className="text-[var(--color-foreground)]">{city.avgPricePerSqFt}</strong>
+                    </span>
+                    <span className="text-emerald-600 font-semibold">{city.growthYoY} YoY</span>
+                    <span className="text-[var(--color-terracotta)] font-semibold">
+                      {city.totalListings} Listings →
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* ====================================================================
+            SECTION 03: VERIFIED FEATURED RESIDENCES
+        ==================================================================== */}
+        <section className="py-14 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[var(--color-border)]">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+            <div>
+              <span className="text-[11px] uppercase tracking-widest font-semibold text-[var(--color-terracotta)]">
+                Curated Shortlist
+              </span>
+              <h2 className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-foreground)] mt-1">
+                Verified Residences of Distinction
+              </h2>
+            </div>
+            <Link
+              to="/properties"
+              className="text-xs font-semibold text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] transition-colors inline-flex items-center"
+            >
+              <span>Explore Marketplace Directory</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {loadingProperties
+              ? [1, 2, 3, 4].map((n) => (
+                  <div
+                    key={n}
+                    className="h-80 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm animate-pulse p-4 space-y-3"
+                  >
+                    <div className="h-44 bg-[var(--color-subtle)] rounded-xs" />
+                    <div className="h-4 bg-[var(--color-subtle)] rounded w-1/3" />
+                    <div className="h-5 bg-[var(--color-subtle)] rounded w-3/4" />
+                    <div className="h-3 bg-[var(--color-subtle)] rounded w-1/2" />
+                  </div>
+                ))
+              : featuredProperties.map((prop) => (
+                  <PropertyCard key={prop.id || prop._id} property={prop} variant="standard" />
+                ))}
+          </div>
+        </section>
+
+        {/* ====================================================================
+            SECTION 04: NEW PROJECT LAUNCHES (Distinct Layout)
+        ==================================================================== */}
+        <section className="py-14 sm:py-20 bg-[var(--color-subtle)] border-b border-[var(--color-border)]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+              <div>
+                <span className="text-[11px] uppercase tracking-widest font-semibold text-[var(--color-terracotta)]">
+                  Tier-1 Master Developments
+                </span>
+                <h2 className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-foreground)] mt-1">
+                  New Project Launches & Estates
                 </h2>
-                <p className="text-base text-gray-600 font-light max-w-2xl mx-auto">
-                  Experience seamless property hunting with our trusted, premium platform designed for your success.
+                <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
+                  Direct developer allocations with verified RERA construction timelines and payment milestones.
                 </p>
               </div>
+              <Link
+                to="/projects"
+                className="text-xs font-semibold text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] transition-colors inline-flex items-center"
+              >
+                <span>Browse All Developer Projects</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </Link>
+            </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {features.map((feature, index) => (
-                  <div key={feature.title} className="bg-white border border-gray-100 p-6 rounded-md shadow-sm hover:shadow-xl transition-all duration-300 group">
-                    <div className="flex justify-start mb-5">
-                      <div className="w-12 h-12 bg-gray-50 border border-gray-200 rounded-md flex items-center justify-center group-hover:bg-blue-600 group-hover:border-blue-600 transition-colors duration-300 shadow-sm">
-                        <feature.icon className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors duration-300" />
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 tracking-tight">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-500 text-sm leading-relaxed font-light">
-                      {feature.description}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {trendingProjects.map((proj) => (
+                <ProjectCard key={proj.id} project={proj} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ====================================================================
+            SECTION 05: DEEP LOCALITY INTELLIGENCE (Asymmetric Layout)
+        ==================================================================== */}
+        <section className="py-14 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[var(--color-border)]">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-4 space-y-4">
+              <span className="text-[11px] uppercase tracking-widest font-semibold text-[var(--color-terracotta)]">
+                Micro-Market Intelligence
+              </span>
+              <h2 className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-foreground)]">
+                Locality Benchmarks & Infrastructure
+              </h2>
+              <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed">
+                We track capital values, rental yield trajectories, metro connectivity expansions, and civic infrastructure for over 180 key residential neighbourhoods.
+              </p>
+              <Link
+                to="/localities"
+                className="inline-flex items-center space-x-1.5 px-4 py-2 bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] rounded-sm text-xs font-semibold transition-colors"
+              >
+                <span>View Locality Directory</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {LOCALITIES.slice(0, 4).map((loc) => (
+                <Link
+                  key={loc.id}
+                  to={`/localities/${loc.id}`}
+                  className="p-4 bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm transition-all group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--color-muted-foreground)]">
+                      {loc.city}
+                    </span>
+                    <span className="text-[11px] font-mono text-emerald-600 font-semibold">
+                      {loc.growthRate}
+                    </span>
+                  </div>
+                  <h3 className="font-editorial text-xl font-bold text-[var(--color-foreground)] group-hover:text-[var(--color-terracotta)] transition-colors mt-1">
+                    {loc.name}
+                  </h3>
+                  <p className="text-xs text-[var(--color-muted-foreground)] mt-1.5 line-clamp-2">
+                    {loc.description}
+                  </p>
+                  <div className="flex items-center justify-between pt-3 mt-3 border-t border-[var(--color-border)] text-xs">
+                    <span className="font-mono font-bold text-[var(--color-foreground)]">
+                      {loc.avgPrice}
+                    </span>
+                    <span className="text-[11px] text-[var(--color-muted-foreground)] group-hover:text-[var(--color-foreground)] flex items-center">
+                      Explore Intelligence →
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ====================================================================
+            SECTION 06: MAKAAN4U INSIGHTS (Publication View)
+        ==================================================================== */}
+        <section className="py-14 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[var(--color-border)]">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+            <div>
+              <span className="text-[11px] uppercase tracking-widest font-semibold text-[var(--color-terracotta)]">
+                Makaan4U Insights Publication
+              </span>
+              <h2 className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-foreground)] mt-1">
+                Legal, Financial & Architectural Analysis
+              </h2>
+            </div>
+            <Link
+              to="/insights"
+              className="text-xs font-semibold text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] transition-colors inline-flex items-center"
+            >
+              <span>View All Publication Stories</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {editorialArticles.map((art) => (
+              <article
+                key={art.id}
+                className="group bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm overflow-hidden transition-all flex flex-col"
+              >
+                <div className="relative h-44 w-full overflow-hidden bg-[var(--color-subtle)]">
+                  <img
+                    src={art.heroImage}
+                    alt={art.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute top-2.5 left-2.5 bg-black/75 px-2 py-0.5 rounded text-[10px] font-semibold text-white uppercase tracking-wider">
+                    {art.category}
+                  </div>
+                </div>
+
+                <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
+                  <div>
+                    <span className="text-[10px] font-mono text-[var(--color-muted-foreground)]">
+                      {art.publishedDate} • {art.readingTime}
+                    </span>
+                    <Link to={`/insights/${art.slug}`} className="block mt-1">
+                      <h3 className="font-editorial text-base sm:text-lg font-bold text-[var(--color-foreground)] group-hover:text-[var(--color-terracotta)] transition-colors line-clamp-2">
+                        {art.title}
+                      </h3>
+                    </Link>
+                    <p className="text-xs text-[var(--color-muted-foreground)] mt-1.5 line-clamp-2">
+                      {art.excerpt}
                     </p>
                   </div>
-                ))}
+
+                  <div className="flex items-center justify-between pt-3 border-t border-[var(--color-border)] text-xs">
+                    <div className="flex items-center space-x-2">
+                      <img
+                        src={art.author.avatar}
+                        alt={art.author.name}
+                        className="w-5 h-5 rounded-full object-cover"
+                      />
+                      <span className="text-[11px] text-[var(--color-muted-foreground)] truncate max-w-[140px]">
+                        {art.author.name}
+                      </span>
+                    </div>
+                    <Link
+                      to={`/insights/${art.slug}`}
+                      className="font-semibold text-[var(--color-terracotta)] hover:underline"
+                    >
+                      Read →
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* ====================================================================
+            SECTION 07: VERIFICATION MANIFESTO (Trust Signals - No Clichés)
+        ==================================================================== */}
+        <section className="py-14 sm:py-20 bg-[var(--color-subtle)] border-b border-[var(--color-border)]">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
+            <span className="text-[11px] uppercase tracking-widest font-semibold text-[var(--color-terracotta)]">
+              The Makaan4U Standard
+            </span>
+            <h2 className="font-editorial text-3xl sm:text-4xl font-bold tracking-tight text-[var(--color-foreground)] leading-tight">
+              "We do not publish properties we have not physically stepped inside and verified against state title archives."
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-left pt-6 text-xs border-t border-[var(--color-border)]">
+              <div className="space-y-1">
+                <p className="font-semibold text-sm text-[var(--color-foreground)] flex items-center space-x-1.5">
+                  <FileCheck2 className="w-4 h-4 text-emerald-600" />
+                  <span>RERA Cross-Reference</span>
+                </p>
+                <p className="text-[var(--color-muted-foreground)] leading-relaxed">
+                  Every listed development is verified against sanctioned building plans and state authority quarterly escrow disclosures.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="font-semibold text-sm text-[var(--color-foreground)] flex items-center space-x-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Physical Inspection</span>
+                </p>
+                <p className="text-[var(--color-muted-foreground)] leading-relaxed">
+                  Real carpet areas, acoustic levels, actual window orientations, and maintenance conditions verified on-site.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="font-semibold text-sm text-[var(--color-foreground)] flex items-center space-x-1.5">
+                  <Scale className="w-4 h-4 text-emerald-600" />
+                  <span>Price Transparency</span>
+                </p>
+                <p className="text-[var(--color-muted-foreground)] leading-relaxed">
+                  No artificial inflated quotations. Benchmark ₹/sq.ft analytics calibrated from registered stamp duty registry transactions.
+                </p>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
+      </main>
 
-          {/* Trending Properties */}
-          <TrendingProperties />
-
-          {/* Testimonials */}
-          <TestimonialsSection />
-
-          {/* CTA Section - Premium */}
-          <section className="py-16 relative overflow-hidden bg-gray-900">
-            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')] bg-cover bg-center opacity-20"></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent"></div>
-            
-            <div className="max-w-5xl mx-auto px-4 text-center relative z-10">
-              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-tight drop-shadow-md">
-                Ready to Find Your Dream Home?
-              </h2>
-              <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto font-light">
-                Join thousands of satisfied customers who found their perfect property. Start your journey today with Makaan4U.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="px-6 py-3 bg-white text-gray-900 rounded-md font-bold uppercase tracking-wider hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-xl text-xs">
-                  Browse Properties
-                </button>
-                <button className="px-6 py-3 border border-white/30 text-white rounded-md font-bold uppercase tracking-wider hover:bg-white/10 backdrop-blur-sm transition-all duration-300 text-xs">
-                  Contact Agent
-                </button>
-              </div>
-            </div>
-          </section>
-        </main>
-
-        {/* Footer */}
-        <Footer />
-
-        {/* Floating Chat */}
-        <FloatingChat isOpen={isChatOpen} onToggle={handleChatToggle} />
-
-        {/* Scroll to Top Button */}
-        {/* {isScrolled && (
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="fixed bottom-6 right-6 w-10 h-10 bg-gray-800 text-white rounded-full shadow-lg flex items-center justify-center z-40 hover:bg-gray-700 transition-colors duration-200"
-            aria-label="Scroll to top"
-          >
-            <ArrowUp className="w-5 h-5" />
-          </button>
-        )} */}
-      </div>
-    </>
+      <Footer />
+      <MobileNav />
+      <CompareDrawer />
+    </div>
   );
 };
-
 
 export default HomePage;

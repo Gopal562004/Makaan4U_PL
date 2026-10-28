@@ -1,2529 +1,1041 @@
-// // import React, { useState, useEffect, useCallback, useMemo } from "react";
-// // import { useParams, useNavigate } from "react-router-dom";
-// // import { Helmet } from "react-helmet";
-// // import Header from "../../components/ui/Header";
-// // import FloatingChat from "../../components/ui/FloatingChat";
-// // import PropertyImageGallery from "./components/PropertyImageGallery";
-// // import PropertyInfo from "./components/PropertyInfo";
-// // import AgentCard from "./components/AgentCard";
-// // import AppointmentModal from "./components/AppointmentModal";
-// // import PropertyLocation from "./components/PropertyLocation";
-// // import SimilarProperties from "./components/SimilarProperties";
-// // import PropertyActions from "./components/PropertyActions";
-// // import BreadcrumbTrail from "../../components/ui/BreadcrumbTrail";
-// // import Icon from "../../components/AppIcon";
-// // import Button from "../../components/ui/Button";
-// // import { getPropertyBySlug } from "../../lib/mongo/services/propertyService";
-// // import { AlertCircle } from "lucide-react";
-
-// // // 🔥 IMPORT SKELETON COMPONENT
-// // import PropertyDetailsSkeleton from "../../components/loading/PropertyDetailsSkeleton";
-
-// // // 🔥 ADD THESE IMPORTS
-// // import { usePerformanceMonitor } from "../../hooks/usePerformanceMonitor";
-// // import { checkPerformanceBudget } from "../../utils/performanceBudget";
-// // import { trackSEOEvents } from "../../utils/analytics";
-// // import { optimizeImageUrl } from "../../utils/imageOptimizer";
-
-// // const PropertyDetails = () => {
-// //   const { slug } = useParams();
-// //   const navigate = useNavigate();
-
-// //   const [property, setProperty] = useState(null);
-// //   const [loading, setLoading] = useState(true);
-// //   const [error, setError] = useState(null);
-// //   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
-// //   const [isChatOpen, setIsChatOpen] = useState(false);
-// //   const [activeTab, setActiveTab] = useState("overview");
-// //   const [user, setUser] = useState(null);
-
-// //   // 🔥 INITIALIZE PERFORMANCE MONITORING
-// //   usePerformanceMonitor();
-
-// //   // 🔥 ENHANCED SEO META TAGS
-// //   const getPropertyMetaTags = useCallback(() => {
-// //     if (!property) return null;
-
-// //     const title = `🏠 ${property.title} | ${property.bedrooms}BHK ${
-// //       property.type
-// //     } in ${property.location} | ₹${
-// //       property.price?.toLocaleString("en-IN") || "Price on Request"
-// //     }`;
-
-// //     const description = `✅ Verified ${property.bedrooms}BHK ${
-// //       property.type
-// //     } in ${property.location}. ${property.area} sq ft • ${
-// //       property.bathrooms
-// //     } Bath • ${property.amenities?.slice(0, 3).join(" • ")}. 📞 Contact ${
-// //       property.agent?.name
-// //     } for viewing. Instant booking available.`;
-
-// //     const currentUrl = `${window.location.origin}/property/${slug}`;
-// //     const featuredImage = optimizeImageUrl(
-// //       property.images?.[0]?.url || "/images/property-og-default.jpg",
-// //       { width: 1200, quality: 85 }
-// //     );
-
-// //     return (
-// //       <Helmet>
-// //         {/* Primary Meta Tags */}
-// //         <title>{title}</title>
-// //         <meta name="description" content={description} />
-// //         <meta
-// //           name="robots"
-// //           content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
-// //         />
-// //         <meta
-// //           name="keywords"
-// //           content={`${property.type}, ${property.location}, real estate, property for sale, ${property.bedrooms} bedroom, ${property.area} sq ft, buy property, rent apartment`}
-// //         />
-
-// //         {/* Canonical URL */}
-// //         <link rel="canonical" href={currentUrl} />
-
-// //         {/* Open Graph / Facebook */}
-// //         <meta property="og:type" content="real_estate.property" />
-// //         <meta property="og:url" content={currentUrl} />
-// //         <meta property="og:title" content={title} />
-// //         <meta property="og:description" content={description} />
-// //         <meta property="og:image" content={featuredImage} />
-// //         <meta property="og:image:width" content="1200" />
-// //         <meta property="og:image:height" content="630" />
-// //         <meta
-// //           property="og:image:alt"
-// //           content={`Main image of ${property.title}`}
-// //         />
-// //         <meta property="og:site_name" content="Premium Real Estate Platform" />
-// //         <meta property="og:locale" content="en_IN" />
-// //         <meta property="og:price:amount" content={property.price?.toString()} />
-// //         <meta property="og:price:currency" content="INR" />
-// //         <meta
-// //           property="og:availability"
-// //           content={property.status === "available" ? "instock" : "out of stock"}
-// //         />
-
-// //         {/* Twitter Cards */}
-// //         <meta property="twitter:card" content="summary_large_image" />
-// //         <meta property="twitter:url" content={currentUrl} />
-// //         <meta property="twitter:title" content={title} />
-// //         <meta property="twitter:description" content={description} />
-// //         <meta property="twitter:image" content={featuredImage} />
-// //         <meta
-// //           property="twitter:image:alt"
-// //           content={`Main image of ${property.title}`}
-// //         />
-// //         <meta property="twitter:site" content="@RealEstatePlatform" />
-// //         <meta property="twitter:creator" content="@RealEstatePlatform" />
-
-// //         {/* Enhanced Structured Data */}
-// //         <script type="application/ld+json">
-// //           {JSON.stringify({
-// //             "@context": "https://schema.org",
-// //             "@graph": [
-// //               {
-// //                 "@type": "RealEstateListing",
-// //                 "@id": `${currentUrl}#realestatelisting`,
-// //                 name: property.title,
-// //                 description: property.description || description,
-// //                 url: currentUrl,
-// //                 image: property.images?.map((img) =>
-// //                   optimizeImageUrl(img.url, { width: 800, quality: 85 })
-// //                 ) || [featuredImage],
-// //                 offers: {
-// //                   "@type": "Offer",
-// //                   price: property.price,
-// //                   priceCurrency: "INR",
-// //                   availability:
-// //                     property.status === "available"
-// //                       ? "https://schema.org/InStock"
-// //                       : "https://schema.org/OutOfStock",
-// //                   priceValidUntil: new Date(
-// //                     Date.now() + 90 * 24 * 60 * 60 * 1000
-// //                   )
-// //                     .toISOString()
-// //                     .split("T")[0],
-// //                   url: currentUrl,
-// //                   seller: {
-// //                     "@type": "RealEstateAgent",
-// //                     name: property.agent?.name,
-// //                     telephone: property.agent?.phone,
-// //                     email: property.agent?.email,
-// //                   },
-// //                 },
-// //                 address: {
-// //                   "@type": "PostalAddress",
-// //                   streetAddress: property.address || property.location,
-// //                   addressLocality:
-// //                     typeof property.location === "object"
-// //                       ? property.location.city
-// //                       : property.location,
-// //                   addressRegion:
-// //                     typeof property.location === "object"
-// //                       ? property.location.state
-// //                       : "",
-// //                   postalCode: property.pincode,
-// //                   addressCountry: "IN",
-// //                 },
-// //                 geo: {
-// //                   "@type": "GeoCoordinates",
-// //                   latitude: property.coordinates?.lat || 0,
-// //                   longitude: property.coordinates?.lng || 0,
-// //                 },
-// //                 numberOfRooms: property.bedrooms,
-// //                 numberOfBathroomsTotal: property.bathrooms,
-// //                 floorSize: {
-// //                   "@type": "QuantitativeValue",
-// //                   value: property.area,
-// //                   unitCode: property.areaUnit === "sqft" ? "FTK" : "MTK",
-// //                 },
-// //                 petsAllowed:
-// //                   property.amenities?.includes("Pet Friendly") || false,
-// //                 yearBuilt: property.builtYear,
-// //                 listingDate: property.listedDate,
-// //                 provider: {
-// //                   "@type": "RealEstateAgent",
-// //                   name: property.agent?.name,
-// //                   telephone: property.agent?.phone,
-// //                   email: property.agent?.email,
-// //                   rating: {
-// //                     "@type": "AggregateRating",
-// //                     ratingValue: property.agent?.rating || 4.5,
-// //                     reviewCount: property.agent?.reviewCount || 25,
-// //                     bestRating: 5,
-// //                   },
-// //                 },
-// //                 amenityFeature: property.amenities?.map((amenity) => ({
-// //                   "@type": "LocationFeatureSpecification",
-// //                   name: amenity,
-// //                   value: true,
-// //                 })),
-// //               },
-// //               {
-// //                 "@type": "WebPage",
-// //                 "@id": `${currentUrl}#webpage`,
-// //                 url: currentUrl,
-// //                 name: title,
-// //                 description: description,
-// //                 isPartOf: {
-// //                   "@id": `${window.location.origin}/#website`,
-// //                 },
-// //                 about: {
-// //                   "@id": `${currentUrl}#realestatelisting`,
-// //                 },
-// //                 datePublished: property.listedDate,
-// //                 dateModified: new Date().toISOString(),
-// //                 breadcrumb: {
-// //                   "@id": `${currentUrl}#breadcrumb`,
-// //                 },
-// //                 primaryImageOfPage: {
-// //                   "@type": "ImageObject",
-// //                   url: featuredImage,
-// //                   width: 1200,
-// //                   height: 630,
-// //                 },
-// //                 potentialAction: [
-// //                   {
-// //                     "@type": "ReadAction",
-// //                     target: [currentUrl],
-// //                   },
-// //                 ],
-// //               },
-// //               {
-// //                 "@type": "Organization",
-// //                 "@id": `${window.location.origin}/#organization`,
-// //                 name: "Premium Real Estate Platform",
-// //                 url: window.location.origin,
-// //                 logo: `${window.location.origin}/logo.png`,
-// //                 description:
-// //                   "India's leading real estate platform for buying, selling, and renting properties",
-// //                 address: {
-// //                   "@type": "PostalAddress",
-// //                   addressLocality: "Mumbai",
-// //                   addressRegion: "Maharashtra",
-// //                   addressCountry: "IN",
-// //                 },
-// //                 contactPoint: {
-// //                   "@type": "ContactPoint",
-// //                   telephone: "+91-XXXXXXXXXX",
-// //                   contactType: "customer service",
-// //                   areaServed: "IN",
-// //                   availableLanguage: ["English", "Hindi"],
-// //                 },
-// //                 sameAs: [
-// //                   "https://www.facebook.com/realestateplatform",
-// //                   "https://www.twitter.com/realestateplatform",
-// //                   "https://www.linkedin.com/company/realestateplatform",
-// //                 ],
-// //               },
-// //             ],
-// //           })}
-// //         </script>
-// //       </Helmet>
-// //     );
-// //   }, [property, slug]);
-
-// //   const transformPropertyData = useCallback((apiData) => {
-// //     if (!apiData) return null;
-
-// //     // Determine which agent data to use
-// //     let agentData = {};
-
-// //     if (
-// //       apiData.agentInfo &&
-// //       apiData.agentInfo.name &&
-// //       apiData.agentInfo.name !== "Agent"
-// //     ) {
-// //       agentData = {
-// //         id: apiData.agentInfo?._id || apiData._id,
-// //         name: apiData.agentInfo.name,
-// //         designation: apiData.agentInfo.designation,
-// //         avatar: apiData.agentInfo.avatar,
-// //         phone: apiData.agentInfo.phone,
-// //         email: apiData.agentInfo.email,
-// //         rating: apiData.agentInfo.rating,
-// //         reviewCount: apiData.agentInfo.reviewCount,
-// //         propertiesSold: apiData.agentInfo.propertiesSold,
-// //         experience: apiData.agentInfo.experience,
-// //         languages: apiData.agentInfo.languages,
-// //       };
-// //     } else if (apiData.postedBy && typeof apiData.postedBy === "object") {
-// //       agentData = {
-// //         id: apiData.postedBy._id,
-// //         name: apiData.postedBy.name,
-// //         designation: apiData.postedBy.designation,
-// //         avatar: apiData.postedBy.avatar,
-// //         phone: apiData.postedBy.phone,
-// //         email: apiData.postedBy.email,
-// //         rating: apiData.postedBy.rating?.average || 0,
-// //         reviewCount: apiData.postedBy.rating?.totalReviews || 0,
-// //         propertiesSold: apiData.postedBy.performance?.totalPropertiesSold || 0,
-// //         experience: apiData.postedBy.experience
-// //           ? `${apiData.postedBy.experience}+`
-// //           : "0+",
-// //         languages: apiData.postedBy.languages || ["English", "Hindi"],
-// //       };
-// //     } else {
-// //       agentData = {
-// //         id: apiData._id,
-// //         name: "Agent",
-// //         designation: "Property Consultant",
-// //         avatar: "default-avatar.jpg",
-// //         phone: "+919876543210",
-// //         email: "agent@example.com",
-// //         rating: 0,
-// //         reviewCount: 0,
-// //         propertiesSold: 0,
-// //         experience: "0+",
-// //         languages: ["English", "Hindi"],
-// //       };
-// //     }
-
-// //     return {
-// //       // Basic info
-// //       id: apiData._id,
-// //       title: apiData.title,
-// //       description: apiData.description,
-// //       price: apiData.price,
-// //       originalPrice: apiData.originalPrice,
-
-// //       // Location
-// //       location:
-// //         typeof apiData.location === "string"
-// //           ? apiData.location
-// //           : apiData.location?.address ||
-// //             `${apiData.location?.city}, ${apiData.location?.state}`,
-// //       address:
-// //         typeof apiData.location === "string"
-// //           ? apiData.location
-// //           : apiData.location?.address,
-// //       pincode:
-// //         typeof apiData.location === "string" ? "" : apiData.location?.pincode,
-// //       coordinates:
-// //         typeof apiData.location === "string"
-// //           ? { lat: 0, lng: 0 }
-// //           : apiData.location?.coordinates || { lat: 0, lng: 0 },
-
-// //       // Status
-// //       status: apiData.status,
-// //       featured: apiData.featured,
-
-// //       // Specifications
-// //       bedrooms: apiData.specifications?.bedrooms,
-// //       bathrooms: apiData.specifications?.bathrooms,
-// //       area: apiData.specifications?.area,
-// //       areaUnit: apiData.specifications?.areaUnit || "sqft",
-// //       type: apiData.specifications?.type,
-// //       builtYear: apiData.specifications?.builtYear,
-// //       parking: apiData.specifications?.parking,
-
-// //       // Arrays
-// //       amenities: apiData.amenities || [],
-// //       features: apiData.features || [],
-// //       // 🔥 ENHANCED: Optimized images
-// //       images:
-// //         apiData.images?.map((img) => ({
-// //           ...img,
-// //           url: optimizeImageUrl(img.url, { width: 1200, quality: 85 }),
-// //         })) || [],
-
-// //       // Agent data
-// //       agent: {
-// //         ...agentData,
-// //         avatarAlt: `Professional photo of ${agentData.name}`,
-// //         location:
-// //           agentData.location ||
-// //           (typeof apiData.location === "string"
-// //             ? apiData.location
-// //             : `${apiData.location?.city}, ${apiData.location?.state}`),
-// //       },
-
-// //       // Additional fields
-// //       listedDate: apiData.listedDate || new Date().toISOString(),
-// //       propertyId: apiData.propertyId || `RC${apiData._id?.slice(-6)}`,
-// //     };
-// //   }, []);
-
-// //   const tabs = useMemo(
-// //     () => [
-// //       { id: "overview", label: "Overview", icon: "Home" },
-// //       { id: "location", label: "Location", icon: "MapPin" },
-// //       { id: "similar", label: "Similar Properties", icon: "Building2" },
-// //     ],
-// //     []
-// //   );
-
-// //   useEffect(() => {
-// //     const fetchProperty = async () => {
-// //       try {
-// //         setLoading(true);
-
-// //         if (!slug) {
-// //           setError("No property slug found in URL");
-// //           setLoading(false);
-// //           return;
-// //         }
-
-// //         const res = await getPropertyBySlug(slug);
-// //         console.log("API response for property:", res);
-// //         const transformedProperty = transformPropertyData(res.property);
-// //         setProperty(transformedProperty);
-// //       } catch (err) {
-// //         console.error("Error fetching property:", err);
-// //         setError(err.message || "Failed to load property details.");
-// //       } finally {
-// //         setLoading(false);
-// //       }
-// //     };
-
-// //     fetchProperty();
-
-// //     // Mock user data
-// //     setUser({
-// //       name: "John Doe",
-// //       email: "john.doe@example.com",
-// //       role: "buyer",
-// //     });
-// //   }, [slug, transformPropertyData]);
-
-// //   // 🔥 ADD TRACKING TO EFFECT
-// //   useEffect(() => {
-// //     if (property) {
-// //       trackSEOEvents.propertyView(property);
-
-// //       // Check performance after page loads
-// //       setTimeout(() => {
-// //         checkPerformanceBudget();
-// //       }, 2000);
-// //     }
-// //   }, [property]);
-
-// //   const handleScheduleViewing = useCallback(
-// //     () => setIsAppointmentModalOpen(true),
-// //     []
-// //   );
-// //   const handleCloseAppointmentModal = useCallback(
-// //     () => setIsAppointmentModalOpen(false),
-// //     []
-// //   );
-// //   const handleToggleChat = useCallback(
-// //     () => setIsChatOpen((prev) => !prev),
-// //     []
-// //   );
-// //   const handleTabChange = useCallback((tabId) => setActiveTab(tabId), []);
-// //   const handleBackToListings = useCallback(
-// //     () => navigate("/property-listings"),
-// //     [navigate]
-// //   );
-// //   const handleHomeNavigate = useCallback(
-// //     () => navigate("/home-page"),
-// //     [navigate]
-// //   );
-
-// //   // 🔥 ENHANCED CONTACT HANDLERS WITH TRACKING
-// //   const handleWhatsAppContact = useCallback(() => {
-// //     if (!property?.agent?.phone) return;
-
-// //     trackSEOEvents.contactAction(property, "whatsapp");
-
-// //     const message = encodeURIComponent(
-// //       `Hi ${property.agent.name}, I'm interested in the property: ${property.title}. Can we schedule a viewing?`
-// //     );
-// //     const phoneNumber = property.agent.phone.replace(/\D/g, "");
-// //     window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
-// //   }, [property]);
-
-// //   const handleEmailContact = useCallback(() => {
-// //     if (!property?.agent?.email) return;
-
-// //     trackSEOEvents.contactAction(property, "email");
-
-// //     const subject = encodeURIComponent(
-// //       `Interest in Property: ${property.title}`
-// //     );
-// //     const body = encodeURIComponent(
-// //       `Hi ${property.agent.name},\n\nI'm interested in the property: ${property.title}.\n\nCan you please provide more details and available viewing schedules?\n\nThank you!`
-// //     );
-
-// //     window.open(
-// //       `mailto:${property.agent.email}?subject=${subject}&body=${body}`,
-// //       "_blank"
-// //     );
-// //   }, [property]);
-
-// //   const formattedPropertyId = useMemo(
-// //     () => property?.propertyId || "",
-// //     [property]
-// //   );
-
-// //   const tabContent = useMemo(() => {
-// //     switch (activeTab) {
-// //       case "overview":
-// //         return <PropertyInfo property={property} />;
-// //       case "location":
-// //         return <PropertyLocation property={property} />;
-// //       case "similar":
-// //         return <SimilarProperties currentProperty={property} />;
-// //       default:
-// //         return <PropertyInfo property={property} />;
-// //     }
-// //   }, [activeTab, property]);
-
-// //   // 🔥 SKELETON LOADING
-// //   if (loading) {
-// //     return <PropertyDetailsSkeleton />;
-// //   }
-
-// //   if (error) {
-// //     return (
-// //       <div className="min-h-screen bg-white flex items-center justify-center p-6">
-// //         <Helmet>
-// //           <title>Property Not Found | Premium Real Estate Platform</title>
-// //           <meta
-// //             name="description"
-// //             content="The requested property could not be found."
-// //           />
-// //         </Helmet>
-// //         <div className="text-center max-w-md">
-// //           <div className="flex justify-center mb-6">
-// //             <div className="w-16 h-16 bg-red-50 rounded-md flex items-center justify-center border border-red-100">
-// //               <AlertCircle className="w-8 h-8 text-red-500" />
-// //             </div>
-// //           </div>
-// //           <h2 className="text-xl font-semibold text-gray-900 mb-3">
-// //             Something went wrong
-// //           </h2>
-// //           <p className="text-red-500 font-medium mb-2">{error}</p>
-// //           <p className="text-gray-600 text-sm mb-6">
-// //             We encountered an issue while loading this page.
-// //           </p>
-// //           <Button
-// //             onClick={handleBackToListings}
-// //             variant="primary"
-// //             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"
-// //           >
-// //             Back to Property Listings
-// //           </Button>
-// //         </div>
-// //       </div>
-// //     );
-// //   }
-
-// //   if (!property) {
-// //     return (
-// //       <div className="min-h-screen bg-background flex items-center justify-center">
-// //         <Helmet>
-// //           <title>Property Not Found | Premium Real Estate Platform</title>
-// //           <meta
-// //             name="description"
-// //             content="The requested property could not be found."
-// //           />
-// //         </Helmet>
-// //         <div className="text-center">
-// //           <p className="text-muted-foreground mb-4">No property found.</p>
-// //           <Button onClick={handleBackToListings}>
-// //             Back to Property Listings
-// //           </Button>
-// //         </div>
-// //       </div>
-// //     );
-// //   }
-
-// //   return (
-// //     <div className="min-h-screen bg-background">
-// //       {/* 🔥 SEO Meta Tags */}
-// //       {getPropertyMetaTags()}
-
-// //       <Header
-// //         user={user}
-// //         onLogout={() => navigate("/login")}
-// //         onSearch={() => {}}
-// //       />
-
-// //       <main className="container mx-auto px-4 py-6">
-// //         {/* 🔥 REPLACE OLD BREADCRUMB WITH ENHANCED BREADCRUMBTRAIL */}
-// //         <BreadcrumbTrail propertyData={property} user={user} />
-
-// //         {/* Back Button */}
-// //         <div className="mb-6">
-// //           <Button
-// //             variant="outline"
-// //             onClick={handleBackToListings}
-// //             iconName="ArrowLeft"
-// //             iconPosition="left"
-// //           >
-// //             Back to Listings
-// //           </Button>
-// //         </div>
-
-// //         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-// //           {/* Main Content */}
-// //           <div className="lg:col-span-2 space-y-8">
-// //             <PropertyImageGallery
-// //               images={property.images}
-// //               propertyTitle={property.title}
-// //             />
-
-// //             <div className="lg:hidden">
-// //               <PropertyActions
-// //                 property={property}
-// //                 onScheduleViewing={handleScheduleViewing}
-// //                 onWhatsAppContact={handleWhatsAppContact}
-// //               />
-// //             </div>
-
-// //             {/* Tabs */}
-// //             <div className="border-b border-border">
-// //               <nav className="flex space-x-8">
-// //                 {tabs.map((tab) => (
-// //                   <button
-// //                     key={tab.id}
-// //                     onClick={() => handleTabChange(tab.id)}
-// //                     className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-smooth ${
-// //                       activeTab === tab.id
-// //                         ? "border-primary text-primary"
-// //                         : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-// //                     }`}
-// //                   >
-// //                     <Icon name={tab.icon} size={16} />
-// //                     <span>{tab.label}</span>
-// //                   </button>
-// //                 ))}
-// //               </nav>
-// //             </div>
-
-// //             {/* Tab Content */}
-// //             <div className="min-h-[400px]">{tabContent}</div>
-// //           </div>
-
-// //           {/* Sidebar */}
-// //           <div className="space-y-6">
-// //             <AgentCard
-// //               agent={property.agent}
-// //               onScheduleViewing={handleScheduleViewing}
-// //               onWhatsAppContact={handleWhatsAppContact}
-// //               onEmailContact={handleEmailContact}
-// //             />
-
-// //             <div className="hidden lg:block">
-// //               <PropertyActions
-// //                 property={property}
-// //                 onScheduleViewing={handleScheduleViewing}
-// //                 onWhatsAppContact={handleWhatsAppContact}
-// //               />
-// //             </div>
-
-// //             {/* Quick Information */}
-// //             <div className="bg-card border border-border rounded p-6">
-// //               <h4 className="font-semibold text-foreground mb-4">
-// //                 Quick Information
-// //               </h4>
-// //               <div className="space-y-3 text-sm">
-// //                 <div className="flex justify-between">
-// //                   <span className="text-muted-foreground">Property ID</span>
-// //                   <span className="text-foreground font-medium">
-// //                     {formattedPropertyId}
-// //                   </span>
-// //                 </div>
-// //                 <div className="flex justify-between">
-// //                   <span className="text-muted-foreground">Listed Date</span>
-// //                   <span className="text-foreground">
-// //                     {new Date(property.listedDate).toLocaleDateString()}
-// //                   </span>
-// //                 </div>
-// //                 <div className="flex justify-between">
-// //                   <span className="text-muted-foreground">Status</span>
-// //                   <span className="text-foreground capitalize">
-// //                     {property.status}
-// //                   </span>
-// //                 </div>
-// //                 <div className="flex justify-between">
-// //                   <span className="text-muted-foreground">Type</span>
-// //                   <span className="text-foreground capitalize">
-// //                     {property.type}
-// //                   </span>
-// //                 </div>
-// //                 <div className="flex justify-between">
-// //                   <span className="text-muted-foreground">Area</span>
-// //                   <span className="text-foreground">
-// //                     {property.area} {property.areaUnit}
-// //                   </span>
-// //                 </div>
-// //               </div>
-// //             </div>
-
-// //             {/* Contact Support */}
-// //             <div className="bg-muted/50 rounded p-6 text-center">
-// //               <Icon
-// //                 name="Headphones"
-// //                 size={32}
-// //                 className="text-primary mx-auto mb-3"
-// //               />
-// //               <h4 className="font-semibold text-foreground mb-2">Need Help?</h4>
-// //               <p className="text-sm text-muted-foreground mb-4">
-// //                 Our support team is here to assist you with any questions.
-// //               </p>
-// //               <Button variant="outline" size="sm" fullWidth>
-// //                 Contact Support
-// //               </Button>
-// //             </div>
-// //           </div>
-// //         </div>
-// //       </main>
-
-// //       <AppointmentModal
-// //         isOpen={isAppointmentModalOpen}
-// //         onClose={handleCloseAppointmentModal}
-// //         property={property}
-// //         agent={property.agent}
-// //       />
-
-// //       <FloatingChat isOpen={isChatOpen} onToggle={handleToggleChat} />
-// //     </div>
-// //   );
-// // };
-
-// // export default React.memo(PropertyDetails);
-
-// import React, { useState, useEffect, useCallback, useMemo } from "react";
-// import { useParams, useNavigate } from "react-router-dom";
-// import { Helmet } from "react-helmet";
-// import Header from "../../components/ui/Header";
-// import FloatingChat from "../../components/ui/FloatingChat";
-// import PropertyImageGallery from "./components/PropertyImageGallery";
-// import PropertyInfo from "./components/PropertyInfo";
-// import AgentCard from "./components/AgentCard";
-// import AppointmentModal from "./components/AppointmentModal";
-// import PropertyLocation from "./components/PropertyLocation";
-// import SimilarProperties from "./components/SimilarProperties";
-// import PropertyActions from "./components/PropertyActions";
-// import BreadcrumbTrail from "../../components/ui/BreadcrumbTrail";
-// import Icon from "../../components/AppIcon";
-// import Button from "../../components/ui/Button";
-// import { getPropertyBySlug } from "../../lib/mongo/services/propertyService";
-// import { AlertCircle, Heart } from "lucide-react";
-
-// // 🔥 IMPORT SKELETON COMPONENT
-// import PropertyDetailsSkeleton from "../../components/loading/PropertyDetailsSkeleton";
-
-// // 🔥 ADD THESE IMPORTS
-// import { usePerformanceMonitor } from "../../hooks/usePerformanceMonitor";
-// import { checkPerformanceBudget } from "../../utils/performanceBudget";
-// import { trackSEOEvents } from "../../utils/analytics";
-// import { optimizeImageUrl } from "../../utils/imageOptimizer";
-
-// // 🔥 IMPORT WISHLIST SERVICES
-// import {
-//   addToWishlist,
-//   removeFromWishlist,
-//   checkWishlistStatus,
-// } from "../../lib/mongo/services/wishlistService";
-
-// const PropertyDetails = () => {
-//   const { slug } = useParams();
-//   const navigate = useNavigate();
-
-//   const [property, setProperty] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
-//   const [isChatOpen, setIsChatOpen] = useState(false);
-//   const [activeTab, setActiveTab] = useState("overview");
-//   const [user, setUser] = useState(null);
-
-//   // 🔥 WISHLIST STATES
-//   const [isWishlisted, setIsWishlisted] = useState(false);
-//   const [wishlistLoading, setWishlistLoading] = useState(false);
-//   const [wishlistError, setWishlistError] = useState(null);
-
-//   // 🔥 INITIALIZE PERFORMANCE MONITORING
-//   usePerformanceMonitor();
-
-//   // 🔥 ENHANCED SEO META TAGS
-//   const getPropertyMetaTags = useCallback(() => {
-//     if (!property) return null;
-
-//     const title = `🏠 ${property.title} | ${property.bedrooms}BHK ${
-//       property.type
-//     } in ${property.location} | ₹${
-//       property.price?.toLocaleString("en-IN") || "Price on Request"
-//     }`;
-
-//     const description = `✅ Verified ${property.bedrooms}BHK ${
-//       property.type
-//     } in ${property.location}. ${property.area} sq ft • ${
-//       property.bathrooms
-//     } Bath • ${property.amenities?.slice(0, 3).join(" • ")}. 📞 Contact ${
-//       property.agent?.name
-//     } for viewing. Instant booking available.`;
-
-//     const currentUrl = `${window.location.origin}/property/${slug}`;
-//     const featuredImage = optimizeImageUrl(
-//       property.images?.[0]?.url || "/images/property-og-default.jpg",
-//       { width: 1200, quality: 85 }
-//     );
-
-//     return (
-//       <Helmet>
-//         {/* Primary Meta Tags */}
-//         <title>{title}</title>
-//         <meta name="description" content={description} />
-//         <meta
-//           name="robots"
-//           content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
-//         />
-//         <meta
-//           name="keywords"
-//           content={`${property.type}, ${property.location}, real estate, property for sale, ${property.bedrooms} bedroom, ${property.area} sq ft, buy property, rent apartment`}
-//         />
-
-//         {/* Canonical URL */}
-//         <link rel="canonical" href={currentUrl} />
-
-//         {/* Open Graph / Facebook */}
-//         <meta property="og:type" content="real_estate.property" />
-//         <meta property="og:url" content={currentUrl} />
-//         <meta property="og:title" content={title} />
-//         <meta property="og:description" content={description} />
-//         <meta property="og:image" content={featuredImage} />
-//         <meta property="og:image:width" content="1200" />
-//         <meta property="og:image:height" content="630" />
-//         <meta
-//           property="og:image:alt"
-//           content={`Main image of ${property.title}`}
-//         />
-//         <meta property="og:site_name" content="Premium Real Estate Platform" />
-//         <meta property="og:locale" content="en_IN" />
-//         <meta property="og:price:amount" content={property.price?.toString()} />
-//         <meta property="og:price:currency" content="INR" />
-//         <meta
-//           property="og:availability"
-//           content={property.status === "available" ? "instock" : "out of stock"}
-//         />
-
-//         {/* Twitter Cards */}
-//         <meta property="twitter:card" content="summary_large_image" />
-//         <meta property="twitter:url" content={currentUrl} />
-//         <meta property="twitter:title" content={title} />
-//         <meta property="twitter:description" content={description} />
-//         <meta property="twitter:image" content={featuredImage} />
-//         <meta
-//           property="twitter:image:alt"
-//           content={`Main image of ${property.title}`}
-//         />
-//         <meta property="twitter:site" content="@RealEstatePlatform" />
-//         <meta property="twitter:creator" content="@RealEstatePlatform" />
-
-//         {/* Enhanced Structured Data */}
-//         <script type="application/ld+json">
-//           {JSON.stringify({
-//             "@context": "https://schema.org",
-//             "@graph": [
-//               {
-//                 "@type": "RealEstateListing",
-//                 "@id": `${currentUrl}#realestatelisting`,
-//                 name: property.title,
-//                 description: property.description || description,
-//                 url: currentUrl,
-//                 image: property.images?.map((img) =>
-//                   optimizeImageUrl(img.url, { width: 800, quality: 85 })
-//                 ) || [featuredImage],
-//                 offers: {
-//                   "@type": "Offer",
-//                   price: property.price,
-//                   priceCurrency: "INR",
-//                   availability:
-//                     property.status === "available"
-//                       ? "https://schema.org/InStock"
-//                       : "https://schema.org/OutOfStock",
-//                   priceValidUntil: new Date(
-//                     Date.now() + 90 * 24 * 60 * 60 * 1000
-//                   )
-//                     .toISOString()
-//                     .split("T")[0],
-//                   url: currentUrl,
-//                   seller: {
-//                     "@type": "RealEstateAgent",
-//                     name: property.agent?.name,
-//                     telephone: property.agent?.phone,
-//                     email: property.agent?.email,
-//                   },
-//                 },
-//                 address: {
-//                   "@type": "PostalAddress",
-//                   streetAddress: property.address || property.location,
-//                   addressLocality:
-//                     typeof property.location === "object"
-//                       ? property.location.city
-//                       : property.location,
-//                   addressRegion:
-//                     typeof property.location === "object"
-//                       ? property.location.state
-//                       : "",
-//                   postalCode: property.pincode,
-//                   addressCountry: "IN",
-//                 },
-//                 geo: {
-//                   "@type": "GeoCoordinates",
-//                   latitude: property.coordinates?.lat || 0,
-//                   longitude: property.coordinates?.lng || 0,
-//                 },
-//                 numberOfRooms: property.bedrooms,
-//                 numberOfBathroomsTotal: property.bathrooms,
-//                 floorSize: {
-//                   "@type": "QuantitativeValue",
-//                   value: property.area,
-//                   unitCode: property.areaUnit === "sqft" ? "FTK" : "MTK",
-//                 },
-//                 petsAllowed:
-//                   property.amenities?.includes("Pet Friendly") || false,
-//                 yearBuilt: property.builtYear,
-//                 listingDate: property.listedDate,
-//                 provider: {
-//                   "@type": "RealEstateAgent",
-//                   name: property.agent?.name,
-//                   telephone: property.agent?.phone,
-//                   email: property.agent?.email,
-//                   rating: {
-//                     "@type": "AggregateRating",
-//                     ratingValue: property.agent?.rating || 4.5,
-//                     reviewCount: property.agent?.reviewCount || 25,
-//                     bestRating: 5,
-//                   },
-//                 },
-//                 amenityFeature: property.amenities?.map((amenity) => ({
-//                   "@type": "LocationFeatureSpecification",
-//                   name: amenity,
-//                   value: true,
-//                 })),
-//               },
-//               {
-//                 "@type": "WebPage",
-//                 "@id": `${currentUrl}#webpage`,
-//                 url: currentUrl,
-//                 name: title,
-//                 description: description,
-//                 isPartOf: {
-//                   "@id": `${window.location.origin}/#website`,
-//                 },
-//                 about: {
-//                   "@id": `${currentUrl}#realestatelisting`,
-//                 },
-//                 datePublished: property.listedDate,
-//                 dateModified: new Date().toISOString(),
-//                 breadcrumb: {
-//                   "@id": `${currentUrl}#breadcrumb`,
-//                 },
-//                 primaryImageOfPage: {
-//                   "@type": "ImageObject",
-//                   url: featuredImage,
-//                   width: 1200,
-//                   height: 630,
-//                 },
-//                 potentialAction: [
-//                   {
-//                     "@type": "ReadAction",
-//                     target: [currentUrl],
-//                   },
-//                 ],
-//               },
-//               {
-//                 "@type": "Organization",
-//                 "@id": `${window.location.origin}/#organization`,
-//                 name: "Premium Real Estate Platform",
-//                 url: window.location.origin,
-//                 logo: `${window.location.origin}/logo.png`,
-//                 description:
-//                   "India's leading real estate platform for buying, selling, and renting properties",
-//                 address: {
-//                   "@type": "PostalAddress",
-//                   addressLocality: "Mumbai",
-//                   addressRegion: "Maharashtra",
-//                   addressCountry: "IN",
-//                 },
-//                 contactPoint: {
-//                   "@type": "ContactPoint",
-//                   telephone: "+91-XXXXXXXXXX",
-//                   contactType: "customer service",
-//                   areaServed: "IN",
-//                   availableLanguage: ["English", "Hindi"],
-//                 },
-//                 sameAs: [
-//                   "https://www.facebook.com/realestateplatform",
-//                   "https://www.twitter.com/realestateplatform",
-//                   "https://www.linkedin.com/company/realestateplatform",
-//                 ],
-//               },
-//             ],
-//           })}
-//         </script>
-//       </Helmet>
-//     );
-//   }, [property, slug]);
-
-//   const transformPropertyData = useCallback((apiData) => {
-//     if (!apiData) return null;
-
-//     // Determine which agent data to use
-//     let agentData = {};
-
-//     if (
-//       apiData.agentInfo &&
-//       apiData.agentInfo.name &&
-//       apiData.agentInfo.name !== "Agent"
-//     ) {
-//       agentData = {
-//         id: apiData.agentInfo?._id || apiData._id,
-//         name: apiData.agentInfo.name,
-//         designation: apiData.agentInfo.designation,
-//         avatar: apiData.agentInfo.avatar,
-//         phone: apiData.agentInfo.phone,
-//         email: apiData.agentInfo.email,
-//         rating: apiData.agentInfo.rating,
-//         reviewCount: apiData.agentInfo.reviewCount,
-//         propertiesSold: apiData.agentInfo.propertiesSold,
-//         experience: apiData.agentInfo.experience,
-//         languages: apiData.agentInfo.languages,
-//       };
-//     } else if (apiData.postedBy && typeof apiData.postedBy === "object") {
-//       agentData = {
-//         id: apiData.postedBy._id,
-//         name: apiData.postedBy.name,
-//         designation: apiData.postedBy.designation,
-//         avatar: apiData.postedBy.avatar,
-//         phone: apiData.postedBy.phone,
-//         email: apiData.postedBy.email,
-//         rating: apiData.postedBy.rating?.average || 0,
-//         reviewCount: apiData.postedBy.rating?.totalReviews || 0,
-//         propertiesSold: apiData.postedBy.performance?.totalPropertiesSold || 0,
-//         experience: apiData.postedBy.experience
-//           ? `${apiData.postedBy.experience}+`
-//           : "0+",
-//         languages: apiData.postedBy.languages || ["English", "Hindi"],
-//       };
-//     } else {
-//       agentData = {
-//         id: apiData._id,
-//         name: "Agent",
-//         designation: "Property Consultant",
-//         avatar: "default-avatar.jpg",
-//         phone: "+919876543210",
-//         email: "agent@example.com",
-//         rating: 0,
-//         reviewCount: 0,
-//         propertiesSold: 0,
-//         experience: "0+",
-//         languages: ["English", "Hindi"],
-//       };
-//     }
-
-//     return {
-//       // Basic info
-//       id: apiData._id,
-//       title: apiData.title,
-//       description: apiData.description,
-//       price: apiData.price,
-//       originalPrice: apiData.originalPrice,
-
-//       // Location
-//       location:
-//         typeof apiData.location === "string"
-//           ? apiData.location
-//           : apiData.location?.address ||
-//             `${apiData.location?.city}, ${apiData.location?.state}`,
-//       address:
-//         typeof apiData.location === "string"
-//           ? apiData.location
-//           : apiData.location?.address,
-//       pincode:
-//         typeof apiData.location === "string" ? "" : apiData.location?.pincode,
-//       coordinates:
-//         typeof apiData.location === "string"
-//           ? { lat: 0, lng: 0 }
-//           : apiData.location?.coordinates || { lat: 0, lng: 0 },
-
-//       // Status
-//       status: apiData.status,
-//       featured: apiData.featured,
-
-//       // Specifications
-//       bedrooms: apiData.specifications?.bedrooms,
-//       bathrooms: apiData.specifications?.bathrooms,
-//       area: apiData.specifications?.area,
-//       areaUnit: apiData.specifications?.areaUnit || "sqft",
-//       type: apiData.specifications?.type,
-//       builtYear: apiData.specifications?.builtYear,
-//       parking: apiData.specifications?.parking,
-
-//       // Arrays
-//       amenities: apiData.amenities || [],
-//       features: apiData.features || [],
-//       // 🔥 ENHANCED: Optimized images
-//       images:
-//         apiData.images?.map((img) => ({
-//           ...img,
-//           url: optimizeImageUrl(img.url, { width: 1200, quality: 85 }),
-//         })) || [],
-
-//       // Agent data
-//       agent: {
-//         ...agentData,
-//         avatarAlt: `Professional photo of ${agentData.name}`,
-//         location:
-//           agentData.location ||
-//           (typeof apiData.location === "string"
-//             ? apiData.location
-//             : `${apiData.location?.city}, ${apiData.location?.state}`),
-//       },
-
-//       // Additional fields
-//       listedDate: apiData.listedDate || new Date().toISOString(),
-//       propertyId: apiData.propertyId || `RC${apiData._id?.slice(-6)}`,
-//     };
-//   }, []);
-
-//   // 🔥 CHECK WISHLIST STATUS
-//   const checkWishlistStatusForProperty = useCallback(async (propertyId) => {
-//     if (!propertyId) return;
-
-//     try {
-//       setWishlistLoading(true);
-//       const response = await checkWishlistStatus(propertyId);
-//       setIsWishlisted(response.isWishlisted || false);
-//       setWishlistError(null);
-//     } catch (err) {
-//       console.error("Error checking wishlist status:", err);
-//       setWishlistError("Failed to check wishlist status");
-//       setIsWishlisted(false);
-//     } finally {
-//       setWishlistLoading(false);
-//     }
-//   }, []);
-
-//   // 🔥 TOGGLE WISHLIST FUNCTION
-//   const toggleWishlist = useCallback(async () => {
-//     if (!property?.id || !user) {
-//       // Redirect to login if user is not authenticated
-//       navigate("/login", {
-//         state: {
-//           from: `/property/${slug}`,
-//           message: "Please login to add properties to your wishlist",
-//         },
-//       });
-//       return;
-//     }
-
-//     try {
-//       setWishlistLoading(true);
-//       setWishlistError(null);
-
-//       if (isWishlisted) {
-//         // Remove from wishlist
-//         await removeFromWishlist(property.id);
-//         setIsWishlisted(false);
-//         trackSEOEvents.wishlistAction(property, "remove");
-//       } else {
-//         // Add to wishlist
-//         await addToWishlist(property.id);
-//         setIsWishlisted(true);
-//         trackSEOEvents.wishlistAction(property, "add");
-//       }
-//     } catch (err) {
-//       console.error("Error toggling wishlist:", err);
-//       setWishlistError(
-//         err.message ||
-//           `Failed to ${isWishlisted ? "remove from" : "add to"} wishlist`
-//       );
-//     } finally {
-//       setWishlistLoading(false);
-//     }
-//   }, [property, isWishlisted, user, slug, navigate]);
-
-//   const tabs = useMemo(
-//     () => [
-//       { id: "overview", label: "Overview", icon: "Home" },
-//       { id: "location", label: "Location", icon: "MapPin" },
-//       { id: "similar", label: "Similar Properties", icon: "Building2" },
-//     ],
-//     []
-//   );
-
-//   useEffect(() => {
-//     const fetchProperty = async () => {
-//       try {
-//         setLoading(true);
-
-//         if (!slug) {
-//           setError("No property slug found in URL");
-//           setLoading(false);
-//           return;
-//         }
-
-//         const res = await getPropertyBySlug(slug);
-//         console.log("API response for property:", res);
-//         const transformedProperty = transformPropertyData(res.property);
-//         setProperty(transformedProperty);
-//       } catch (err) {
-//         console.error("Error fetching property:", err);
-//         setError(err.message || "Failed to load property details.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchProperty();
-
-//     // Mock user data - In real app, you'd get this from context or auth service
-//     setUser({
-//       id: "user123",
-//       name: "John Doe",
-//       email: "john.doe@example.com",
-//       role: "buyer",
-//     });
-//   }, [slug, transformPropertyData]);
-
-//   // 🔥 CHECK WISHLIST STATUS WHEN PROPERTY LOADS
-//   useEffect(() => {
-//     if (property?.id && user) {
-//       checkWishlistStatusForProperty(property.id);
-//     }
-//   }, [property, user, checkWishlistStatusForProperty]);
-
-//   // 🔥 ADD TRACKING TO EFFECT
-//   useEffect(() => {
-//     if (property) {
-//       trackSEOEvents.propertyView(property);
-
-//       // Check performance after page loads
-//       setTimeout(() => {
-//         checkPerformanceBudget();
-//       }, 2000);
-//     }
-//   }, [property]);
-
-//   const handleScheduleViewing = useCallback(
-//     () => setIsAppointmentModalOpen(true),
-//     []
-//   );
-//   const handleCloseAppointmentModal = useCallback(
-//     () => setIsAppointmentModalOpen(false),
-//     []
-//   );
-//   const handleToggleChat = useCallback(
-//     () => setIsChatOpen((prev) => !prev),
-//     []
-//   );
-//   const handleTabChange = useCallback((tabId) => setActiveTab(tabId), []);
-//   const handleBackToListings = useCallback(
-//     () => navigate("/property-listings"),
-//     [navigate]
-//   );
-//   const handleHomeNavigate = useCallback(
-//     () => navigate("/home-page"),
-//     [navigate]
-//   );
-
-//   // 🔥 ENHANCED CONTACT HANDLERS WITH TRACKING
-//   const handleWhatsAppContact = useCallback(() => {
-//     if (!property?.agent?.phone) return;
-
-//     trackSEOEvents.contactAction(property, "whatsapp");
-
-//     const message = encodeURIComponent(
-//       `Hi ${property.agent.name}, I'm interested in the property: ${property.title}. Can we schedule a viewing?`
-//     );
-//     const phoneNumber = property.agent.phone.replace(/\D/g, "");
-//     window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
-//   }, [property]);
-
-//   const handleEmailContact = useCallback(() => {
-//     if (!property?.agent?.email) return;
-
-//     trackSEOEvents.contactAction(property, "email");
-
-//     const subject = encodeURIComponent(
-//       `Interest in Property: ${property.title}`
-//     );
-//     const body = encodeURIComponent(
-//       `Hi ${property.agent.name},\n\nI'm interested in the property: ${property.title}.\n\nCan you please provide more details and available viewing schedules?\n\nThank you!`
-//     );
-
-//     window.open(
-//       `mailto:${property.agent.email}?subject=${subject}&body=${body}`,
-//       "_blank"
-//     );
-//   }, [property]);
-
-//   const formattedPropertyId = useMemo(
-//     () => property?.propertyId || "",
-//     [property]
-//   );
-
-//   const tabContent = useMemo(() => {
-//     switch (activeTab) {
-//       case "overview":
-//         return <PropertyInfo property={property} />;
-//       case "location":
-//         return <PropertyLocation property={property} />;
-//       case "similar":
-//         return <SimilarProperties currentProperty={property} />;
-//       default:
-//         return <PropertyInfo property={property} />;
-//     }
-//   }, [activeTab, property]);
-
-//   // 🔥 WISHLIST BUTTON COMPONENT
-//   const WishlistButton = useMemo(
-//     () => (
-//       <Button
-//         variant={isWishlisted ? "primary" : "outline"}
-//         size="sm"
-//         onClick={toggleWishlist}
-//         disabled={wishlistLoading}
-//         iconName={isWishlisted ? "Heart" : "Heart"}
-//         iconPosition="left"
-//         className={`transition-smooth ${
-//           isWishlisted
-//             ? "bg-red-500 hover:bg-red-600 border-red-500 text-white"
-//             : "border-border hover:border-red-300 hover:text-red-500"
-//         } ${wishlistLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-//       >
-//         {wishlistLoading
-//           ? "Loading..."
-//           : isWishlisted
-//           ? "Saved to Wishlist"
-//           : "Add to Wishlist"}
-//       </Button>
-//     ),
-//     [isWishlisted, wishlistLoading, toggleWishlist]
-//   );
-
-//   // 🔥 SKELETON LOADING
-//   if (loading) {
-//     return <PropertyDetailsSkeleton />;
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="min-h-screen bg-white flex items-center justify-center p-6">
-//         <Helmet>
-//           <title>Property Not Found | Premium Real Estate Platform</title>
-//           <meta
-//             name="description"
-//             content="The requested property could not be found."
-//           />
-//         </Helmet>
-//         <div className="text-center max-w-md">
-//           <div className="flex justify-center mb-6">
-//             <div className="w-16 h-16 bg-red-50 rounded-md flex items-center justify-center border border-red-100">
-//               <AlertCircle className="w-8 h-8 text-red-500" />
-//             </div>
-//           </div>
-//           <h2 className="text-xl font-semibold text-gray-900 mb-3">
-//             Something went wrong
-//           </h2>
-//           <p className="text-red-500 font-medium mb-2">{error}</p>
-//           <p className="text-gray-600 text-sm mb-6">
-//             We encountered an issue while loading this page.
-//           </p>
-//           <Button
-//             onClick={handleBackToListings}
-//             variant="primary"
-//             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"
-//           >
-//             Back to Property Listings
-//           </Button>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (!property) {
-//     return (
-//       <div className="min-h-screen bg-background flex items-center justify-center">
-//         <Helmet>
-//           <title>Property Not Found | Premium Real Estate Platform</title>
-//           <meta
-//             name="description"
-//             content="The requested property could not be found."
-//           />
-//         </Helmet>
-//         <div className="text-center">
-//           <p className="text-muted-foreground mb-4">No property found.</p>
-//           <Button onClick={handleBackToListings}>
-//             Back to Property Listings
-//           </Button>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="min-h-screen bg-background">
-//       {/* 🔥 SEO Meta Tags */}
-//       {getPropertyMetaTags()}
-
-//       <Header
-//         user={user}
-//         onLogout={() => navigate("/login")}
-//         onSearch={() => {}}
-//       />
-
-//       <main className="container mx-auto px-4 py-6">
-//         {/* 🔥 REPLACE OLD BREADCRUMB WITH ENHANCED BREADCRUMBTRAIL */}
-//         <BreadcrumbTrail propertyData={property} user={user} />
-
-//         {/* Back Button */}
-//         <div className="mb-6">
-//           <Button
-//             variant="outline"
-//             onClick={handleBackToListings}
-//             iconName="ArrowLeft"
-//             iconPosition="left"
-//           >
-//             Back to Listings
-//           </Button>
-//         </div>
-
-//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-//           {/* Main Content */}
-//           <div className="lg:col-span-2 space-y-8">
-//             <PropertyImageGallery
-//               images={property.images}
-//               propertyTitle={property.title}
-//               // 🔥 ADD WISHLIST BUTTON TO GALLERY
-//               wishlistButton={WishlistButton}
-//               isWishlisted={isWishlisted}
-//               onWishlistToggle={toggleWishlist}
-//               wishlistLoading={wishlistLoading}
-//             />
-
-//             <div className="lg:hidden">
-//               <PropertyActions
-//                 property={property}
-//                 onScheduleViewing={handleScheduleViewing}
-//                 onWhatsAppContact={handleWhatsAppContact}
-//                 // 🔥 PASS WISHLIST PROPS
-//                 isWishlisted={isWishlisted}
-//                 onWishlistToggle={toggleWishlist}
-//                 wishlistLoading={wishlistLoading}
-//               />
-//             </div>
-
-//             {/* Tabs */}
-//             <div className="border-b border-border">
-//               <nav className="flex space-x-8">
-//                 {tabs.map((tab) => (
-//                   <button
-//                     key={tab.id}
-//                     onClick={() => handleTabChange(tab.id)}
-//                     className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-smooth ${
-//                       activeTab === tab.id
-//                         ? "border-primary text-primary"
-//                         : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-//                     }`}
-//                   >
-//                     <Icon name={tab.icon} size={16} />
-//                     <span>{tab.label}</span>
-//                   </button>
-//                 ))}
-//               </nav>
-//             </div>
-
-//             {/* Tab Content */}
-//             <div className="min-h-[400px]">{tabContent}</div>
-//           </div>
-
-//           {/* Sidebar */}
-//           <div className="space-y-6">
-//             <AgentCard
-//               agent={property.agent}
-//               onScheduleViewing={handleScheduleViewing}
-//               onWhatsAppContact={handleWhatsAppContact}
-//               onEmailContact={handleEmailContact}
-//             />
-
-//             <div className="hidden lg:block">
-//               <PropertyActions
-//                 property={property}
-//                 onScheduleViewing={handleScheduleViewing}
-//                 onWhatsAppContact={handleWhatsAppContact}
-//                 // 🔥 PASS WISHLIST PROPS
-//                 isWishlisted={isWishlisted}
-//                 onWishlistToggle={toggleWishlist}
-//                 wishlistLoading={wishlistLoading}
-//               />
-//             </div>
-
-//             {/* Quick Information */}
-//             <div className="bg-card border border-border rounded p-6">
-//               <h4 className="font-semibold text-foreground mb-4">
-//                 Quick Information
-//               </h4>
-//               <div className="space-y-3 text-sm">
-//                 <div className="flex justify-between">
-//                   <span className="text-muted-foreground">Property ID</span>
-//                   <span className="text-foreground font-medium">
-//                     {formattedPropertyId}
-//                   </span>
-//                 </div>
-//                 <div className="flex justify-between">
-//                   <span className="text-muted-foreground">Listed Date</span>
-//                   <span className="text-foreground">
-//                     {new Date(property.listedDate).toLocaleDateString()}
-//                   </span>
-//                 </div>
-//                 <div className="flex justify-between">
-//                   <span className="text-muted-foreground">Status</span>
-//                   <span className="text-foreground capitalize">
-//                     {property.status}
-//                   </span>
-//                 </div>
-//                 <div className="flex justify-between">
-//                   <span className="text-muted-foreground">Type</span>
-//                   <span className="text-foreground capitalize">
-//                     {property.type}
-//                   </span>
-//                 </div>
-//                 <div className="flex justify-between">
-//                   <span className="text-muted-foreground">Area</span>
-//                   <span className="text-foreground">
-//                     {property.area} {property.areaUnit}
-//                   </span>
-//                 </div>
-//                 {/* 🔥 ADD WISHLIST STATUS */}
-//                 <div className="flex justify-between items-center pt-2 border-t border-border">
-//                   <span className="text-muted-foreground">Wishlist Status</span>
-//                   <div className="flex items-center space-x-1">
-//                     <Heart
-//                       size={16}
-//                       className={
-//                         isWishlisted
-//                           ? "text-red-500 fill-red-500"
-//                           : "text-gray-400"
-//                       }
-//                     />
-//                     <span
-//                       className={`text-sm font-medium ${
-//                         isWishlisted ? "text-red-500" : "text-foreground"
-//                       }`}
-//                     >
-//                       {isWishlisted ? "Saved" : "Not Saved"}
-//                     </span>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* 🔥 WISHLIST ERROR MESSAGE */}
-//             {wishlistError && (
-//               <div className="bg-red-50 border border-red-200 rounded p-4">
-//                 <div className="flex items-center space-x-2 text-red-700">
-//                   <AlertCircle size={16} />
-//                   <span className="text-sm font-medium">{wishlistError}</span>
-//                 </div>
-//               </div>
-//             )}
-
-//             {/* Contact Support */}
-//             <div className="bg-muted/50 rounded p-6 text-center">
-//               <Icon
-//                 name="Headphones"
-//                 size={32}
-//                 className="text-primary mx-auto mb-3"
-//               />
-//               <h4 className="font-semibold text-foreground mb-2">Need Help?</h4>
-//               <p className="text-sm text-muted-foreground mb-4">
-//                 Our support team is here to assist you with any questions.
-//               </p>
-//               <Button variant="outline" size="sm" fullWidth>
-//                 Contact Support
-//               </Button>
-//             </div>
-//           </div>
-//         </div>
-//       </main>
-
-//       <AppointmentModal
-//         isOpen={isAppointmentModalOpen}
-//         onClose={handleCloseAppointmentModal}
-//         property={property}
-//         agent={property.agent}
-//       />
-
-//       <FloatingChat isOpen={isChatOpen} onToggle={handleToggleChat} />
-//     </div>
-//   );
-// };
-
-// export default React.memo(PropertyDetails);
-
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
+import {
+  MapPin,
+  Heart,
+  Scale,
+  Share2,
+  Maximize2,
+  BedDouble,
+  Bath,
+  Building,
+  CalendarCheck,
+  PhoneCall,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Car,
+  X,
+  Phone,
+  Mail,
+  ExternalLink,
+  Sparkles,
+  ArrowRight,
+  MessageSquare,
+  ShieldCheck,
+  Compass,
+  Calendar,
+  Layers
+} from "lucide-react";
 import Header from "../../components/ui/Header";
 import Footer from "../../components/ui/Footer";
-import FloatingChat from "../../components/ui/FloatingChat";
-import PropertyImageGallery from "./components/PropertyImageGallery";
-import PropertyInfo from "./components/PropertyInfo";
-import AgentCard from "./components/AgentCard";
-import AppointmentModal from "./components/AppointmentModal";
-import PropertyLocation from "./components/PropertyLocation";
-import SimilarProperties from "./components/SimilarProperties";
-import PropertyActions from "./components/PropertyActions";
-import BreadcrumbTrail from "../../components/ui/BreadcrumbTrail";
-import Icon from "../../components/AppIcon";
-import Button from "../../components/ui/Button";
-import { getPropertyBySlug } from "../../lib/mongo/services/propertyService";
-import { AlertCircle, Heart } from "lucide-react";
-
-// 🔥 IMPORT SKELETON COMPONENT
-import PropertyDetailsSkeleton from "../../components/loading/PropertyDetailsSkeleton";
-
-// 🔥 ADD THESE IMPORTS
-import { usePerformanceMonitor } from "../../hooks/usePerformanceMonitor";
-import { checkPerformanceBudget } from "../../utils/performanceBudget";
-import { trackSEOEvents } from "../../utils/analytics";
-import { optimizeImageUrl } from "../../utils/imageOptimizer";
-
-// 🔥 IMPORT WISHLIST SERVICES
-import {
-  addToWishlist,
-  removeFromWishlist,
-  checkWishlistStatus,
-} from "../../lib/mongo/services/wishlistService";
+import PropertyCard from "../../components/ui/PropertyCard";
+import Breadcrumbs from "../../components/ui/Breadcrumbs";
+import SiteVisitModal from "../../components/ui/SiteVisitModal";
+import EnquiryModal from "../../components/ui/EnquiryModal";
+import EMICalculator from "../../components/ui/EMICalculator";
+import CompareDrawer from "../../components/ui/CompareDrawer";
+import { getPropertyBySlug, getAllProperties } from "../../lib/mongo/services/propertyService";
+import { useShortlist } from "../../contexts/ShortlistContext";
+import { toast } from "react-toastify";
 
 const PropertyDetails = () => {
   const { slug } = useParams();
-  const navigate = useNavigate();
+  const { isSaved, toggleSaveProperty, isInCompare, toggleCompare, addRecentlyViewed } = useShortlist();
 
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [mobileGalleryIdx, setMobileGalleryIdx] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [similarProperties, setSimilarProperties] = useState([]);
+  const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
+  const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
+  const [enquiryMode, setEnquiryMode] = useState("callback");
   const [activeTab, setActiveTab] = useState("overview");
-  const [user, setUser] = useState(null);
 
-  // 🔥 WISHLIST STATES
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [wishlistLoading, setWishlistLoading] = useState(false);
-  const [wishlistError, setWishlistError] = useState(null);
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    setError(null);
 
-  // 🔥 INITIALIZE PERFORMANCE MONITORING
-  usePerformanceMonitor();
-
-  // 🔥 GET USER FROM LOCALSTORAGE
-  const getUserFromStorage = useCallback(() => {
-    const userData = localStorage.getItem("user");
-
-    if (userData) {
-      try {
-        return JSON.parse(userData);
-      } catch (e) {
-        console.error("Error parsing user data:", e);
-      }
-    }
-    return null;
-  }, []);
-
-  // 🔥 CHECK AUTHENTICATION STATUS
-  const isAuthenticated = useCallback(() => {
-    const user = localStorage.getItem("user");
-    return !!user;
-  }, []);
-
-  // 🔥 ENHANCED SEO META TAGS
-  const getPropertyMetaTags = useCallback(() => {
-    if (!property) return null;
-
-    const title = `🏠 ${property.title} | ${property.bedrooms}BHK ${
-      property.type
-    } in ${property.location} | ₹${
-      property.price?.toLocaleString("en-IN") || "Price on Request"
-    }`;
-
-    const description = `✅ Verified ${property.bedrooms}BHK ${
-      property.type
-    } in ${property.location}. ${property.area} sq ft • ${
-      property.bathrooms
-    } Bath • ${property.amenities?.slice(0, 3).join(" • ")}. 📞 Contact ${
-      property.agent?.name
-    } for viewing. Instant booking available.`;
-
-    const currentUrl = `${window.location.origin}/property/${slug}`;
-    const featuredImage = optimizeImageUrl(
-      property.images?.[0]?.url || "/images/property-og-default.jpg",
-      { width: 1200, quality: 85 }
-    );
-
-    return (
-      <Helmet>
-        {/* Primary Meta Tags */}
-        <title>{title}</title>
-        <meta name="description" content={description} />
-        <meta
-          name="robots"
-          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
-        />
-        <meta
-          name="keywords"
-          content={`${property.type}, ${property.location}, real estate, property for sale, ${property.bedrooms} bedroom, ${property.area} sq ft, buy property, rent apartment`}
-        />
-
-        {/* Canonical URL */}
-        <link rel="canonical" href={currentUrl} />
-
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="real_estate.property" />
-        <meta property="og:url" content={currentUrl} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:image" content={featuredImage} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta
-          property="og:image:alt"
-          content={`Main image of ${property.title}`}
-        />
-        <meta property="og:site_name" content="Premium Real Estate Platform" />
-        <meta property="og:locale" content="en_IN" />
-        <meta property="og:price:amount" content={property.price?.toString()} />
-        <meta property="og:price:currency" content="INR" />
-        <meta
-          property="og:availability"
-          content={property.status === "available" ? "instock" : "out of stock"}
-        />
-
-        {/* Twitter Cards */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={currentUrl} />
-        <meta property="twitter:title" content={title} />
-        <meta property="twitter:description" content={description} />
-        <meta property="twitter:image" content={featuredImage} />
-        <meta
-          property="twitter:image:alt"
-          content={`Main image of ${property.title}`}
-        />
-        <meta property="twitter:site" content="@RealEstatePlatform" />
-        <meta property="twitter:creator" content="@RealEstatePlatform" />
-
-        {/* Enhanced Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@graph": [
-              {
-                "@type": "RealEstateListing",
-                "@id": `${currentUrl}#realestatelisting`,
-                name: property.title,
-                description: property.description || description,
-                url: currentUrl,
-                image: property.images?.map((img) =>
-                  optimizeImageUrl(img.url, { width: 800, quality: 85 })
-                ) || [featuredImage],
-                offers: {
-                  "@type": "Offer",
-                  price: property.price,
-                  priceCurrency: "INR",
-                  availability:
-                    property.status === "available"
-                      ? "https://schema.org/InStock"
-                      : "https://schema.org/OutOfStock",
-                  priceValidUntil: new Date(
-                    Date.now() + 90 * 24 * 60 * 60 * 1000
-                  )
-                    .toISOString()
-                    .split("T")[0],
-                  url: currentUrl,
-                  seller: {
-                    "@type": "RealEstateAgent",
-                    name: property.agent?.name,
-                    telephone: property.agent?.phone,
-                    email: property.agent?.email,
-                  },
-                },
-                address: {
-                  "@type": "PostalAddress",
-                  streetAddress: property.address || property.location,
-                  addressLocality:
-                    typeof property.location === "object"
-                      ? property.location.city
-                      : property.location,
-                  addressRegion:
-                    typeof property.location === "object"
-                      ? property.location.state
-                      : "",
-                  postalCode: property.pincode,
-                  addressCountry: "IN",
-                },
-                geo: {
-                  "@type": "GeoCoordinates",
-                  latitude: property.coordinates?.lat || 0,
-                  longitude: property.coordinates?.lng || 0,
-                },
-                numberOfRooms: property.bedrooms,
-                numberOfBathroomsTotal: property.bathrooms,
-                floorSize: {
-                  "@type": "QuantitativeValue",
-                  value: property.area,
-                  unitCode: property.areaUnit === "sqft" ? "FTK" : "MTK",
-                },
-                petsAllowed:
-                  property.amenities?.includes("Pet Friendly") || false,
-                yearBuilt: property.builtYear,
-                listingDate: property.listedDate,
-                provider: {
-                  "@type": "RealEstateAgent",
-                  name: property.agent?.name,
-                  telephone: property.agent?.phone,
-                  email: property.agent?.email,
-                  rating: {
-                    "@type": "AggregateRating",
-                    ratingValue: property.agent?.rating || 4.5,
-                    reviewCount: property.agent?.reviewCount || 25,
-                    bestRating: 5,
-                  },
-                },
-                amenityFeature: property.amenities?.map((amenity) => ({
-                  "@type": "LocationFeatureSpecification",
-                  name: amenity,
-                  value: true,
-                })),
-              },
-              {
-                "@type": "WebPage",
-                "@id": `${currentUrl}#webpage`,
-                url: currentUrl,
-                name: title,
-                description: description,
-                isPartOf: {
-                  "@id": `${window.location.origin}/#website`,
-                },
-                about: {
-                  "@id": `${currentUrl}#realestatelisting`,
-                },
-                datePublished: property.listedDate,
-                dateModified: new Date().toISOString(),
-                breadcrumb: {
-                  "@id": `${currentUrl}#breadcrumb`,
-                },
-                primaryImageOfPage: {
-                  "@type": "ImageObject",
-                  url: featuredImage,
-                  width: 1200,
-                  height: 630,
-                },
-                potentialAction: [
-                  {
-                    "@type": "ReadAction",
-                    target: [currentUrl],
-                  },
-                ],
-              },
-              {
-                "@type": "Organization",
-                "@id": `${window.location.origin}/#organization`,
-                name: "Premium Real Estate Platform",
-                url: window.location.origin,
-                logo: `${window.location.origin}/logo.png`,
-                description:
-                  "India's leading real estate platform for buying, selling, and renting properties",
-                address: {
-                  "@type": "PostalAddress",
-                  addressLocality: "Mumbai",
-                  addressRegion: "Maharashtra",
-                  addressCountry: "IN",
-                },
-                contactPoint: {
-                  "@type": "ContactPoint",
-                  telephone: "+91-XXXXXXXXXX",
-                  contactType: "customer service",
-                  areaServed: "IN",
-                  availableLanguage: ["English", "Hindi"],
-                },
-                sameAs: [
-                  "https://www.facebook.com/realestateplatform",
-                  "https://www.twitter.com/realestateplatform",
-                  "https://www.linkedin.com/company/realestateplatform",
-                ],
-              },
-            ],
-          })}
-        </script>
-      </Helmet>
-    );
-  }, [property, slug]);
-
-  const transformPropertyData = useCallback((apiData) => {
-    if (!apiData) return null;
-
-    // Determine which agent data to use
-    let agentData = {};
-
-    if (
-      apiData.agentInfo &&
-      apiData.agentInfo.name &&
-      apiData.agentInfo.name !== "Agent"
-    ) {
-      agentData = {
-        id: apiData.agentInfo?._id || apiData._id,
-        name: apiData.agentInfo.name,
-        designation: apiData.agentInfo.designation,
-        avatar: apiData.agentInfo.avatar,
-        phone: apiData.agentInfo.phone,
-        email: apiData.agentInfo.email,
-        rating: apiData.agentInfo.rating,
-        reviewCount: apiData.agentInfo.reviewCount,
-        propertiesSold: apiData.agentInfo.propertiesSold,
-        experience: apiData.agentInfo.experience,
-        languages: apiData.agentInfo.languages,
-      };
-    } else if (apiData.postedBy && typeof apiData.postedBy === "object") {
-      agentData = {
-        id: apiData.postedBy._id,
-        name: apiData.postedBy.name,
-        designation: apiData.postedBy.designation,
-        avatar: apiData.postedBy.avatar,
-        phone: apiData.postedBy.phone,
-        email: apiData.postedBy.email,
-        rating: apiData.postedBy.rating?.average || 0,
-        reviewCount: apiData.postedBy.rating?.totalReviews || 0,
-        propertiesSold: apiData.postedBy.performance?.totalPropertiesSold || 0,
-        experience: apiData.postedBy.experience
-          ? `${apiData.postedBy.experience}+`
-          : "0+",
-        languages: apiData.postedBy.languages || ["English", "Hindi"],
-      };
-    } else {
-      agentData = {
-        id: apiData._id,
-        name: "Agent",
-        designation: "Property Consultant",
-        avatar: "default-avatar.jpg",
-        phone: "+919876543210",
-        email: "agent@example.com",
-        rating: 0,
-        reviewCount: 0,
-        propertiesSold: 0,
-        experience: "0+",
-        languages: ["English", "Hindi"],
-      };
-    }
-
-    return {
-      // Basic info
-      id: apiData._id,
-      title: apiData.title,
-      description: apiData.description,
-      price: apiData.price,
-      originalPrice: apiData.originalPrice,
-
-      // Location
-      location:
-        typeof apiData.location === "string"
-          ? apiData.location
-          : apiData.location?.address ||
-            `${apiData.location?.city}, ${apiData.location?.state}`,
-      address:
-        typeof apiData.location === "string"
-          ? apiData.location
-          : apiData.location?.address,
-      pincode:
-        typeof apiData.location === "string" ? "" : apiData.location?.pincode,
-      coordinates:
-        typeof apiData.location === "string"
-          ? { lat: 0, lng: 0 }
-          : apiData.location?.coordinates || { lat: 0, lng: 0 },
-
-      // Status
-      status: apiData.status,
-      featured: apiData.featured,
-
-      // Specifications
-      bedrooms: apiData.specifications?.bedrooms,
-      bathrooms: apiData.specifications?.bathrooms,
-      area: apiData.specifications?.area,
-      areaUnit: apiData.specifications?.areaUnit || "sqft",
-      type: apiData.specifications?.type,
-      builtYear: apiData.specifications?.builtYear,
-      parking: apiData.specifications?.parking,
-
-      // Arrays
-      amenities: apiData.amenities || [],
-      features: apiData.features || [],
-      // 🔥 ENHANCED: Optimized images
-      images:
-        apiData.images?.map((img) => ({
-          ...img,
-          url: optimizeImageUrl(img.url, { width: 1200, quality: 85 }),
-        })) || [],
-
-      // Agent data
-      agent: {
-        ...agentData,
-        avatarAlt: `Professional photo of ${agentData.name}`,
-        location:
-          agentData.location ||
-          (typeof apiData.location === "string"
-            ? apiData.location
-            : `${apiData.location?.city}, ${apiData.location?.state}`),
-      },
-
-      // Additional fields
-      listedDate: apiData.listedDate || new Date().toISOString(),
-      propertyId: apiData.propertyId || `RC${apiData._id?.slice(-6)}`,
-    };
-  }, []);
-
-  // 🔥 CHECK WISHLIST STATUS WITH AUTH HANDLING
-  const checkWishlistStatusForProperty = useCallback(
-    async (propertyId) => {
-      if (!propertyId) return;
-
-      // 🔥 CHECK IF USER IS AUTHENTICATED FIRST
-      if (!isAuthenticated()) {
-        console.log("User not authenticated, skipping wishlist status check");
-        setIsWishlisted(false);
-        return;
-      }
-
-      try {
-        setWishlistLoading(true);
-        const response = await checkWishlistStatus(propertyId);
-        // 🔥 FIX: Use response.inWishlist instead of response.isWishlisted
-        setIsWishlisted(response.inWishlist || false);
-        setWishlistError(null);
-      } catch (err) {
-        console.error("Error checking wishlist status:", err);
-        // 🔥 HANDLE UNAUTHORIZED ERRORS GRACEFULLY
-        if (
-          err.message?.includes("log in") ||
-          err.message?.includes("unauthorized") ||
-          err.response?.status === 401
-        ) {
-          console.log("User not authenticated for wishlist features");
-          setIsWishlisted(false);
+    getPropertyBySlug(slug)
+      .then((data) => {
+        if (!isMounted) return;
+        if (!data) {
+          setError("Property not found in live database");
+          setProperty(null);
         } else {
-          setWishlistError("Failed to check wishlist status");
+          setProperty(data);
+          addRecentlyViewed(data);
+          // Fetch similar properties from same city
+          if (data.city) {
+            getAllProperties({ city: data.city, limit: 4 })
+              .then((res) => {
+                if (isMounted && res?.properties) {
+                  setSimilarProperties(
+                    res.properties.filter((p) => p.slug !== slug && p.id !== data.id).slice(0, 3)
+                  );
+                }
+              })
+              .catch(() => {});
+          }
         }
-      } finally {
-        setWishlistLoading(false);
-      }
-    },
-    [isAuthenticated]
-  );
-
-  // 🔥 TOGGLE WISHLIST FUNCTION WITH AUTH HANDLING
-  const toggleWishlist = useCallback(async () => {
-    if (!property?.id) return;
-
-    // 🔥 CHECK AUTHENTICATION FIRST
-    if (!isAuthenticated()) {
-      navigate("/login", {
-        state: {
-          from: `/property/${slug}`,
-          message: "Please login to add properties to your wishlist",
-        },
-      });
-      return;
-    }
-
-    try {
-      setWishlistLoading(true);
-      setWishlistError(null);
-
-      if (isWishlisted) {
-        // Remove from wishlist
-        await removeFromWishlist(property.id);
-        setIsWishlisted(false);
-        trackSEOEvents.wishlistAction(property, "remove");
-      } else {
-        // Add to wishlist
-        await addToWishlist(property.id);
-        setIsWishlisted(true);
-        trackSEOEvents.wishlistAction(property, "add");
-      }
-    } catch (err) {
-      console.error("Error toggling wishlist:", err);
-
-      // 🔥 HANDLE SPECIFIC ERROR CASES
-      if (err.message?.includes("already in wishlist")) {
-        setIsWishlisted(true); // Sync state
-      } else if (err.message?.includes("not found in wishlist")) {
-        setIsWishlisted(false); // Sync state
-      } else if (
-        err.message?.includes("log in") ||
-        err.message?.includes("unauthorized")
-      ) {
-        setWishlistError("Please login to use wishlist features");
-        // Redirect to login
-        navigate("/login", {
-          state: {
-            from: `/property/${slug}`,
-            message: "Your session has expired. Please login again.",
-          },
-        });
-      } else {
-        setWishlistError(
-          err.message ||
-            `Failed to ${isWishlisted ? "remove from" : "add to"} wishlist`
-        );
-      }
-    } finally {
-      setWishlistLoading(false);
-    }
-  }, [property, isWishlisted, isAuthenticated, slug, navigate]);
-
-  const tabs = useMemo(
-    () => [
-      { id: "overview", label: "Overview", icon: "Home" },
-      { id: "location", label: "Location", icon: "MapPin" },
-      { id: "similar", label: "Similar Properties", icon: "Building2" },
-    ],
-    []
-  );
-
-  useEffect(() => {
-    const fetchProperty = async () => {
-      try {
-        setLoading(true);
-
-        if (!slug) {
-          setError("No property slug found in URL");
-          setLoading(false);
-          return;
-        }
-
-        const res = await getPropertyBySlug(slug);
-        console.log("API response for property:", res);
-        const transformedProperty = transformPropertyData(res.property);
-        setProperty(transformedProperty);
-      } catch (err) {
-        console.error("Error fetching property:", err);
-        setError(err.message || "Failed to load property details.");
-      } finally {
         setLoading(false);
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error("Failed to load property:", err.message);
+        setError("Property not found in live database");
+        setProperty(null);
+        setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [slug]);
+
+  // Handle keyboard navigation for Lightbox
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setIsLightboxOpen(false);
+      } else if (e.key === "ArrowLeft") {
+        setActiveImageIdx((prev) => (prev === 0 ? (property?.images?.length || 1) - 1 : prev - 1));
+      } else if (e.key === "ArrowRight") {
+        setActiveImageIdx((prev) => (prev + 1) % (property?.images?.length || 1));
       }
     };
 
-    fetchProperty();
+    window.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
 
-    // 🔥 SET USER FROM LOCALSTORAGE
-    const currentUser = getUserFromStorage();
-    setUser(currentUser);
-  }, [slug, transformPropertyData, getUserFromStorage]);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
+    };
+  }, [isLightboxOpen, property]);
 
-  // 🔥 CHECK WISHLIST STATUS WHEN PROPERTY LOADS
-  useEffect(() => {
-    if (property?.id) {
-      checkWishlistStatusForProperty(property.id);
-    }
-  }, [property, checkWishlistStatusForProperty]);
-
-  // 🔥 ADD TRACKING TO EFFECT
-  useEffect(() => {
-    if (property) {
-      trackSEOEvents.propertyView(property);
-
-      // Check performance after page loads
-      setTimeout(() => {
-        checkPerformanceBudget();
-      }, 2000);
-    }
-  }, [property]);
-
-  const handleScheduleViewing = useCallback(
-    () => setIsAppointmentModalOpen(true),
-    []
-  );
-  const handleCloseAppointmentModal = useCallback(
-    () => setIsAppointmentModalOpen(false),
-    []
-  );
-  const handleToggleChat = useCallback(
-    () => setIsChatOpen((prev) => !prev),
-    []
-  );
-  const handleTabChange = useCallback((tabId) => setActiveTab(tabId), []);
-  const handleBackToListings = useCallback(
-    () => navigate("/property-listings"),
-    [navigate]
-  );
-  const handleHomeNavigate = useCallback(
-    () => navigate("/home-page"),
-    [navigate]
-  );
-
-  // 🔥 ENHANCED CONTACT HANDLERS WITH TRACKING
-  const handleWhatsAppContact = useCallback(() => {
-    if (!property?.agent?.phone) return;
-
-    trackSEOEvents.contactAction(property, "whatsapp");
-
-    const message = encodeURIComponent(
-      `Hi ${property.agent.name}, I'm interested in the property: ${property.title}. Can we schedule a viewing?`
-    );
-    const phoneNumber = property.agent.phone.replace(/\D/g, "");
-    window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
-  }, [property]);
-
-  const handleEmailContact = useCallback(() => {
-    if (!property?.agent?.email) return;
-
-    trackSEOEvents.contactAction(property, "email");
-
-    const subject = encodeURIComponent(
-      `Interest in Property: ${property.title}`
-    );
-    const body = encodeURIComponent(
-      `Hi ${property.agent.name},\n\nI'm interested in the property: ${property.title}.\n\nCan you please provide more details and available viewing schedules?\n\nThank you!`
-    );
-
-    window.open(
-      `mailto:${property.agent.email}?subject=${subject}&body=${body}`,
-      "_blank"
-    );
-  }, [property]);
-
-  const formattedPropertyId = useMemo(
-    () => property?.propertyId || "",
-    [property]
-  );
-
-  const tabContent = useMemo(() => {
-    switch (activeTab) {
-      case "overview":
-        return <PropertyInfo property={property} />;
-      case "location":
-        return <PropertyLocation property={property} />;
-      case "similar":
-        return <SimilarProperties currentProperty={property} />;
-      default:
-        return <PropertyInfo property={property} />;
-    }
-  }, [activeTab, property]);
-
-  // 🔥 WISHLIST BUTTON COMPONENT
-  const WishlistButton = useMemo(
-    () => (
-      <Button
-        variant={isWishlisted ? "primary" : "outline"}
-        size="sm"
-        onClick={toggleWishlist}
-        disabled={wishlistLoading}
-        iconName="Heart"
-        iconPosition="left"
-        className={`transition-smooth ${
-          isWishlisted
-            ? "bg-red-500 hover:bg-red-600 border-red-500 text-white"
-            : "border-border hover:border-red-300 hover:text-red-500"
-        } ${wishlistLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-      >
-        {wishlistLoading
-          ? "Loading..."
-          : isWishlisted
-          ? "Saved to Wishlist"
-          : "Add to Wishlist"}
-      </Button>
-    ),
-    [isWishlisted, wishlistLoading, toggleWishlist]
-  );
-
-  // 🔥 SKELETON LOADING
   if (loading) {
-    return <PropertyDetailsSkeleton />;
-  }
-
-  if (error) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-6">
-        <Helmet>
-          <title>Property Not Found | Premium Real Estate Platform</title>
-          <meta
-            name="description"
-            content="The requested property could not be found."
-          />
-        </Helmet>
-        <div className="text-center max-w-md">
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-red-50 rounded-md flex items-center justify-center border border-red-100">
-              <AlertCircle className="w-8 h-8 text-red-500" />
-            </div>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">
-            Something went wrong
-          </h2>
-          <p className="text-red-500 font-medium mb-2">{error}</p>
-          <p className="text-gray-600 text-sm mb-6">
-            We encountered an issue while loading this page.
+      <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-foreground)] flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-9 h-9 border-2 border-[var(--color-terracotta)] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs uppercase tracking-widest text-[var(--color-muted-foreground)] font-mono">
+            Loading property dossier...
           </p>
-          <Button
-            onClick={handleBackToListings}
-            variant="primary"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"
-          >
-            Back to Property Listings
-          </Button>
         </div>
       </div>
     );
   }
 
-  if (!property) {
+  if (error || !property) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Helmet>
-          <title>Property Not Found | Premium Real Estate Platform</title>
-          <meta
-            name="description"
-            content="The requested property could not be found."
-          />
-        </Helmet>
-        <div className="text-center">
-          <p className="text-muted-foreground mb-4">No property found.</p>
-          <Button onClick={handleBackToListings}>
-            Back to Property Listings
-          </Button>
-        </div>
+      <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-foreground)] flex flex-col font-sans">
+        <Header />
+        <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-20 text-center space-y-5">
+          <div className="w-16 h-16 rounded-full bg-[var(--color-subtle)] text-[var(--color-terracotta)] flex items-center justify-center mx-auto text-2xl font-bold">
+            !
+          </div>
+          <h1 className="font-editorial text-3xl font-bold text-[var(--color-foreground)]">
+            Property Not Found
+          </h1>
+          <p className="text-sm text-[var(--color-muted-foreground)] max-w-md mx-auto">
+            The requested property could not be found in the database. It may have been removed or the link might be incorrect.
+          </p>
+          <div className="pt-2">
+            <Link
+              to="/properties"
+              className="inline-flex items-center space-x-2 px-6 py-2.5 bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-sm text-xs font-semibold hover:bg-[var(--color-primary-hover)] transition-colors"
+            >
+              <span>Explore All Live Properties</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
+
+  const saved = isSaved(property.id || property._id);
+  const compared = isInCompare(property.id || property._id);
+  const images = property.images && property.images.length > 0 ? property.images : [property.image];
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({ title: property.title, url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.info("Property link copied to clipboard");
+    }
+  };
+
+  const openLightboxAt = (idx) => {
+    setActiveImageIdx(idx);
+    setIsLightboxOpen(true);
+  };
+
+  // Google Maps link if coordinates available
+  const hasCoordinates =
+    property.coordinates &&
+    (property.coordinates.lat !== 0 || property.coordinates.lng !== 0);
+  const googleMapsUrl = hasCoordinates
+    ? `https://www.google.com/maps/search/?api=1&query=${property.coordinates.lat},${property.coordinates.lng}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.address || property.city)}`;
+
+  // Direct WhatsApp contact link if phone is present
+  const cleanPhone = property.agent?.phone ? property.agent.phone.replace(/\D/g, "") : "";
+  const whatsappUrl = cleanPhone
+    ? `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(`Hi ${property.agent?.name || "Advisor"}, I am interested in "${property.title}" listed on Makaan4U.`)}`
+    : null;
+
+  // Navigation tabs for smooth in-page jumping
+  const navTabs = [
+    { id: "sec-overview", label: "Overview" },
+    { id: "sec-details", label: "Specifications" },
+    ...(property.features?.length || property.amenities?.length ? [{ id: "sec-amenities", label: "Amenities" }] : []),
+    { id: "sec-location", label: "Location" },
+    ...(property.priceNumeric > 0 ? [{ id: "sec-emi", label: "EMI Calculator" }] : []),
+  ];
+
+  const scrollToSection = (id) => {
+    setActiveTab(id);
+    const element = document.getElementById(id);
+    if (element) {
+      const yOffset = -90;
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* 🔥 SEO Meta Tags */}
-      {getPropertyMetaTags()}
+    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-foreground)] flex flex-col font-sans transition-colors duration-300">
+      <Helmet>
+        <title>{`${property.title} — ${property.locality || property.city} | Makaan4U`}</title>
+        <meta name="description" content={property.description?.slice(0, 160)} />
+      </Helmet>
 
-      <Header
-        user={user}
-        onLogout={() => {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          navigate("/login");
-        }}
-        onSearch={() => {}}
-      />
+      <Header />
 
-      <main className="max-w-7xl mx-auto px-4 lg:px-8 py-8 md:py-12">
-        {/* 🔥 REPLACE OLD BREADCRUMB WITH ENHANCED BREADCRUMBTRAIL */}
-        <BreadcrumbTrail propertyData={property} user={user} />
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-28 lg:pb-16 space-y-6">
+        {/* Breadcrumb Trail */}
+        <Breadcrumbs
+          items={[
+            { label: "Properties", href: "/properties" },
+            { label: property.city, href: `/properties?city=${property.city}` },
+            { label: property.title }
+          ]}
+        />
 
-        <div className="mb-4"></div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            <PropertyImageGallery
-              images={property.images}
-              propertyTitle={property.title}
-              // 🔥 ADD WISHLIST BUTTON TO GALLERY
-              wishlistButton={WishlistButton}
-              isWishlisted={isWishlisted}
-              onWishlistToggle={toggleWishlist}
-              wishlistLoading={wishlistLoading}
-            />
-
-            <div className="lg:hidden">
-              <PropertyActions
-                property={property}
-                onScheduleViewing={handleScheduleViewing}
-                onWhatsAppContact={handleWhatsAppContact}
-                // 🔥 PASS WISHLIST PROPS
-                isWishlisted={isWishlisted}
-                onWishlistToggle={toggleWishlist}
-                wishlistLoading={wishlistLoading}
-              />
+        {/* ====================================================================
+            HEADER STRIP: Title, Location, Price & Quick Actions
+        ==================================================================== */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between border-b border-[var(--color-border)] pb-5 gap-4">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="px-2.5 py-0.5 bg-[var(--color-terracotta-subtle)] text-[var(--color-terracotta)] font-semibold rounded-xs uppercase tracking-wider">
+                {property.propertyType} • For {property.listingType}
+              </span>
+              {property.status && property.status !== "available" && (
+                <span className="px-2.5 py-0.5 bg-amber-500/10 text-amber-600 font-semibold rounded-xs uppercase text-[11px]">
+                  {property.status}
+                </span>
+              )}
+              {property.reraId && (
+                <span className="px-2 py-0.5 bg-emerald-900/10 text-emerald-700 font-mono text-[11px] rounded-xs flex items-center space-x-1">
+                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                  <span>RERA: {property.reraId}</span>
+                </span>
+              )}
             </div>
 
-            {/* Tabs */}
-            <div className="border-b border-gray-200 mt-10 mb-6">
-              <nav className="flex space-x-8 overflow-x-auto no-scrollbar">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => handleTabChange(tab.id)}
-                    className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-bold text-sm whitespace-nowrap transition-all duration-300 ${
-                      activeTab === tab.id
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300"
-                    }`}
-                  >
-                    <Icon name={tab.icon} size={16} className={activeTab === tab.id ? "text-blue-600" : "text-gray-400"} />
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
-              </nav>
-            </div>
+            <h1 className="font-editorial text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[var(--color-foreground)]">
+              {property.title}
+            </h1>
 
-            {/* Tab Content */}
-            <div className="min-h-[400px]">{tabContent}</div>
+            <p className="text-xs sm:text-sm text-[var(--color-muted-foreground)] flex items-center">
+              <MapPin className="w-4 h-4 mr-1 text-[var(--color-terracotta)] flex-shrink-0" />
+              <span>{property.address}</span>
+            </p>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <AgentCard
-              agent={property.agent}
-              onScheduleViewing={handleScheduleViewing}
-              onWhatsAppContact={handleWhatsAppContact}
-              onEmailContact={handleEmailContact}
-            />
-
-            <div className="hidden lg:block">
-              <PropertyActions
-                property={property}
-                onScheduleViewing={handleScheduleViewing}
-                onWhatsAppContact={handleWhatsAppContact}
-                // 🔥 PASS WISHLIST PROPS
-                isWishlisted={isWishlisted}
-                onWishlistToggle={toggleWishlist}
-                wishlistLoading={wishlistLoading}
-              />
+          {/* Pricing & Primary Quick Actions */}
+          <div className="flex flex-row items-center justify-between sm:justify-end gap-5 lg:text-right border-t sm:border-t-0 border-[var(--color-border)] pt-3 sm:pt-0">
+            <div>
+              <span className="text-[10px] uppercase tracking-wider text-[var(--color-muted-foreground)] block">
+                Guide Valuation
+              </span>
+              <span className="font-mono text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--color-foreground)] tracking-tight">
+                {property.price}
+              </span>
+              {property.pricePerSqFt && (
+                <span className="text-xs font-mono text-[var(--color-muted-foreground)] block">
+                  {property.pricePerSqFt}
+                </span>
+              )}
             </div>
 
-            {/* Quick Information */}
-            <div className="bg-white border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-md p-6">
-              <h4 className="font-extrabold text-gray-900 mb-4 tracking-tight">
-                Quick Information
-              </h4>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Property ID</span>
-                  <span className="text-gray-900 font-bold">
-                    {formattedPropertyId}
-                  </span>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => {
+                  toggleSaveProperty(property);
+                  toast.success(saved ? "Removed from Shortlist" : "Saved to Shortlist");
+                }}
+                className={`p-2.5 rounded-sm border transition-colors ${
+                  saved
+                    ? "bg-[var(--color-terracotta)] text-white border-transparent"
+                    : "bg-[var(--color-surface)] border-[var(--color-border)] hover:border-[var(--color-foreground)]"
+                }`}
+                title="Save to shortlist"
+                aria-label="Save to shortlist"
+              >
+                <Heart className={`w-4 h-4 ${saved ? "fill-current" : ""}`} />
+              </button>
+
+              <button
+                onClick={() => {
+                  toggleCompare(property);
+                  toast.info(compared ? "Removed from Comparison" : "Added to Comparison");
+                }}
+                className={`p-2.5 rounded-sm border transition-colors ${
+                  compared
+                    ? "bg-stone-900 text-white border-transparent"
+                    : "bg-[var(--color-surface)] border-[var(--color-border)] hover:border-[var(--color-foreground)]"
+                }`}
+                title="Compare with another property"
+                aria-label="Compare"
+              >
+                <Scale className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={handleShare}
+                className="p-2.5 bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm transition-colors"
+                title="Share property"
+                aria-label="Share"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ====================================================================
+            PHOTO GALLERY: Responsive Hero with Mobile Swipe/Tap Controls
+        ==================================================================== */}
+        <section className="relative rounded-sm overflow-hidden bg-[var(--color-subtle)] border border-[var(--color-border)] shadow-xs">
+          {/* Desktop Multi-Grid (>= md) */}
+          <div className="hidden md:block h-[380px] lg:h-[460px] w-full">
+            {images.length > 1 ? (
+              <div className="grid grid-cols-12 gap-2 h-full p-2">
+                {/* Main Featured Photo */}
+                <div
+                  onClick={() => openLightboxAt(0)}
+                  className="col-span-8 h-full relative rounded-xs overflow-hidden cursor-pointer group bg-stone-900"
+                >
+                  <img
+                    src={images[0]}
+                    alt={`${property.title} - Main View`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
+                  <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-xs text-white text-[11px] font-mono px-3 py-1 rounded-xs">
+                    1 of {images.length} Photos
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Listed Date</span>
-                  <span className="text-gray-900 font-medium">
-                    {new Date(property.listedDate).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Status</span>
-                  <span className="text-gray-900 font-medium capitalize">
-                    {property.status}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Type</span>
-                  <span className="text-gray-900 font-medium capitalize">
-                    {property.type}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Area</span>
-                  <span className="text-gray-900 font-medium">
-                    {property.area} {property.areaUnit}
-                  </span>
-                </div>
-                {/* 🔥 ADD WISHLIST STATUS - ONLY SHOW IF USER IS AUTHENTICATED */}
-                {isAuthenticated() && (
-                  <div className="flex justify-between items-center pt-3 mt-1 border-t border-gray-100">
-                    <span className="text-gray-500">
-                      Wishlist Status
-                    </span>
-                    <div className="flex items-center space-x-1.5">
-                      <Heart
-                        size={16}
-                        className={
-                          isWishlisted
-                            ? "text-rose-500 fill-rose-500"
-                            : "text-gray-300"
-                        }
+
+                {/* Secondary Photos 2x2 Grid */}
+                <div className="col-span-4 grid grid-cols-2 grid-rows-2 gap-2 h-full">
+                  {images.slice(1, 5).map((img, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => openLightboxAt(idx + 1)}
+                      className="relative rounded-xs overflow-hidden cursor-pointer group bg-stone-900 h-full"
+                    >
+                      <img
+                        src={img}
+                        alt={`${property.title} - View ${idx + 2}`}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
-                      <span
-                        className={`text-sm font-bold ${
-                          isWishlisted ? "text-rose-500" : "text-gray-900"
-                        }`}
-                      >
-                        {isWishlisted ? "Saved" : "Not Saved"}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={() => openLightboxAt(0)}
+                className="w-full h-full relative cursor-pointer group bg-stone-900 p-2"
+              >
+                <img
+                  src={images[0]}
+                  alt={property.title}
+                  className="w-full h-full object-cover rounded-xs transition-transform duration-500 group-hover:scale-102"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Interactive Gallery (< md) */}
+          <div className="md:hidden relative h-[280px] sm:h-[340px] w-full overflow-hidden bg-stone-900">
+            <img
+              src={images[mobileGalleryIdx] || images[0]}
+              alt={`${property.title} photo ${mobileGalleryIdx + 1}`}
+              onClick={() => openLightboxAt(mobileGalleryIdx)}
+              className="w-full h-full object-cover cursor-pointer"
+            />
+
+            {/* Mobile Arrow Controls */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMobileGalleryIdx((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+                  }}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 p-2 bg-black/60 hover:bg-black/90 text-white rounded-full backdrop-blur-xs"
+                  aria-label="Previous photo"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMobileGalleryIdx((prev) => (prev + 1) % images.length);
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 bg-black/60 hover:bg-black/90 text-white rounded-full backdrop-blur-xs"
+                  aria-label="Next photo"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            )}
+
+            {/* Mobile Counter Pill */}
+            <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-xs text-white text-[10px] font-mono px-2.5 py-1 rounded-xs">
+              {mobileGalleryIdx + 1} / {images.length} Photos
+            </div>
+          </div>
+
+          {/* View All Photos Button */}
+          {images.length > 1 && (
+            <button
+              onClick={() => openLightboxAt(0)}
+              className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-black/75 hover:bg-black text-white text-[11px] sm:text-xs font-semibold px-3 py-1.5 rounded-sm backdrop-blur-xs flex items-center space-x-1.5 shadow-md transition-all z-10"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span>View All {images.length} Photos</span>
+            </button>
+          )}
+
+          {/* Mobile Bottom Thumbnail Track (< md) */}
+          {images.length > 1 && (
+            <div className="md:hidden flex items-center space-x-2 p-2 overflow-x-auto bg-[var(--color-surface)] border-t border-[var(--color-border)]">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setMobileGalleryIdx(idx)}
+                  className={`relative flex-shrink-0 w-14 h-11 rounded-xs overflow-hidden border-2 transition-all ${
+                    mobileGalleryIdx === idx
+                      ? "border-[var(--color-terracotta)] scale-102"
+                      : "border-transparent opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <img src={img} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ====================================================================
+            STICKY IN-PAGE NAVIGATION TABS
+        ==================================================================== */}
+        <div className="sticky top-16 sm:top-20 z-20 bg-[var(--color-surface)]/95 backdrop-blur-md border border-[var(--color-border)] rounded-sm p-1.5 shadow-xs">
+          <div className="flex items-center space-x-1.5 overflow-x-auto scrollbar-none">
+            {navTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => scrollToSection(tab.id)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-xs whitespace-nowrap transition-colors ${
+                  activeTab === tab.id
+                    ? "bg-[var(--color-foreground)] text-[var(--color-surface)]"
+                    : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-subtle)]"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ====================================================================
+            KEY SPECIFICATIONS: Real DB Attributes Only
+        ==================================================================== */}
+        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+          {property.area && (
+            <div className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm">
+              <div className="flex items-center text-[var(--color-muted-foreground)] mb-1">
+                <Maximize2 className="w-3.5 h-3.5 mr-1 text-[var(--color-terracotta)]" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold">Area</span>
+              </div>
+              <span className="font-bold text-sm text-[var(--color-foreground)] block">
+                {property.area.toLocaleString()} {property.areaUnit || "sq.ft"}
+              </span>
+            </div>
+          )}
+
+          {property.bedrooms && (
+            <div className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm">
+              <div className="flex items-center text-[var(--color-muted-foreground)] mb-1">
+                <BedDouble className="w-3.5 h-3.5 mr-1 text-[var(--color-terracotta)]" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold">Bedrooms</span>
+              </div>
+              <span className="font-bold text-sm text-[var(--color-foreground)] block">
+                {property.bedrooms} BHK
+              </span>
+            </div>
+          )}
+
+          {property.bathrooms && (
+            <div className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm">
+              <div className="flex items-center text-[var(--color-muted-foreground)] mb-1">
+                <Bath className="w-3.5 h-3.5 mr-1 text-[var(--color-terracotta)]" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold">Bathrooms</span>
+              </div>
+              <span className="font-bold text-sm text-[var(--color-foreground)] block">
+                {property.bathrooms} Bath
+              </span>
+            </div>
+          )}
+
+          {property.propertyType && (
+            <div className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm">
+              <div className="flex items-center text-[var(--color-muted-foreground)] mb-1">
+                <Building className="w-3.5 h-3.5 mr-1 text-[var(--color-terracotta)]" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold">Type</span>
+              </div>
+              <span className="font-bold text-sm text-[var(--color-foreground)] block truncate">
+                {property.propertyType}
+              </span>
+            </div>
+          )}
+
+          {property.furnishing && (
+            <div className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)] block mb-1">
+                Furnishing
+              </span>
+              <span className="font-bold text-sm text-[var(--color-foreground)] block truncate">
+                {property.furnishing}
+              </span>
+            </div>
+          )}
+
+          {property.parking ? (
+            <div className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm">
+              <div className="flex items-center text-[var(--color-muted-foreground)] mb-1">
+                <Car className="w-3.5 h-3.5 mr-1 text-[var(--color-terracotta)]" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold">Parking</span>
+              </div>
+              <span className="font-bold text-sm text-[var(--color-foreground)] block truncate">
+                {property.parking}
+              </span>
+            </div>
+          ) : property.city ? (
+            <div className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm">
+              <div className="flex items-center text-[var(--color-muted-foreground)] mb-1">
+                <MapPin className="w-3.5 h-3.5 mr-1 text-[var(--color-terracotta)]" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold">City</span>
+              </div>
+              <span className="font-bold text-sm text-[var(--color-foreground)] block truncate">
+                {property.city}
+              </span>
+            </div>
+          ) : null}
+        </section>
+
+        {/* ====================================================================
+            MAIN DETAILS: Left 8 Cols (Data) + Right 4 Cols (Sticky Contact Panel)
+        ==================================================================== */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Real Database Information */}
+          <div className="lg:col-span-8 space-y-8">
+            {/* Overview / Description */}
+            <section id="sec-overview" className="space-y-3 scroll-mt-24">
+              <h2 className="font-editorial text-xl sm:text-2xl font-bold text-[var(--color-foreground)]">
+                About this Property
+              </h2>
+              {property.description ? (
+                <p className="text-sm text-[var(--color-muted-foreground)] leading-relaxed whitespace-pre-line">
+                  {property.description}
+                </p>
+              ) : (
+                <p className="text-xs text-[var(--color-muted-foreground)] italic">
+                  No additional description provided for this listing.
+                </p>
+              )}
+            </section>
+
+            {/* Additional Real Specifications */}
+            {(property.floor || property.builtYear || property.facing || property.balconies || property.constructionStatus) && (
+              <section id="sec-details" className="space-y-3 scroll-mt-24">
+                <h2 className="font-editorial text-lg font-bold text-[var(--color-foreground)]">
+                  Property Specifications
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {property.floor && (
+                    <div className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm">
+                      <span className="text-[var(--color-muted-foreground)] block">Floor Level</span>
+                      <span className="font-semibold text-sm text-[var(--color-foreground)] mt-0.5 block">
+                        {property.floor}
                       </span>
+                    </div>
+                  )}
+                  {property.facing && (
+                    <div className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm">
+                      <span className="text-[var(--color-muted-foreground)] block">Orientation</span>
+                      <span className="font-semibold text-sm text-[var(--color-foreground)] mt-0.5 block">
+                        {property.facing}
+                      </span>
+                    </div>
+                  )}
+                  {property.balconies && (
+                    <div className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm">
+                      <span className="text-[var(--color-muted-foreground)] block">Balconies</span>
+                      <span className="font-semibold text-sm text-[var(--color-foreground)] mt-0.5 block">
+                        {property.balconies}
+                      </span>
+                    </div>
+                  )}
+                  {property.builtYear && (
+                    <div className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm">
+                      <span className="text-[var(--color-muted-foreground)] block">Year of Construction</span>
+                      <span className="font-semibold text-sm text-[var(--color-foreground)] mt-0.5 block">
+                        {property.builtYear}
+                      </span>
+                    </div>
+                  )}
+                  {property.constructionStatus && (
+                    <div className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm">
+                      <span className="text-[var(--color-muted-foreground)] block">Possession / Status</span>
+                      <span className="font-semibold text-sm text-[var(--color-foreground)] mt-0.5 block">
+                        {property.constructionStatus}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Features & Amenities */}
+            {(property.features?.length > 0 || property.amenities?.length > 0) && (
+              <section id="sec-amenities" className="space-y-6 scroll-mt-24">
+                {/* Features */}
+                {property.features && property.features.length > 0 && (
+                  <div className="space-y-3">
+                    <h2 className="font-editorial text-lg font-bold text-[var(--color-foreground)]">
+                      Key Highlights
+                    </h2>
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      {property.features.map((feature, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-1.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm text-[var(--color-foreground)] font-medium flex items-center space-x-1.5"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-[var(--color-terracotta)]" />
+                          <span>{feature}</span>
+                        </span>
+                      ))}
                     </div>
                   </div>
                 )}
+
+                {/* Amenities */}
+                {property.amenities && property.amenities.length > 0 && (
+                  <div className="space-y-3">
+                    <h2 className="font-editorial text-lg font-bold text-[var(--color-foreground)]">
+                      Amenities
+                    </h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                      {property.amenities.map((amenity, idx) => (
+                        <div
+                          key={idx}
+                          className="p-2.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm flex items-center space-x-2"
+                        >
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                          <span className="font-medium text-[var(--color-foreground)] truncate">{amenity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Location Section with Actual Embedded Google Map */}
+            <section id="sec-location" className="space-y-3 scroll-mt-24">
+              <div className="flex items-center justify-between">
+                <h2 className="font-editorial text-lg font-bold text-[var(--color-foreground)]">
+                  Location & Accessibility
+                </h2>
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1 text-xs font-semibold text-[var(--color-terracotta)] hover:underline"
+                >
+                  <span>Open in Google Maps</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+
+              <div className="p-4 sm:p-5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm space-y-4 text-xs">
+                <div className="flex items-start text-sm font-medium text-[var(--color-foreground)]">
+                  <MapPin className="w-4 h-4 mr-2 text-[var(--color-terracotta)] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span>{property.address}</span>
+                    {property.pincode && (
+                      <span className="text-[var(--color-muted-foreground)] block text-xs mt-0.5">
+                        Postal Code: <strong className="text-[var(--color-foreground)] font-mono">{property.pincode}</strong>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {hasCoordinates && (
+                  <div className="pt-2 border-t border-[var(--color-border)] flex items-center space-x-3 text-[11px] text-[var(--color-muted-foreground)] font-mono">
+                    <Compass className="w-3.5 h-3.5 text-[var(--color-terracotta)]" />
+                    <span>Lat: {property.coordinates.lat.toFixed(4)}°, Lng: {property.coordinates.lng.toFixed(4)}°</span>
+                  </div>
+                )}
+
+                {/* Actual Embedded Google Map */}
+                <div className="relative w-full h-64 sm:h-80 rounded-xs overflow-hidden border border-[var(--color-border)] shadow-xs">
+                  <iframe
+                    title={`Google Map - ${property.title}`}
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                      hasCoordinates
+                        ? `${property.coordinates.lat},${property.coordinates.lng}`
+                        : `${property.address || property.locality || property.title}, ${property.city}, India`
+                    )}&t=m&z=15&ie=UTF8&iwloc=&output=embed`}
+                    className="w-full h-full border-0"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <a
+                    href={googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[var(--color-subtle)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-xs text-xs font-semibold text-[var(--color-foreground)] transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-[var(--color-terracotta)]" />
+                    <span>View on Google Maps</span>
+                  </a>
+
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+                      hasCoordinates
+                        ? `${property.coordinates.lat},${property.coordinates.lng}`
+                        : `${property.address || property.locality || property.title}, ${property.city}, India`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[var(--color-subtle)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-xs text-xs font-semibold text-[var(--color-foreground)] transition-colors"
+                  >
+                    <Navigation className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Get Driving Directions</span>
+                  </a>
+                </div>
+              </div>
+            </section>
+
+            {/* EMI Calculator */}
+            {property.priceNumeric > 0 && (
+              <section id="sec-emi" className="scroll-mt-24">
+                <EMICalculator initialPrice={property.priceNumeric} />
+              </section>
+            )}
+          </div>
+
+          {/* Right Column: Sticky Contact & Schedule Visit Panel (Desktop) */}
+          <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-24">
+            <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm p-5 space-y-4 shadow-xs">
+              <div>
+                <span className="text-[10px] uppercase tracking-widest font-semibold text-[var(--color-terracotta)] block">
+                  Direct Facilitation
+                </span>
+                <h3 className="font-editorial text-xl font-bold text-[var(--color-foreground)] mt-0.5">
+                  Arrange Access & Consultation
+                </h3>
+                <p className="text-xs text-[var(--color-muted-foreground)] mt-1 leading-relaxed">
+                  Connect with the assigned consultant for a physical walkthrough or priority callback.
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-1">
+                <button
+                  onClick={() => setIsVisitModalOpen(true)}
+                  className="w-full py-2.5 px-4 bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)] text-xs font-semibold rounded-sm transition-colors flex items-center justify-center space-x-2"
+                >
+                  <CalendarCheck className="w-4 h-4" />
+                  <span>Schedule Site Visit</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setEnquiryMode("callback");
+                    setIsEnquiryModalOpen(true);
+                  }}
+                  className="w-full py-2.5 px-4 bg-[var(--color-subtle)] text-[var(--color-foreground)] hover:border-[var(--color-foreground)] border border-[var(--color-border)] text-xs font-semibold rounded-sm transition-colors flex items-center justify-center space-x-2"
+                >
+                  <PhoneCall className="w-4 h-4 text-[var(--color-terracotta)]" />
+                  <span>Request Callback</span>
+                </button>
               </div>
             </div>
 
-            {/* 🔥 WISHLIST ERROR MESSAGE */}
-            {wishlistError && (
-              <div className="bg-red-50 border border-red-100 rounded-md p-4">
-                <div className="flex items-center space-x-2 text-red-600">
-                  <AlertCircle size={16} />
-                  <span className="text-sm font-medium">{wishlistError}</span>
+            {/* Real Consultant Info (Only if present in DB) */}
+            {property.agent && (
+              <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm p-4 space-y-3.5 text-xs shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)] block">
+                    Listing Consultant
+                  </span>
+                  <span className="px-1.5 py-0.5 bg-emerald-900/10 text-emerald-700 text-[10px] font-semibold rounded-xs">
+                    Verified Advisor
+                  </span>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  {property.agent.image ? (
+                    <img
+                      src={property.agent.image}
+                      alt={property.agent.name}
+                      className="w-12 h-12 rounded-full object-cover border border-[var(--color-border)]"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-[var(--color-subtle)] text-[var(--color-terracotta)] font-bold flex items-center justify-center text-sm border border-[var(--color-border)]">
+                      {property.agent.name?.charAt(0) || "A"}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-xs text-[var(--color-foreground)] truncate">
+                      {property.agent.name}
+                    </h4>
+                    <p className="text-[11px] text-[var(--color-muted-foreground)] truncate">
+                      {property.agent.designation}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-[var(--color-border)] space-y-2">
+                  {property.agent.phone && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <a
+                        href={`tel:${property.agent.phone}`}
+                        className="flex items-center justify-center space-x-1.5 py-2 px-2 bg-[var(--color-subtle)] hover:bg-[var(--color-border)] rounded-xs font-semibold text-[11px] text-[var(--color-foreground)] transition-colors"
+                      >
+                        <Phone className="w-3.5 h-3.5 text-[var(--color-terracotta)]" />
+                        <span>Call</span>
+                      </a>
+
+                      {whatsappUrl && (
+                        <a
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center space-x-1.5 py-2 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xs font-semibold text-[11px] transition-colors"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>WhatsApp</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {property.agent.email && (
+                    <a
+                      href={`mailto:${property.agent.email}`}
+                      className="flex items-center space-x-2 text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] truncate pt-1 text-[11px]"
+                    >
+                      <Mail className="w-3.5 h-3.5 text-[var(--color-terracotta)] flex-shrink-0" />
+                      <span className="truncate">{property.agent.email}</span>
+                    </a>
+                  )}
                 </div>
               </div>
             )}
-
-            {/* Contact Support */}
-            <div className="bg-gradient-to-br from-slate-50 to-blue-50/50 border border-blue-100/50 rounded-md p-6 text-center shadow-sm">
-              <Icon
-                name="Headphones"
-                size={32}
-                className="text-blue-600 mx-auto mb-3"
-              />
-              <h4 className="font-extrabold text-gray-900 mb-2">Need Help?</h4>
-              <p className="text-sm text-gray-600 mb-5 leading-relaxed">
-                Our support team is here to assist you with any questions.
-              </p>
-              <Button variant="outline" className="w-full border-blue-200 text-blue-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 rounded-md font-bold text-xs uppercase tracking-wide py-2">
-                Contact Support
-              </Button>
-            </div>
           </div>
         </div>
+
+        {/* ====================================================================
+            SIMILAR PROPERTIES (Only rendered if other real properties exist in DB)
+        ==================================================================== */}
+        {similarProperties.length > 0 && (
+          <section className="pt-10 border-t border-[var(--color-border)]">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-[var(--color-terracotta)]">
+                  Micro-Market Context
+                </span>
+                <h3 className="font-editorial text-xl sm:text-2xl font-bold text-[var(--color-foreground)] mt-0.5">
+                  More Properties in {property.city}
+                </h3>
+              </div>
+              <Link to="/properties" className="text-xs font-semibold hover:underline inline-flex items-center">
+                <span>View All</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {similarProperties.map((p) => (
+                <PropertyCard key={p.id || p._id} property={p} variant="standard" />
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
-      <AppointmentModal
-        isOpen={isAppointmentModalOpen}
-        onClose={handleCloseAppointmentModal}
+      {/* ====================================================================
+          MOBILE STICKY ACTION BAR (< lg)
+      ==================================================================== */}
+      <aside className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--color-surface)]/95 backdrop-blur-md border-t border-[var(--color-border)] px-4 py-3 flex items-center justify-between shadow-2xl">
+        <div>
+          <span className="font-mono text-base sm:text-lg font-bold text-[var(--color-foreground)] block">
+            {property.price}
+          </span>
+          <span className="text-[10px] text-[var(--color-muted-foreground)] uppercase tracking-wider block">
+            {property.bedrooms ? `${property.bedrooms} BHK • ` : ""}{property.propertyType}
+          </span>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          {property.agent?.phone && (
+            <a
+              href={`tel:${property.agent.phone}`}
+              className="p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] text-[var(--color-foreground)] rounded-sm"
+              title="Call Consultant"
+              aria-label="Call Consultant"
+            >
+              <Phone className="w-4 h-4 text-[var(--color-terracotta)]" />
+            </a>
+          )}
+
+          <button
+            onClick={() => setIsVisitModalOpen(true)}
+            className="px-4 py-2.5 bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-sm text-xs font-semibold hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-1.5"
+          >
+            <CalendarCheck className="w-3.5 h-3.5" />
+            <span>Schedule Tour</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ====================================================================
+          FULLSCREEN LIGHTBOX MODAL
+      ==================================================================== */}
+      {isLightboxOpen && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col justify-between p-4 sm:p-6 animate-fade-in">
+          <div className="flex items-center justify-between text-white pb-3 border-b border-white/10">
+            <div className="space-y-0.5">
+              <h3 className="font-editorial text-sm sm:text-base font-bold text-white">
+                {property.title}
+              </h3>
+              <p className="text-xs text-white/70 font-mono">
+                Photo {activeImageIdx + 1} of {images.length}
+              </p>
+            </div>
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+              title="Close gallery (Esc)"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="relative flex-1 flex items-center justify-center my-4 overflow-hidden">
+            {images.length > 1 && (
+              <button
+                onClick={() =>
+                  setActiveImageIdx((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+                }
+                className="absolute left-2 sm:left-6 z-10 p-2.5 bg-black/60 hover:bg-black/90 text-white rounded-full transition-colors"
+                title="Previous Photo"
+                aria-label="Previous Photo"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+
+            <img
+              src={images[activeImageIdx]}
+              alt={`${property.title} view ${activeImageIdx + 1}`}
+              className="max-h-[72vh] max-w-full object-contain rounded-xs shadow-2xl transition-all duration-300"
+            />
+
+            {images.length > 1 && (
+              <button
+                onClick={() => setActiveImageIdx((prev) => (prev + 1) % images.length)}
+                className="absolute right-2 sm:right-6 z-10 p-2.5 bg-black/60 hover:bg-black/90 text-white rounded-full transition-colors"
+                title="Next Photo"
+                aria-label="Next Photo"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+          </div>
+
+          {images.length > 1 && (
+            <div className="flex items-center justify-center space-x-2 overflow-x-auto py-2">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveImageIdx(idx)}
+                  className={`w-16 h-12 flex-shrink-0 rounded-xs overflow-hidden border-2 transition-all ${
+                    activeImageIdx === idx
+                      ? "border-[var(--color-terracotta)] scale-105 opacity-100"
+                      : "border-transparent opacity-50 hover:opacity-80"
+                  }`}
+                >
+                  <img src={img} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modals */}
+      <SiteVisitModal
         property={property}
-        agent={property.agent}
+        isOpen={isVisitModalOpen}
+        onClose={() => setIsVisitModalOpen(false)}
       />
 
-      <FloatingChat isOpen={isChatOpen} onToggle={handleToggleChat} />
+      <EnquiryModal
+        property={property}
+        isOpen={isEnquiryModalOpen}
+        onClose={() => setIsEnquiryModalOpen(false)}
+        mode={enquiryMode}
+      />
+
       <Footer />
+      <CompareDrawer />
     </div>
   );
 };
 
-export default React.memo(PropertyDetails);
+export default PropertyDetails;

@@ -123,6 +123,6 @@ export async function generateSitemap() {
 }
 
 // If script is run manually
-if (process.argv[1].includes("generateSitemap.js")) {
+if (process.argv[1]?.includes("generateSitemap.js")) {
   generateSitemap().then(() => process.exit());
 }

@@ -29,6 +29,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Analytics } from "@vercel/analytics/react";
 import Routes from "./Routes";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { ShortlistProvider } from "./contexts/ShortlistContext";
 import { PreferencesProvider } from "./contexts/PreferencesContext";
 
 // IMPORT YOUR 4 PERFORMANCE FILES
@@ -54,23 +56,27 @@ function App() {
   }, []);
 
   return (
-    <PreferencesProvider>
-      <Routes />
-      <ToastContainer 
-        position="bottom-right"
-        autoClose={4000}
-        hideProgressBar={true}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        toastClassName="!bg-white !text-gray-900 !rounded-sm !border !border-gray-200 !shadow-md !font-medium !text-sm !mb-2"
-        bodyClassName="!m-0 !p-3 flex items-center"
-        closeButton={true}
-      />
-    </PreferencesProvider>
+    <ThemeProvider>
+      <ShortlistProvider>
+        <PreferencesProvider>
+          <Routes />
+          <ToastContainer 
+            position="bottom-right"
+            autoClose={3500}
+            hideProgressBar={true}
+            newestOnTop={true}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            toastClassName="!bg-[var(--color-surface)] !text-[var(--color-foreground)] !rounded-sm !border !border-[var(--color-border)] !shadow-lg !font-medium !text-xs !mb-2"
+            bodyClassName="!m-0 !p-3 flex items-center"
+            closeButton={true}
+          />
+        </PreferencesProvider>
+      </ShortlistProvider>
+    </ThemeProvider>
   );
 }
 

@@ -18,63 +18,104 @@ export default {
     },
     extend: {
       colors: {
-        border: "var(--color-border)", /* gray-200 */
-        input: "var(--color-input)", /* white */
-        ring: "var(--color-ring)", /* blue-700 */
-        background: "var(--color-background)", /* gray-50 */
-        foreground: "var(--color-foreground)", /* gray-800 */
+        border: "var(--color-border)",
+        input: "var(--color-input)",
+        ring: "var(--color-ring)",
+        background: "var(--color-background)",
+        foreground: "var(--color-foreground)",
+        canvas: "var(--color-canvas)",
+        surface: "var(--color-surface)",
+        subtle: "var(--color-subtle)",
+        elevated: "var(--color-elevated)",
         primary: {
-          DEFAULT: "var(--color-primary)", /* blue-700 */
-          foreground: "var(--color-primary-foreground)", /* white */
+          DEFAULT: "var(--color-primary)",
+          foreground: "var(--color-primary-foreground)",
+          hover: "var(--color-primary-hover)",
         },
         secondary: {
-          DEFAULT: "var(--color-secondary)", /* teal-700 */
-          foreground: "var(--color-secondary-foreground)", /* white */
+          DEFAULT: "var(--color-secondary)",
+          foreground: "var(--color-secondary-foreground)",
+        },
+        terracotta: {
+          DEFAULT: "var(--color-terracotta)",
+          hover: "var(--color-terracotta-hover)",
+          subtle: "var(--color-terracotta-subtle)",
+        },
+        bronze: {
+          DEFAULT: "var(--color-bronze)",
+          subtle: "var(--color-bronze-subtle)",
+        },
+        forest: {
+          DEFAULT: "var(--color-forest)",
+          subtle: "var(--color-forest-subtle)",
+        },
+        charcoal: {
+          50: "#f7f7f6",
+          100: "#e5e4e2",
+          200: "#cbc9c4",
+          300: "#aba79f",
+          400: "#868178",
+          500: "#69645c",
+          600: "#534f49",
+          700: "#3d3a35",
+          800: "#272522",
+          900: "#181715",
+          950: "#100f0e",
+        },
+        warm: {
+          50: "#faf8f5",
+          100: "#f5f1ea",
+          200: "#ece5d8",
+          300: "#dfd5c2",
+          400: "#cdbfa6",
+          500: "#b5a386",
+          600: "#9d8869",
+          700: "#7f6d53",
+          800: "#645744",
+          900: "#4f4538",
         },
         destructive: {
-          DEFAULT: "var(--color-destructive)", /* red-600 */
-          foreground: "var(--color-destructive-foreground)", /* white */
+          DEFAULT: "var(--color-destructive)",
+          foreground: "var(--color-destructive-foreground)",
         },
         muted: {
-          DEFAULT: "var(--color-muted)", /* gray-100 */
-          foreground: "var(--color-muted-foreground)", /* gray-500 */
+          DEFAULT: "var(--color-muted)",
+          foreground: "var(--color-muted-foreground)",
         },
         accent: {
-          DEFAULT: "var(--color-accent)", /* orange-600 */
-          foreground: "var(--color-accent-foreground)", /* white */
-        },
-        popover: {
-          DEFAULT: "var(--color-popover)", /* white */
-          foreground: "var(--color-popover-foreground)", /* gray-800 */
+          DEFAULT: "var(--color-accent)",
+          foreground: "var(--color-accent-foreground)",
         },
         card: {
-          DEFAULT: "var(--color-card)", /* white */
-          foreground: "var(--color-card-foreground)", /* gray-800 */
+          DEFAULT: "var(--color-card)",
+          foreground: "var(--color-card-foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--color-popover)",
+          foreground: "var(--color-popover-foreground)",
         },
         success: {
-          DEFAULT: "var(--color-success)", /* emerald-600 */
-          foreground: "var(--color-success-foreground)", /* white */
+          DEFAULT: "var(--color-success)",
+          foreground: "var(--color-success-foreground)",
         },
         warning: {
-          DEFAULT: "var(--color-warning)", /* amber-600 */
-          foreground: "var(--color-warning-foreground)", /* white */
+          DEFAULT: "var(--color-warning)",
+          foreground: "var(--color-warning-foreground)",
         },
-        error: {
-          DEFAULT: "var(--color-error)", /* red-600 */
-          foreground: "var(--color-error-foreground)", /* white */
-        },
-        surface: "var(--color-surface)", /* white */
-        "text-primary": "var(--color-text-primary)", /* gray-800 */
-        "text-secondary": "var(--color-text-secondary)", /* gray-500 */
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        sm: "2px",
+        DEFAULT: "4px",
+        md: "6px",
+        lg: "8px",
+        xl: "12px",
+        '2xl': "16px",
+        full: "9999px",
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       fontSize: {
         'xs': ['0.75rem', { lineHeight: '1rem' }],
