@@ -5,6 +5,7 @@ import { getApiUrl } from "utils/getApiUrl";
 import Header from "../../components/ui/Header";
 import FloatingChat from "../../components/ui/FloatingChat";
 import Footer from "../../components/ui/Footer";
+import Logo from "../../components/ui/Logo";
 import Icon from "../../components/AppIcon";
 import { ShieldCheck, Lock, Mail, ArrowRight, KeyRound, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
@@ -172,14 +173,9 @@ const AdminLayout = () => {
       {!isAdmin ? (
         <div className="flex-1 flex items-center justify-center py-16 px-4 bg-[var(--color-canvas)]">
           <div className="w-full max-w-md bg-[var(--color-surface)] border border-[var(--color-border)] p-8 rounded-sm shadow-sm space-y-6">
-            <div className="text-center space-y-2">
-              <div className="inline-flex p-3 rounded-full bg-[var(--color-subtle)] border border-[var(--color-border)] text-[var(--color-terracotta)] mb-1">
-                <ShieldCheck className="w-7 h-7" />
-              </div>
-              <h2 className="font-editorial text-2xl font-bold tracking-tight text-[var(--color-foreground)]">
-                Restricted Admin Workspace
-              </h2>
-              <p className="text-xs text-[var(--color-muted-foreground)] max-w-xs mx-auto">
+            <div className="text-center space-y-3">
+              <Logo variant="stacked" size="md" taglineText="Authorized Administrator Console" />
+              <p className="text-xs text-[var(--color-muted-foreground)] max-w-xs mx-auto pt-1">
                 Authorized access required to review RERA registrations, client dossiers, and live financials.
               </p>
             </div>

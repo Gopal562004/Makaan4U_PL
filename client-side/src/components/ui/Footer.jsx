@@ -11,6 +11,7 @@ import {
   FileText
 } from "lucide-react";
 import { CITIES, LOCALITIES } from "../../data/propertyData";
+import Logo from "./Logo";
 
 const Footer = () => {
   const [newsletterEmail, setNewsletterEmail] = useState("");
@@ -79,14 +80,7 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 text-xs">
           {/* Col 1: Brand & Philosophy */}
           <div className="col-span-2 space-y-4">
-            <Link to="/" className="inline-block">
-              <span className="font-editorial text-2xl font-bold tracking-tight text-[var(--color-foreground)]">
-                MAKAAN4U
-              </span>
-              <span className="block text-[9px] uppercase tracking-[0.2em] text-[var(--color-muted-foreground)] font-medium -mt-1">
-                Indian Residential Intelligence
-              </span>
-            </Link>
+            <Logo size="md" taglineText="Indian Residential Intelligence" />
             <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed max-w-sm">
               Makaan4U is an architectural property discovery marketplace bridging high-trust verified residential inventory with deep micro-market intelligence across India's leading economic centres.
             </p>

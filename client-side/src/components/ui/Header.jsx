@@ -25,6 +25,7 @@ import {
 import { useTheme } from "../../contexts/ThemeContext";
 import { useShortlist } from "../../contexts/ShortlistContext";
 import SearchAutocomplete from "./SearchAutocomplete";
+import Logo from "./Logo";
 
 const Header = () => {
   const { theme, isEvening, toggleTheme } = useTheme();
@@ -123,14 +124,7 @@ const Header = () => {
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Left: Brand Identity */}
             <div className="flex items-center space-x-8">
-              <Link to="/" className="flex flex-col group">
-                <span className="font-editorial text-2xl sm:text-2xl tracking-tight font-bold text-[var(--color-foreground)] transition-colors group-hover:text-[var(--color-terracotta)]">
-                  MAKAAN4U
-                </span>
-                <span className="text-[9px] uppercase tracking-[0.22em] text-[var(--color-muted-foreground)] font-medium -mt-1 hidden sm:block">
-                  Verified Real Estate Intelligence
-                </span>
-              </Link>
+              <Logo size="md" />
 
               {/* Desktop Nav Links */}
               <nav className="hidden lg:flex items-center space-x-1">

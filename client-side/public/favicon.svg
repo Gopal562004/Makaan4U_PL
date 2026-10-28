@@ -1,10 +1,30 @@
-<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M20 4L4 18V36C4 37.1046 4.89543 38 6 38H14V26H26V38H34C35.1046 38 36 37.1046 36 36V18L20 4Z" fill="url(#paint0_linear)"/>
-  <path d="M20 12L12 19V32H16V22H24V32H28V19L20 12Z" fill="white"/>
+<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="paint0_linear" x1="4" y1="4" x2="36" y2="38" gradientUnits="userSpaceOnUse">
-      <stop stopColor="#2563EB"/>
-      <stop offset="1" stopColor="#4F46E5"/>
+    <linearGradient id="fav-terracotta" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#D9653B" />
+      <stop offset="100%" stopColor="#9E3B1B" />
     </linearGradient>
+    <radialGradient id="fav-bg" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stopColor="#292524" />
+      <stop offset="100%" stopColor="#141210" />
+    </radialGradient>
   </defs>
+  <!-- Dark Luxury Squircle Frame -->
+  <rect x="2" y="2" width="40" height="40" rx="10" fill="url(#fav-bg)" stroke="#44403C" stroke-width="1.2" />
+  
+  <!-- Shaded Facets -->
+  <path d="M 10 18 L 16 11 L 22 18 L 22 25 L 10 25 Z" fill="#D9653B" fill-opacity="0.25" />
+  <path d="M 22 18 L 28 11 L 34 18 L 34 25 L 22 25 Z" fill="#F59E0B" fill-opacity="0.18" />
+  
+  <!-- M-Monogram Roofline -->
+  <path d="M 10 33 L 10 18 L 16 11 L 22 18 L 28 11 L 34 18 L 34 33" stroke="#FAF8F5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- 4-Lintel & Center Spine -->
+  <path d="M 7 25 L 37 25" stroke="#FAF8F5" stroke-width="1.6" stroke-linecap="round" />
+  <path d="M 22 18 L 22 33" stroke="url(#fav-terracotta)" stroke-width="2.2" stroke-linecap="round" />
+  <path d="M 8 33 L 36 33" stroke="#A8A29E" stroke-width="1.4" stroke-linecap="round" />
+  
+  <!-- Intelligence North Star -->
+  <path d="M 22 5.5 L 23.2 8.2 L 26 9.2 L 23.2 10.2 L 22 13 L 20.8 10.2 L 18 9.2 L 20.8 8.2 Z" fill="url(#fav-terracotta)" />
+  <circle cx="22" cy="9.2" r="0.8" fill="#FFE8D6" />
 </svg>

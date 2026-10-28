@@ -2,6 +2,7 @@ import React from "react";
 import { Outlet, Link } from "react-router-dom";
 import Header from "../../components/ui/Header";
 import Footer from "../../components/ui/Footer";
+import Logo from "../../components/ui/Logo";
 
 const AuthLayout = ({ children }) => {
   return (
@@ -18,12 +19,7 @@ const AuthLayout = ({ children }) => {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
             <div className="relative z-10">
-              <span className="font-editorial text-2xl font-bold tracking-tight text-white">
-                MAKAAN4U
-              </span>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-amber-300 mt-1">
-                Verified Indian Real Estate
-              </p>
+              <Logo size="lg" inverted={true} taglineText="Verified Indian Real Estate" />
             </div>
             <div className="relative z-10 space-y-2">
               <p className="font-editorial text-lg font-bold text-white leading-snug">
