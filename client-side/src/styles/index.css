@@ -167,3 +167,42 @@ body {
   background: #3b82f6;
   color: white;
 }
+
+
+/* ====================================================================
+   INFINITE SEAMLESS MARQUEE TICKER ANIMATION
+==================================================================== */
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 24s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* Blinking Cursor for Typewriter Headline */
+@keyframes blink-cursor {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-typewriter-cursor {
+  display: inline-block;
+  animation: blink-cursor 0.8s step-start infinite;
+}

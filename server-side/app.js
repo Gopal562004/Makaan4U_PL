@@ -35,6 +35,7 @@ const allowedOrigins = [
   "http://192.168.1.35:3000",
   "http://172.17.144.1:3000",
   "https://makaan4u-clean.vercel.app",
+  "https://client-side-eta-umber.vercel.app",
 ];
 
 // Security headers
