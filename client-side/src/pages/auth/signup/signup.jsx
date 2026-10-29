@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { getApiUrl } from "utils/getApiUrl";
 import { ShieldCheck, ArrowRight, RefreshCw, Mail, Lock, User, Phone } from "lucide-react";
@@ -13,6 +13,10 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const searchParams = new URLSearchParams(location.search);
+  const redirectParam = searchParams.get("redirect");
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -44,9 +48,12 @@ const Signup = () => {
       if (res.data?.success && res.data?.token) {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        window.dispatchEvent(new Event("auth:state-change"));
         toast.success("Account created successfully! Welcome to Makaan4U.");
 
-        if (res.data.user?.role === "admin" || res.data.user?.role === "employee") {
+        if (redirectParam && redirectParam.startsWith("/")) {
+          navigate(redirectParam);
+        } else if (res.data.user?.role === "admin" || res.data.user?.role === "employee") {
           navigate("/admin/dashboard");
         } else {
           navigate("/account");

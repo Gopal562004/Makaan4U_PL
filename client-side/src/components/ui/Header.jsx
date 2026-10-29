@@ -79,18 +79,45 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Close menus on route change
+  // Close menus on route change & sync user state
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsAccountMenuOpen(false);
     setIsSearchModalOpen(false);
+    try {
+      const stored = localStorage.getItem("user");
+      const token = localStorage.getItem("token");
+      setUser(stored && token ? JSON.parse(stored) : null);
+    } catch {
+      setUser(null);
+    }
   }, [location.pathname]);
+
+  // Listen for login/logout across tabs and custom events
+  useEffect(() => {
+    const handleAuthSync = () => {
+      try {
+        const stored = localStorage.getItem("user");
+        const token = localStorage.getItem("token");
+        setUser(stored && token ? JSON.parse(stored) : null);
+      } catch {
+        setUser(null);
+      }
+    };
+    window.addEventListener("storage", handleAuthSync);
+    window.addEventListener("auth:state-change", handleAuthSync);
+    return () => {
+      window.removeEventListener("storage", handleAuthSync);
+      window.removeEventListener("auth:state-change", handleAuthSync);
+    };
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     setUser(null);
     setIsAccountMenuOpen(false);
+    window.dispatchEvent(new Event("auth:state-change"));
     navigate("/");
   };
 

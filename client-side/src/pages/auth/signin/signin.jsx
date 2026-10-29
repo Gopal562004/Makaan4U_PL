@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { getApiUrl } from "utils/getApiUrl";
 import { ShieldCheck, Phone, Mail, Lock, ArrowRight, RefreshCw, KeyRound } from "lucide-react";
@@ -13,6 +13,10 @@ const Signin = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const searchParams = new URLSearchParams(location.search);
+  const redirectParam = searchParams.get("redirect");
 
   const handleSendOtp = () => {
     if (!emailOrPhone) {
@@ -38,11 +42,14 @@ const Signin = () => {
       if (res.data?.success && res.data?.token) {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        window.dispatchEvent(new Event("auth:state-change"));
 
         const user = res.data.user;
         toast.success(`Welcome back, ${user.name || "Client"}`);
 
-        if (user.role === "admin" || user.role === "employee") {
+        if (redirectParam && redirectParam.startsWith("/")) {
+          navigate(redirectParam);
+        } else if (user.role === "admin" || user.role === "employee") {
           navigate("/admin/dashboard");
         } else {
           navigate("/account");
