@@ -26,7 +26,8 @@ import {
   ShieldCheck,
   Compass,
   Calendar,
-  Layers
+  Layers,
+  Navigation
 } from "lucide-react";
 import Header from "../../components/ui/Header";
 import Footer from "../../components/ui/Footer";
@@ -266,7 +267,7 @@ const PropertyDetails = () => {
           </div>
 
           {/* Pricing & Primary Quick Actions */}
-          <div className="flex flex-row items-center justify-between sm:justify-end gap-5 lg:text-right border-t sm:border-t-0 border-[var(--color-border)] pt-3 sm:pt-0">
+          <div className="flex flex-row items-center justify-between sm:justify-end gap-3 sm:gap-5 lg:text-right border-t sm:border-t-0 border-[var(--color-border)] pt-3 sm:pt-0 flex-wrap">
             <div>
               <span className="text-[10px] uppercase tracking-wider text-[var(--color-muted-foreground)] block">
                 Guide Valuation

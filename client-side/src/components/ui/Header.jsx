@@ -153,7 +153,8 @@ const Header = () => {
                 aria-label="Search properties"
               >
                 <Search className="w-4 h-4" />
-                <span className="hidden md:inline text-xs font-normal">Search city, locality, RERA...</span>
+                <span className="hidden xl:inline text-xs font-normal">Search city, locality, RERA...</span>
+                <span className="hidden sm:inline xl:hidden text-xs font-normal">Search...</span>
                 <kbd className="hidden lg:inline-block px-1.5 py-0.5 text-[10px] font-mono border border-[var(--color-border)] bg-[var(--color-subtle)] rounded text-[var(--color-muted-foreground)]">
                   ⌘K
                 </kbd>

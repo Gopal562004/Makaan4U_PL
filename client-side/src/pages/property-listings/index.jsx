@@ -290,7 +290,7 @@ const PropertyListings = () => {
           </div>
 
           {/* Right Controls: Sort, Show Map Toggle & View Mode */}
-          <div className="flex items-center justify-between sm:justify-end space-x-2">
+          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2">
             {/* Show / Hide Map Button (Hidden by default as requested) */}
             <button
               onClick={() => setShowMap(!showMap)}
@@ -308,7 +308,7 @@ const PropertyListings = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="h-8 px-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm text-xs text-[var(--color-foreground)] focus:outline-none cursor-pointer"
+              className="h-8 px-2 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm text-xs text-[var(--color-foreground)] focus:outline-none cursor-pointer max-w-[140px] sm:max-w-none truncate"
             >
               <option value="price-desc">Price: High to Low</option>
               <option value="price-asc">Price: Low to High</option>
@@ -359,7 +359,7 @@ const PropertyListings = () => {
               )}
             </div>
 
-            <h1 className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-foreground)] flex items-center gap-2">
+            <h1 className="font-editorial text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-[var(--color-foreground)] flex flex-wrap items-center gap-2">
               <span>Properties for {purpose} in {city === "All" ? "India" : city}</span>
               <span className="text-xs font-mono font-normal text-[var(--color-muted-foreground)] bg-[var(--color-subtle)] px-2 py-0.5 rounded-xs border border-[var(--color-border)]">
                 {properties.length} {properties.length === 1 ? "listing" : "listings"}

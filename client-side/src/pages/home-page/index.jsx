@@ -220,9 +220,9 @@ const HomePage = () => {
                 </div>
 
                 {/* Auto-Typing Headline */}
-                <h1 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--color-foreground)] leading-[1.08]">
+                <h1 className="font-editorial text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--color-foreground)] leading-[1.12]">
                   Architectural homes. <br />
-                  <span className="italic font-normal text-[var(--color-terracotta)] inline-block min-h-[1.2em]">
+                  <span className="italic font-normal text-[var(--color-terracotta)] inline-block min-h-[1.2em] break-words">
                     {displayText}
                     <span className="animate-typewriter-cursor font-light not-italic ml-0.5 text-[var(--color-terracotta)]">
                       |
@@ -237,7 +237,7 @@ const HomePage = () => {
                 {/* Purpose Tab Switcher & Integrated Search Form */}
                 <div className="bg-[var(--color-surface)] border border-[var(--color-border)] p-2 sm:p-2.5 rounded-sm shadow-sm max-w-2xl">
                   {/* Mode Tabs */}
-                  <div className="flex border-b border-[var(--color-border)] pb-2 px-1 gap-1 text-xs font-semibold">
+                  <div className="flex border-b border-[var(--color-border)] pb-2 px-1 gap-1 text-xs font-semibold overflow-x-auto scrollbar-none whitespace-nowrap">
                     {[
                       { id: "Buy", label: "Buy Residences" },
                       { id: "Rent", label: "Executive Rentals" },

@@ -76,7 +76,7 @@ const Footer = () => {
       </div>
 
       {/* Directory Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-24 lg:pb-16">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 text-xs">
           {/* Col 1: Brand & Philosophy */}
           <div className="col-span-2 space-y-4">

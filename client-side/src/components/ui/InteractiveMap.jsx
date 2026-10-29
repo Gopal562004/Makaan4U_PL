@@ -135,7 +135,7 @@ const InteractiveMap = ({
         {/* Left: Active Location Pill */}
         <div className="pointer-events-auto flex items-center space-x-2 bg-[var(--color-surface)]/95 backdrop-blur-md px-3 py-1.5 border border-[var(--color-border)] rounded-xs shadow-md text-xs font-medium text-[var(--color-foreground)]">
           <MapPin className="w-3.5 h-3.5 text-[var(--color-terracotta)] flex-shrink-0 animate-pulse" />
-          <span className="font-semibold truncate max-w-[200px] sm:max-w-xs">
+          <span className="font-semibold truncate max-w-[140px] sm:max-w-xs">
             {selectedProp
               ? selectedProp.title
               : `${centerCity} (${properties.length} verified listings)`}
@@ -202,9 +202,9 @@ const InteractiveMap = ({
       </div>
 
       {/* ====================================================================
-          ZOOM & NAVIGATION CONTROLS (Top Right Side)
+          ZOOM & NAVIGATION CONTROLS (Bottom Right Side Floating)
       ==================================================================== */}
-      <div className="absolute right-3 top-16 z-20 flex flex-col space-y-1 bg-[var(--color-surface)]/95 backdrop-blur-md border border-[var(--color-border)] rounded-xs shadow-md p-1">
+      <div className="absolute right-3 bottom-24 sm:bottom-28 z-20 flex flex-col space-y-1 bg-[var(--color-surface)]/95 backdrop-blur-md border border-[var(--color-border)] rounded-xs shadow-md p-1">
         <button
           onClick={() => setZoom((z) => Math.min(19, z + 1))}
           className="p-2 text-[var(--color-foreground)] hover:bg-[var(--color-subtle)] rounded transition-colors"

@@ -468,13 +468,15 @@ const PropertyCard = ({
       {/* Content */}
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-baseline justify-between flex-wrap gap-1">
             <span className="font-mono text-lg font-bold text-[var(--color-foreground)]">
               {property.price}
             </span>
-            <span className="text-[11px] font-mono text-[var(--color-muted-foreground)]">
-              {property.pricePerSqFt}
-            </span>
+            {property.pricePerSqFt && (
+              <span className="text-[11px] font-mono text-[var(--color-muted-foreground)]">
+                {property.pricePerSqFt}
+              </span>
+            )}
           </div>
 
           <Link to={propertyUrl} className="block mt-1.5">
@@ -488,7 +490,7 @@ const PropertyCard = ({
             <span className="truncate">{property.locality}, {property.city}</span>
           </p>
 
-          <div className="flex items-center space-x-3 mt-3 pt-2.5 border-t border-[var(--color-border)] text-xs text-[var(--color-foreground)]">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 pt-2.5 border-t border-[var(--color-border)] text-xs text-[var(--color-foreground)]">
             {property.isCommercial ? (
               <span className="flex items-center font-medium">
                 <Building className="w-3.5 h-3.5 mr-1 text-[var(--color-muted-foreground)]" />
@@ -511,8 +513,10 @@ const PropertyCard = ({
         </div>
 
         <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-[var(--color-border)] text-[11px] text-[var(--color-muted-foreground)]">
-          <span>{property.parking || property.furnishing || property.possession || ""}</span>
-          <Link to={propertyUrl} className="font-semibold text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] flex items-center">
+          <span className="truncate max-w-[130px] sm:max-w-[160px]">
+            {property.parking || property.furnishing || property.possession || ""}
+          </span>
+          <Link to={propertyUrl} className="font-semibold text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] flex items-center flex-shrink-0 ml-1">
             <span>Details</span>
             <ArrowUpRight className="w-3 h-3 ml-0.5" />
           </Link>
