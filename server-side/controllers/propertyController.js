@@ -1854,15 +1854,27 @@ export const updateProperty = async (req, res) => {
       });
     }
 
-    // Parse JSON fields
-    if (req.body.location && typeof req.body.location === "string") {
-      req.body.location = JSON.parse(req.body.location);
-    }
-    if (
-      req.body.specifications &&
-      typeof req.body.specifications === "string"
-    ) {
-      req.body.specifications = JSON.parse(req.body.specifications);
+    // Parse JSON fields safely
+    const jsonFields = [
+      "location",
+      "specifications",
+      "manualAgent",
+      "amenities",
+      "features",
+      "nearbyPlaces",
+      "transportation",
+      "maintenanceCharges",
+      "contactInfo",
+    ];
+
+    for (const field of jsonFields) {
+      if (req.body[field] && typeof req.body[field] === "string") {
+        try {
+          req.body[field] = JSON.parse(req.body[field]);
+        } catch (e) {
+          console.warn(`Failed to parse JSON for field ${field}:`, e.message);
+        }
+      }
     }
 
     // Handle new images

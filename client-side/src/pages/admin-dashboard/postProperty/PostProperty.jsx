@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
-import { createProperty, getPropertyById, updateProperty, getAvailableAgents } from "../../../lib/mongo/services/propertyService";
+import { createProperty, getPropertyById, getRawPropertyById, updateProperty, getAvailableAgents } from "../../../lib/mongo/services/propertyService";
 import { useParams, useNavigate } from "react-router-dom";
 
 // Memoized input components
@@ -214,6 +214,7 @@ const PostProperty = () => {
     },
 
     images: [],
+    existingImages: [],
   });
 
   const [loading, setLoading] = useState(false);
@@ -235,12 +236,89 @@ const PostProperty = () => {
       const fetchProperty = async () => {
         try {
           const res = await getPropertyById(id);
-          if (res?.property) {
-            const propData = { ...res.property, images: [] };
-            setFormData(prev => ({ ...prev, ...propData }));
+          const raw = res?.property || res?._raw || res;
+          if (raw) {
+            const rawType =
+              raw.type ||
+              raw.specifications?.type ||
+              (raw.propertyType ? raw.propertyType.toLowerCase().replace(/\s+/g, "-") : "") ||
+              "apartment";
+
+            const rawCategory =
+              raw.category ||
+              raw.specifications?.category ||
+              "residential";
+
+            setFormData((prev) => ({
+              ...prev,
+              title: raw.title || "",
+              description: raw.description || "",
+              price: raw.price !== undefined && raw.price !== null ? String(raw.price) : "",
+              type: rawType,
+              category: rawCategory,
+              status: raw.status || "available",
+              featured: !!raw.featured,
+              priority: raw.priority || "medium",
+              location: {
+                ...prev.location,
+                ...(typeof raw.location === "object" ? raw.location : {}),
+                address: raw.location?.address || raw.address || "",
+                city: raw.location?.city || raw.city || "",
+                state: raw.location?.state || raw.state || "",
+                pincode: raw.location?.pincode || raw.pincode || "",
+                locality: raw.location?.locality || raw.locality || "",
+                landmark: raw.location?.landmark || raw.landmark || "",
+                coordinates: {
+                  lat: raw.location?.coordinates?.lat ?? raw.coordinates?.lat ?? "",
+                  lng: raw.location?.coordinates?.lng ?? raw.coordinates?.lng ?? "",
+                },
+                googlePlaceId: raw.location?.googlePlaceId || "",
+              },
+              specifications: {
+                ...prev.specifications,
+                ...(typeof raw.specifications === "object" ? raw.specifications : {}),
+                bedrooms: raw.specifications?.bedrooms !== undefined ? String(raw.specifications.bedrooms) : (raw.bedrooms !== undefined ? String(raw.bedrooms) : "1"),
+                bathrooms: raw.specifications?.bathrooms !== undefined ? String(raw.specifications.bathrooms) : (raw.bathrooms !== undefined ? String(raw.bathrooms) : "1"),
+                balconies: raw.specifications?.balconies !== undefined ? String(raw.specifications.balconies) : "0",
+                area: raw.specifications?.area !== undefined ? String(raw.specifications.area) : (raw.area !== undefined ? String(raw.area) : ""),
+                areaUnit: raw.specifications?.areaUnit || "sqft",
+                carpetArea: raw.specifications?.carpetArea !== undefined ? String(raw.specifications.carpetArea) : "",
+                builtUpArea: raw.specifications?.builtUpArea !== undefined ? String(raw.specifications.builtUpArea) : "",
+                superBuiltUpArea: raw.specifications?.superBuiltUpArea !== undefined ? String(raw.specifications.superBuiltUpArea) : "",
+                builtYear: raw.specifications?.builtYear || "",
+                ageOfConstruction: raw.specifications?.ageOfConstruction || "",
+                constructionStatus: raw.specifications?.constructionStatus || "ready-to-move",
+                floor: raw.specifications?.floor !== undefined ? String(raw.specifications.floor) : "",
+                totalFloors: raw.specifications?.totalFloors !== undefined ? String(raw.specifications.totalFloors) : "",
+                facing: raw.specifications?.facing || "north",
+                furnishing: raw.specifications?.furnishing || "unfurnished",
+                parking: raw.specifications?.parking || "none",
+                parkingCount: raw.specifications?.parkingCount !== undefined ? String(raw.specifications.parkingCount) : "",
+                lift: !!raw.specifications?.lift,
+                powerBackup: !!raw.specifications?.powerBackup,
+                waterSupply: raw.specifications?.waterSupply || "corporation",
+                ownership: raw.specifications?.ownership || "freehold",
+                occupancyCertificate: !!raw.specifications?.occupancyCertificate,
+              },
+              amenities: Array.isArray(raw.amenities) ? raw.amenities : [],
+              features: Array.isArray(raw.features) ? raw.features : [],
+              nearbyPlaces: Array.isArray(raw.nearbyPlaces) ? raw.nearbyPlaces : [],
+              transportation: Array.isArray(raw.transportation) ? raw.transportation : [],
+              priceNegotiable: !!raw.priceNegotiable,
+              maintenanceCharges: {
+                amount: raw.maintenanceCharges?.amount !== undefined ? String(raw.maintenanceCharges.amount) : "",
+                period: raw.maintenanceCharges?.period || "monthly",
+              },
+              securityDeposit: raw.securityDeposit !== undefined ? String(raw.securityDeposit) : "",
+              bookingAmount: raw.bookingAmount !== undefined ? String(raw.bookingAmount) : "",
+              assignedAgent: raw.assignedAgent?._id || raw.assignedAgent || raw.postedBy?._id || raw.postedBy || "",
+              images: [],
+              existingImages: Array.isArray(raw.images) ? raw.images : (raw.image ? [raw.image] : []),
+            }));
           }
         } catch (error) {
-          toast.error("Failed to load property for editing");
+          console.error("Failed to load property for editing:", error);
+          toast.error("Failed to load property for editing: " + (error.message || ""));
           navigate("/admin/properties");
         } finally {
           setInitialLoading(false);
@@ -621,7 +699,10 @@ const PostProperty = () => {
       return;
     }
 
-    if (formData.images.length === 0) {
+    if (
+      formData.images.length === 0 &&
+      (!formData.existingImages || formData.existingImages.length === 0)
+    ) {
       toast.warning("Please add at least one property image");
       setLoading(false);
       return;
@@ -638,7 +719,7 @@ const PostProperty = () => {
       return;
     }
 
-    const toastId = toast.loading("Posting your property...");
+    const toastId = toast.loading(isEditMode ? "Updating property..." : "Posting your property...");
 
     try {
       // Prepare data according to backend schema - using JSON.stringify for complex objects
@@ -805,14 +886,18 @@ const PostProperty = () => {
 
   // Progress Steps Component
   const ProgressSteps = () => (
-    <div className="flex items-center justify-between mb-8">
+    <div className="flex items-center justify-between mb-8 overflow-x-auto pb-2">
       {[1, 2, 3, 4, 5, 6].map((step) => (
         <React.Fragment key={step}>
-          <div className="flex flex-col items-center">
+          <button
+            type="button"
+            onClick={() => setCurrentStep(step)}
+            className="flex flex-col items-center group cursor-pointer focus:outline-none"
+          >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-transform group-hover:scale-105 ${
                 step === currentStep
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground ring-2 ring-primary/30"
                   : step < currentStep
                   ? "bg-success text-success-foreground"
                   : "bg-muted text-muted-foreground"
@@ -820,7 +905,13 @@ const PostProperty = () => {
             >
               {step}
             </div>
-            <span className="text-xs mt-2 text-muted-foreground">
+            <span
+              className={`text-xs mt-2 whitespace-nowrap transition-colors ${
+                step === currentStep
+                  ? "text-foreground font-semibold"
+                  : "text-muted-foreground group-hover:text-foreground"
+              }`}
+            >
               {step === 1 && "Basic Info"}
               {step === 2 && "Location"}
               {step === 3 && "Specifications"}
@@ -828,10 +919,10 @@ const PostProperty = () => {
               {step === 5 && "Financial"}
               {step === 6 && "Agent & Images"}
             </span>
-          </div>
+          </button>
           {step < totalSteps && (
             <div
-              className={`flex-1 h-1 mx-4 ${
+              className={`flex-1 h-0.5 mx-3 min-w-[20px] ${
                 step < currentStep ? "bg-success" : "bg-muted"
               }`}
             />
@@ -1828,10 +1919,38 @@ const PostProperty = () => {
           </label>
         </div>
 
+        {/* Existing Images from Database */}
+        {formData.existingImages?.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-sm font-medium text-foreground mb-3 flex items-center justify-between">
+              <span>Current Property Photos ({formData.existingImages.length})</span>
+              <span className="text-xs text-muted-foreground font-normal">Active on live database</span>
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {formData.existingImages.map((image, index) => {
+                const imgUrl = typeof image === "string" ? image : image?.url;
+                if (!imgUrl) return null;
+                return (
+                  <div key={index} className="relative group border border-border rounded overflow-hidden">
+                    <img
+                      src={imgUrl}
+                      alt={`Current Property ${index + 1}`}
+                      className="w-full h-24 object-cover"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-0.5 text-[10px] text-white truncate">
+                      {index === 0 ? "Primary Cover" : `Photo ${index + 1}`}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {formData.images.length > 0 && (
           <div className="mt-4">
             <h3 className="text-sm font-medium text-foreground mb-3">
-              Selected Images ({formData.images.length}/10)
+              New Images to Add ({formData.images.length}/10)
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {formData.images.map((image, index) => (
@@ -1889,16 +2008,31 @@ const PostProperty = () => {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-2">
-            <Icon name="Home" size={24} className="text-primary" />
-            <h1 className="text-3xl font-bold text-foreground">
-              {isEditMode ? "Edit Property" : "Post New Property"}
-            </h1>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+          <div>
+            <div className="flex items-center space-x-3 mb-1">
+              <Icon name="Home" size={24} className="text-primary" />
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+                {isEditMode ? "Edit Property Record" : "Post New Property"}
+              </h1>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {isEditMode
+                ? "Update real-time pricing, specifications, and details stored in MongoDB"
+                : "List your property and reach verified buyers or tenants"}
+            </p>
           </div>
-          <p className="text-muted-foreground">
-            {isEditMode ? "Update property details" : "List your property and reach potential buyers or tenants"}
-          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/admin/properties")}
+            iconName="ArrowLeft"
+            iconPosition="left"
+            className="self-start sm:self-auto"
+          >
+            Back to Properties
+          </Button>
         </div>
 
         {/* Progress Steps */}

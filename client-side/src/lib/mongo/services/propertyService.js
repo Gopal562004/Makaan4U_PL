@@ -273,11 +273,29 @@ export const getPropertyById = async (id) => {
     const res = await api.get(`/properties/${id}`, { timeout: 8000 });
     if (res.data) {
       const raw = res.data.property || res.data;
-      if (raw) return normalizeProperty(raw);
+      if (raw) {
+        const normalized = normalizeProperty(raw);
+        normalized.property = raw;
+        normalized._raw = raw;
+        return normalized;
+      }
     }
     throw new Error("Property not found in database");
   } catch (error) {
     console.error(`Error fetching property by id ${id}:`, error.message);
+    throw error;
+  }
+};
+
+/**
+ * Get raw property document by id (for editing forms)
+ */
+export const getRawPropertyById = async (id) => {
+  try {
+    const res = await api.get(`/properties/${id}`, { timeout: 8000 });
+    return res.data?.property || res.data;
+  } catch (error) {
+    console.error(`Error fetching raw property by id ${id}:`, error.message);
     throw error;
   }
 };
@@ -397,17 +415,32 @@ export const deleteProperty = async (id) => {
 };
 
 /**
+ * Get available agents for assignment
+ */
+export const getAvailableAgents = async () => {
+  try {
+    const res = await api.get("/properties/agents/available");
+    return res.data || { success: true, agents: [] };
+  } catch (error) {
+    console.error("Error fetching available agents:", error);
+    return { success: false, agents: [] };
+  }
+};
+
+/**
  * Property service facade
  */
 export const propertyService = {
   getAllProperties,
   searchProperties: getAllProperties,
   getById: getPropertyById,
+  getRawById: getRawPropertyById,
   getBySlug: getPropertyBySlug,
   getFeatured: getFeaturedProperties,
   create: createProperty,
   update: updateProperty,
   delete: deleteProperty,
+  getAvailableAgents,
 };
 
 export default propertyService;

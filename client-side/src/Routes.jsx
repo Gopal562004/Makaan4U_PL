@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { BrowserRouter, Routes as RouterRoutes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes as RouterRoutes, Route, Navigate, useParams } from "react-router-dom";
 import ScrollToTop from "components/ScrollToTop";
 import ErrorBoundary from "components/ErrorBoundary";
 
@@ -44,6 +44,13 @@ const PropertyDashboard = lazy(() => import("./pages/admin-dashboard/property/Pr
 const UserDashboard = lazy(() => import("./pages/admin-dashboard/users/UserDashboard"));
 const AnalyticsDashboard = lazy(() => import("./pages/admin-dashboard/analytics/AnalyticsDashboard"));
 const MarketplaceDashboard = lazy(() => import("./pages/admin-dashboard/marketplace/MarketplaceDashboard"));
+const AdminPostProperty = lazy(() => import("./pages/admin-dashboard/postProperty/PostProperty"));
+
+// Helper redirect for public /properties/edit/:id to admin editor
+const EditPropertyRedirect = () => {
+  const { id } = useParams();
+  return <Navigate to={`/admin/properties/edit/${id}`} replace />;
+};
 
 // Subtle Architectural Page Loader
 const PageLoader = () => (
@@ -105,6 +112,7 @@ const Routes = () => {
 
             {/* Property Listing Onboarding */}
             <Route path="/post-property" element={<PostProperty />} />
+            <Route path="/properties/edit/:id" element={<EditPropertyRedirect />} />
 
             {/* User Account Workspace */}
             <Route path="/account" element={<AccountPage />} />
@@ -133,8 +141,8 @@ const Routes = () => {
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="marketplace" element={<MarketplaceDashboard />} />
               <Route path="reports" element={<ReportsDashboard />} />
-              <Route path="post-property" element={<PostProperty />} />
-              <Route path="properties/edit/:id" element={<PostProperty />} />
+              <Route path="post-property" element={<AdminPostProperty />} />
+              <Route path="properties/edit/:id" element={<AdminPostProperty />} />
               <Route path="properties" element={<PropertyDashboard />} />
               <Route path="users" element={<UserDashboard />} />
               <Route path="analytics" element={<AnalyticsDashboard />} />
