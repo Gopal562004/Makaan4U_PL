@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, PhoneCall, ShieldCheck, CheckCircle2, Clock } from "lucide-react";
 import { useShortlist } from "../../contexts/ShortlistContext";
 import { createInquiry } from "../../lib/mongo/services/inquiryService";
@@ -9,8 +9,19 @@ const EnquiryModal = ({ property, isOpen, onClose, mode = "callback" }) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
+  const [submittedPhone, setSubmittedPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSubmitted(false);
+      setName("");
+      setPhone("");
+      setMessage("");
+      setSubmittedPhone("");
+    }
+  }, [isOpen]);
 
   if (!isOpen || !property) return null;
 
@@ -21,16 +32,21 @@ const EnquiryModal = ({ property, isOpen, onClose, mode = "callback" }) => {
       return;
     }
 
+    const currentName = name;
+    const currentPhone = phone;
+    const currentMessage = message;
+    let created = null;
+
     try {
       setIsSubmitting(true);
-      await createInquiry({
+      created = await createInquiry({
         type: "callback",
-        name: name,
-        fullName: name,
-        buyerName: name,
-        phone: phone,
-        buyerPhone: phone,
-        message: message || "Requesting full property dossier and priority callback.",
+        name: currentName,
+        fullName: currentName,
+        buyerName: currentName,
+        phone: currentPhone,
+        buyerPhone: currentPhone,
+        message: currentMessage || "Requesting full property dossier and priority callback.",
         propertyId: property.id || property._id,
         propertyTitle: property.title,
         propertyLocation: `${property.locality || ""}, ${property.city || ""}`.trim().replace(/^,|,$/g, ""),
@@ -45,15 +61,20 @@ const EnquiryModal = ({ property, isOpen, onClose, mode = "callback" }) => {
     }
 
     addEnquiry({
+      id: created?._id || created?.id,
       propertyId: property.id || property._id,
       propertyTitle: property.title,
       location: `${property.locality}, ${property.city}`,
-      buyerName: name,
-      buyerPhone: phone,
-      message: message || "Requesting full property dossier and callback.",
+      buyerName: currentName,
+      buyerPhone: currentPhone,
+      message: currentMessage || "Requesting full property dossier and callback.",
       mode
     });
 
+    setSubmittedPhone(currentPhone);
+    setName("");
+    setPhone("");
+    setMessage("");
     setSubmitted(true);
     toast.success("Callback request registered");
   };
@@ -63,6 +84,7 @@ const EnquiryModal = ({ property, isOpen, onClose, mode = "callback" }) => {
     setName("");
     setPhone("");
     setMessage("");
+    setSubmittedPhone("");
     onClose();
   };
 
@@ -98,7 +120,7 @@ const EnquiryModal = ({ property, isOpen, onClose, mode = "callback" }) => {
                 <span>Estimated Response: Within 15 Minutes</span>
               </p>
               <p className="text-[11px] text-[var(--color-muted-foreground)] pt-1">
-                Your dedicated advisor for <strong>{property.locality}</strong> ({property.agent?.name || "South Mumbai Desk"}) will call you on <strong>{phone}</strong> with the full architectural brochure and title history.
+                Your dedicated advisor for <strong>{property.locality}</strong> ({property.agent?.name || "South Mumbai Desk"}) will call you on <strong>{submittedPhone || phone}</strong> with the full architectural brochure and title history.
               </p>
             </div>
             <button

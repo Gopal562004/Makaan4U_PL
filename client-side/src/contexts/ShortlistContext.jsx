@@ -145,94 +145,50 @@ export const ShortlistProvider = ({ children }) => {
   };
 
   const scheduleVisit = (visitData) => {
+    const visitId = visitData?.id || `sv-${Date.now()}`;
     const newVisit = {
-      id: `sv-${Date.now()}`,
+      id: visitId,
       status: "Requested",
       createdAt: new Date().toISOString(),
       ...visitData
     };
-    setSiteVisits((prev) => [newVisit, ...prev]);
 
-    // Synchronize directly into Admin Inquiries store
-    try {
-      const rawAdmin = localStorage.getItem("makaan_admin_inquiries");
-      const currentList = rawAdmin ? JSON.parse(rawAdmin) : [];
-      const adminInquiry = {
-        _id: newVisit.id,
-        id: newVisit.id,
-        type: "site-visit",
-        name: newVisit.buyerName || newVisit.name || "Scheduled Buyer",
-        fullName: newVisit.buyerName || newVisit.name || "Scheduled Buyer",
-        buyerName: newVisit.buyerName || newVisit.name || "Scheduled Buyer",
-        phone: newVisit.buyerPhone || newVisit.phone || "",
-        buyerPhone: newVisit.buyerPhone || newVisit.phone || "",
-        email: newVisit.buyerEmail || newVisit.email || "",
-        propertyId: newVisit.propertyId || "",
-        propertyTitle: newVisit.propertyTitle || "Private Property Tour",
-        propertyLocation: newVisit.location || "Mumbai",
-        date: newVisit.date || "",
-        preferredDate: newVisit.date || "",
-        timeSlot: newVisit.timeSlot || "11:00 AM - 12:30 PM",
-        preferredTime: newVisit.timeSlot || "11:00 AM - 12:30 PM",
-        visitType: newVisit.visitType || "In-Person Guided Tour",
-        message: newVisit.notes || "",
-        notes: newVisit.notes || "",
-        status: newVisit.status || "Requested",
-        priority: "High",
-        createdAt: newVisit.createdAt,
-      };
-      const updated = [adminInquiry, ...currentList.filter((item) => (item.id || item._id) !== newVisit.id)];
-      localStorage.setItem("makaan_admin_inquiries", JSON.stringify(updated));
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("makaan:inquiry_added", { detail: adminInquiry }));
-      }
-    } catch (e) {
-      console.warn("Could not sync visit to makaan_admin_inquiries:", e);
-    }
+    setSiteVisits((prev) => {
+      const filtered = prev.filter(
+        (v) =>
+          v.id !== visitId &&
+          !(
+            v.buyerPhone === newVisit.buyerPhone &&
+            v.date === newVisit.date &&
+            v.propertyTitle === newVisit.propertyTitle
+          )
+      );
+      return [newVisit, ...filtered];
+    });
 
     return newVisit;
   };
 
   const addEnquiry = (enquiryData) => {
+    const enqId = enquiryData?.id || `enq-${Date.now()}`;
     const newEnq = {
-      id: `enq-${Date.now()}`,
+      id: enqId,
       submittedDate: new Date().toISOString().split("T")[0],
       status: "Assigned",
       ...enquiryData
     };
-    setEnquiries((prev) => [newEnq, ...prev]);
 
-    // Synchronize directly into Admin Inquiries store
-    try {
-      const rawAdmin = localStorage.getItem("makaan_admin_inquiries");
-      const currentList = rawAdmin ? JSON.parse(rawAdmin) : [];
-      const adminInquiry = {
-        _id: newEnq.id,
-        id: newEnq.id,
-        type: "callback",
-        name: newEnq.buyerName || newEnq.name || "Priority Client",
-        fullName: newEnq.buyerName || newEnq.name || "Priority Client",
-        buyerName: newEnq.buyerName || newEnq.name || "Priority Client",
-        phone: newEnq.buyerPhone || newEnq.phone || "",
-        buyerPhone: newEnq.buyerPhone || newEnq.phone || "",
-        email: newEnq.buyerEmail || newEnq.email || "",
-        propertyId: newEnq.propertyId || "",
-        propertyTitle: newEnq.propertyTitle || "Priority Callback",
-        propertyLocation: newEnq.location || "Mumbai",
-        message: newEnq.message || "",
-        notes: newEnq.message || "",
-        status: "New",
-        priority: "High",
-        createdAt: newEnq.submittedDate,
-      };
-      const updated = [adminInquiry, ...currentList.filter((item) => (item.id || item._id) !== newEnq.id)];
-      localStorage.setItem("makaan_admin_inquiries", JSON.stringify(updated));
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("makaan:inquiry_added", { detail: adminInquiry }));
-      }
-    } catch (e) {
-      console.warn("Could not sync enquiry to makaan_admin_inquiries:", e);
-    }
+    setEnquiries((prev) => {
+      const filtered = prev.filter(
+        (e) =>
+          e.id !== enqId &&
+          !(
+            e.buyerPhone === newEnq.buyerPhone &&
+            e.propertyTitle === newEnq.propertyTitle
+          )
+      );
+      return [newEnq, ...filtered];
+    });
 
     return newEnq;
   };

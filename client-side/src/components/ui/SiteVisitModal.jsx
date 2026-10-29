@@ -1,22 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Calendar, Clock, User, Phone, Mail, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { useShortlist } from "../../contexts/ShortlistContext";
 import { createInquiry } from "../../lib/mongo/services/inquiryService";
 import { toast } from "react-toastify";
 
+const initialFormState = {
+  date: "",
+  timeSlot: "11:00 AM - 12:30 PM",
+  visitType: "In-Person Guided Tour",
+  name: "",
+  phone: "",
+  email: "",
+  notes: ""
+};
+
 const SiteVisitModal = ({ property, isOpen, onClose }) => {
   const { scheduleVisit } = useShortlist();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    date: "",
-    timeSlot: "11:00 AM - 12:30 PM",
-    visitType: "In-Person Guided Tour",
-    name: "",
-    phone: "",
-    email: "",
-    notes: ""
-  });
+  const [formData, setFormData] = useState(initialFormState);
+  const [submittedData, setSubmittedData] = useState(null);
   const [submitted, setSubmitted] = useState(false);
+
+  // Automatically reset and clear form when closed
+  useEffect(() => {
+    if (!isOpen) {
+      setSubmitted(false);
+      setSubmittedData(null);
+      setFormData(initialFormState);
+    }
+  }, [isOpen]);
 
   if (!isOpen || !property) return null;
 
@@ -27,22 +39,25 @@ const SiteVisitModal = ({ property, isOpen, onClose }) => {
       return;
     }
 
+    const currentSnapshot = { ...formData };
+    let createdRecord = null;
+
     try {
       setIsSubmitting(true);
-      await createInquiry({
+      createdRecord = await createInquiry({
         type: "site-visit",
-        name: formData.name,
-        fullName: formData.name,
-        buyerName: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        date: formData.date,
-        preferredDate: formData.date,
-        timeSlot: formData.timeSlot,
-        preferredTime: formData.timeSlot,
-        visitType: formData.visitType,
-        message: formData.notes,
-        notes: formData.notes,
+        name: currentSnapshot.name,
+        fullName: currentSnapshot.name,
+        buyerName: currentSnapshot.name,
+        phone: currentSnapshot.phone,
+        email: currentSnapshot.email,
+        date: currentSnapshot.date,
+        preferredDate: currentSnapshot.date,
+        timeSlot: currentSnapshot.timeSlot,
+        preferredTime: currentSnapshot.timeSlot,
+        visitType: currentSnapshot.visitType,
+        message: currentSnapshot.notes,
+        notes: currentSnapshot.notes,
         propertyId: property.id || property._id,
         propertyTitle: property.title,
         propertyLocation: `${property.locality || ""}, ${property.city || ""}`.trim().replace(/^,|,$/g, ""),
@@ -57,26 +72,31 @@ const SiteVisitModal = ({ property, isOpen, onClose }) => {
     }
 
     scheduleVisit({
+      id: createdRecord?._id || createdRecord?.id,
       propertyId: property.id || property._id,
       propertyTitle: property.title,
       location: `${property.locality}, ${property.city}`,
-      date: formData.date,
-      timeSlot: formData.timeSlot,
-      visitType: formData.visitType,
+      date: currentSnapshot.date,
+      timeSlot: currentSnapshot.timeSlot,
+      visitType: currentSnapshot.visitType,
       agentName: property.agent?.name || "Senior Property Advisor",
       agentPhone: property.agent?.phone || "+91 98201 44820",
-      buyerName: formData.name,
-      buyerPhone: formData.phone,
-      buyerEmail: formData.email,
-      notes: formData.notes
+      buyerName: currentSnapshot.name,
+      buyerPhone: currentSnapshot.phone,
+      buyerEmail: currentSnapshot.email,
+      notes: currentSnapshot.notes
     });
 
+    setSubmittedData(currentSnapshot);
+    setFormData(initialFormState); // Clear inputs right after submit
     setSubmitted(true);
     toast.success("Site Visit appointment scheduled!");
   };
 
   const handleClose = () => {
     setSubmitted(false);
+    setSubmittedData(null);
+    setFormData(initialFormState);
     onClose();
   };
 
@@ -125,12 +145,12 @@ const SiteVisitModal = ({ property, isOpen, onClose }) => {
               Appointment Request Confirmed
             </h4>
             <p className="text-xs text-[var(--color-muted-foreground)] max-w-sm mx-auto leading-relaxed">
-              Your RERA-registered advisor, <strong>{property.agent?.name || "Senior Property Advisor"}</strong>, has received your slot request for <strong>{formData.date} ({formData.timeSlot})</strong>. A gate security QR pass will be messaged to your phone.
+              Your RERA-registered advisor, <strong>{property.agent?.name || "Senior Property Advisor"}</strong>, has received your slot request for <strong>{submittedData?.date} ({submittedData?.timeSlot})</strong>. A gate security QR pass will be messaged to your phone.
             </p>
             <div className="p-3 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs text-left max-w-sm mx-auto space-y-1">
-              <p><strong>Visitor:</strong> {formData.name}</p>
-              <p><strong>Contact:</strong> {formData.phone}</p>
-              <p><strong>Format:</strong> {formData.visitType}</p>
+              <p><strong>Visitor:</strong> {submittedData?.name}</p>
+              <p><strong>Contact:</strong> {submittedData?.phone}</p>
+              <p><strong>Format:</strong> {submittedData?.visitType}</p>
             </div>
             <button
               onClick={handleClose}

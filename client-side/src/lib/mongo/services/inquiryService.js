@@ -209,8 +209,23 @@ export const normalizeInquiryRecord = (raw, fallbackType = "site-visit") => {
 };
 
 /**
+ * Computes a unique fingerprint for an inquiry to prevent duplicates
+ */
+export const getInquiryFingerprint = (item) => {
+  if (!item) return "";
+  const type = String(item.type || "site-visit").trim().toLowerCase();
+  const phone = String(item.phone || item.buyerPhone || "").replace(/\D/g, "").slice(-10);
+  const name = String(item.name || item.fullName || item.buyerName || "").trim().toLowerCase();
+  const title = String(item.propertyTitle || item.title || item.propertyLocation || "").trim().toLowerCase();
+  const date = String(item.date || item.preferredDate || "").trim();
+  const timeSlot = String(item.timeSlot || item.preferredTime || "").trim();
+  return `${type}|${name}|${phone}|${title}|${date}|${timeSlot}`;
+};
+
+/**
  * Get all inquiries (visits, callbacks, contact forms)
  * Merges MongoDB backend + localStorage admin inquiries + user site visits + enquiries
+ * Deduplicates by ID and composite fingerprint to eliminate duplicate entries
  */
 export const getAllInquiries = async (params = {}) => {
   let apiInquiries = [];
@@ -224,13 +239,29 @@ export const getAllInquiries = async (params = {}) => {
     console.warn("ℹ️ /inquiries API endpoint unreachable or non-admin session; reading local stores:", error.message);
   }
 
-  // Gather records from all local storages
-  const localMap = new Map();
+  const seenIds = new Set();
+  const seenFingerprints = new Set();
+  const deduplicated = [];
+
+  const addUnique = (rawItem, fallbackType = "site-visit") => {
+    if (!rawItem) return;
+    const norm = normalizeInquiryRecord(rawItem, rawItem.type || fallbackType);
+    if (!norm) return;
+
+    const id = String(norm._id || norm.id);
+    const fp = getInquiryFingerprint(norm);
+
+    // Skip if seen exact ID or exact same customer+property+date fingerprint
+    if (seenIds.has(id)) return;
+    if (fp && seenFingerprints.has(fp)) return;
+
+    seenIds.add(id);
+    if (fp) seenFingerprints.add(fp);
+    deduplicated.push(norm);
+  };
 
   // 1. Add API inquiries first
-  apiInquiries.forEach((item) => {
-    if (item) localMap.set(String(item._id || item.id), item);
-  });
+  apiInquiries.forEach((item) => addUnique(item, item.type));
 
   // 2. Read explicit admin inquiries storage
   try {
@@ -238,12 +269,7 @@ export const getAllInquiries = async (params = {}) => {
     if (rawAdmin) {
       const parsed = JSON.parse(rawAdmin);
       if (Array.isArray(parsed)) {
-        parsed.forEach((item) => {
-          const norm = normalizeInquiryRecord(item, item.type || "site-visit");
-          if (norm && !localMap.has(String(norm._id || norm.id))) {
-            localMap.set(String(norm._id || norm.id), norm);
-          }
-        });
+        parsed.forEach((item) => addUnique(item, item.type || "site-visit"));
       }
     }
   } catch (e) {
@@ -256,15 +282,7 @@ export const getAllInquiries = async (params = {}) => {
     if (rawVisits) {
       const parsed = JSON.parse(rawVisits);
       if (Array.isArray(parsed)) {
-        parsed.forEach((item) => {
-          const norm = normalizeInquiryRecord({ ...item, type: "site-visit" }, "site-visit");
-          if (norm) {
-            const key = String(norm._id || norm.id);
-            if (!localMap.has(key)) {
-              localMap.set(key, norm);
-            }
-          }
-        });
+        parsed.forEach((item) => addUnique({ ...item, type: "site-visit" }, "site-visit"));
       }
     }
   } catch (e) {
@@ -277,15 +295,7 @@ export const getAllInquiries = async (params = {}) => {
     if (rawEnq) {
       const parsed = JSON.parse(rawEnq);
       if (Array.isArray(parsed)) {
-        parsed.forEach((item) => {
-          const norm = normalizeInquiryRecord({ ...item, type: "callback" }, "callback");
-          if (norm) {
-            const key = String(norm._id || norm.id);
-            if (!localMap.has(key)) {
-              localMap.set(key, norm);
-            }
-          }
-        });
+        parsed.forEach((item) => addUnique({ ...item, type: "callback" }, "callback"));
       }
     }
   } catch (e) {
@@ -293,18 +303,19 @@ export const getAllInquiries = async (params = {}) => {
   }
 
   // 5. If completely empty, seed with INITIAL_DEMO_INQUIRIES
-  if (localMap.size === 0) {
-    INITIAL_DEMO_INQUIRIES.forEach((item) => {
-      const norm = normalizeInquiryRecord(item, item.type);
-      localMap.set(String(norm._id || norm.id), norm);
-    });
-    localStorage.setItem("makaan_admin_inquiries", JSON.stringify(Array.from(localMap.values())));
+  if (deduplicated.length === 0) {
+    INITIAL_DEMO_INQUIRIES.forEach((item) => addUnique(item, item.type));
   }
 
-  // Convert to sorted array (most recent first)
-  const combined = Array.from(localMap.values()).sort((a, b) => {
+  // Sort by date descending (most recent first)
+  const combined = deduplicated.sort((a, b) => {
     return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
   });
+
+  // Re-persist clean, deduplicated records to localStorage so old duplicates are wiped permanently
+  try {
+    localStorage.setItem("makaan_admin_inquiries", JSON.stringify(combined));
+  } catch (e) {}
 
   return combined;
 };
@@ -447,13 +458,38 @@ export const deleteInquiry = async (id) => {
     console.warn("⚠️ API delete inquiry failed, removing from local state:", error.message);
   }
 
-  // Update localStorage
+  // Update localStorage (cleans by id and identical fingerprint)
   try {
     const local = localStorage.getItem("makaan_admin_inquiries");
     if (local) {
       const list = JSON.parse(local);
-      const filtered = list.filter((item) => (item._id || item.id) !== id);
+      const target = list.find((item) => (item._id || item.id) === id);
+      const targetFp = target ? getInquiryFingerprint(target) : null;
+
+      const filtered = list.filter((item) => {
+        if ((item._id || item.id) === id) return false;
+        if (targetFp && getInquiryFingerprint(item) === targetFp) return false;
+        return true;
+      });
       localStorage.setItem("makaan_admin_inquiries", JSON.stringify(filtered));
+    }
+  } catch {}
+
+  try {
+    const rawVisits = localStorage.getItem("makaan_site_visits");
+    if (rawVisits) {
+      const list = JSON.parse(rawVisits);
+      const filtered = list.filter((item) => (item._id || item.id) !== id);
+      localStorage.setItem("makaan_site_visits", JSON.stringify(filtered));
+    }
+  } catch {}
+
+  try {
+    const rawEnq = localStorage.getItem("makaan_enquiries");
+    if (rawEnq) {
+      const list = JSON.parse(rawEnq);
+      const filtered = list.filter((item) => (item._id || item.id) !== id);
+      localStorage.setItem("makaan_enquiries", JSON.stringify(filtered));
     }
   } catch {}
 
