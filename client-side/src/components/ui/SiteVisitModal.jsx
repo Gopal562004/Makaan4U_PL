@@ -31,13 +31,18 @@ const SiteVisitModal = ({ property, isOpen, onClose }) => {
       setIsSubmitting(true);
       await createInquiry({
         type: "site-visit",
+        name: formData.name,
         fullName: formData.name,
+        buyerName: formData.name,
         phone: formData.phone,
         email: formData.email,
+        date: formData.date,
         preferredDate: formData.date,
+        timeSlot: formData.timeSlot,
         preferredTime: formData.timeSlot,
         visitType: formData.visitType,
         message: formData.notes,
+        notes: formData.notes,
         propertyId: property.id || property._id,
         propertyTitle: property.title,
         propertyLocation: `${property.locality || ""}, ${property.city || ""}`.trim().replace(/^,|,$/g, ""),

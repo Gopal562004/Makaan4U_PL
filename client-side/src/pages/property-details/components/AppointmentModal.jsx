@@ -3,6 +3,7 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
+import { createInquiry } from "../../../lib/mongo/services/inquiryService";
 import { toast } from "react-toastify";
 
 const AppointmentModal = ({ isOpen, onClose, property, agent }) => {
@@ -40,16 +41,48 @@ const AppointmentModal = ({ isOpen, onClose, property, agent }) => {
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
-    setIsSubmitting(true);
+    if (!formData.name || !formData.phone) {
+      toast.error("Please enter your name and phone number");
+      return;
+    }
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      setIsSubmitting(true);
+      await createInquiry({
+        type: "site-visit",
+        name: formData.name,
+        fullName: formData.name,
+        buyerName: formData.name,
+        phone: formData.phone,
+        buyerPhone: formData.phone,
+        email: formData.email,
+        date: formData.date,
+        preferredDate: formData.date,
+        timeSlot: formData.time,
+        preferredTime: formData.time,
+        visitType: formData.mode === "virtual" ? "Live Virtual Walkthrough" : "In-Person Guided Tour",
+        message: formData.message,
+        notes: formData.message,
+        propertyId: property?.id || property?._id,
+        propertyTitle: property?.title || "Property Viewing",
+        propertyLocation: `${property?.locality || ""}, ${property?.city || ""}`.trim().replace(/^,|,$/g, ""),
+        propertyPrice: property?.price ? String(property?.price) : "",
+        propertyImage: property?.images?.[0] || property?.image || "",
+        assignedAgent: {
+          name: agent?.name || "Senior Property Advisor",
+          phone: agent?.phone || "+91 98201 44820",
+          email: agent?.email || "",
+        },
+      });
+    } catch (err) {
+      console.warn("Error creating inquiry from appointment modal:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
 
-    // Show success message and close modal
     toast.success(
-      "Appointment scheduled successfully! You will receive a confirmation email shortly."
+      "Appointment scheduled successfully! You will receive a confirmation shortly."
     );
-    setIsSubmitting(false);
     onClose();
 
     // Reset form

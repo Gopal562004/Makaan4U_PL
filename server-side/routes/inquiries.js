@@ -22,3 +22,4 @@ router.put("/:id", protect, authorize("employee", "admin"), updateInquiry);
 router.delete("/:id", protect, authorize("admin"), deleteInquiry);
 
 export default router;
+

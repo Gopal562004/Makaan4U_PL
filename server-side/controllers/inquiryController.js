@@ -85,24 +85,23 @@ export const getInquiryById = async (req, res) => {
 // @access  Public
 export const createInquiry = async (req, res) => {
   try {
-    const {
-      type = "contact-form",
-      name,
-      phone,
-      email,
-      propertyId,
-      propertyTitle,
-      propertyLocation,
-      propertyPrice,
-      propertyImage,
-      date,
-      timeSlot,
-      visitType,
-      department,
-      city,
-      message,
-      priority = "Medium",
-    } = req.body;
+    const body = req.body || {};
+    const type = body.type || "site-visit";
+    const name = body.name || body.fullName || body.buyerName;
+    const phone = body.phone || body.buyerPhone;
+    const email = body.email || body.buyerEmail || "";
+    const propertyId = body.propertyId || "";
+    const propertyTitle = body.propertyTitle || "";
+    const propertyLocation = body.propertyLocation || body.location || "";
+    const propertyPrice = body.propertyPrice || "";
+    const propertyImage = body.propertyImage || body.image || "";
+    const date = body.date || body.preferredDate || "";
+    const timeSlot = body.timeSlot || body.preferredTime || "";
+    const visitType = body.visitType || "In-Person Guided Tour";
+    const department = body.department || "Private Client Advisory";
+    const city = body.city || "Mumbai";
+    const message = body.message || body.notes || "";
+    const priority = body.priority || "Medium";
 
     if (!name || !phone) {
       return res.status(400).json({
@@ -120,19 +119,19 @@ export const createInquiry = async (req, res) => {
       type,
       name,
       phone,
-      email: email || "",
-      propertyId: propertyId || "",
-      propertyTitle: propertyTitle || "",
-      propertyLocation: propertyLocation || "",
-      propertyPrice: propertyPrice || "",
-      propertyImage: propertyImage || "",
-      date: date || "",
-      timeSlot: timeSlot || "",
-      visitType: visitType || "In-Person Guided Tour",
-      department: department || "Private Client Advisory",
-      city: city || "Mumbai",
-      message: message || "",
-      status: defaultStatus,
+      email,
+      propertyId,
+      propertyTitle,
+      propertyLocation,
+      propertyPrice,
+      propertyImage,
+      date,
+      timeSlot,
+      visitType,
+      department,
+      city,
+      message,
+      status: body.status || defaultStatus,
       priority,
     });
 
@@ -269,3 +268,4 @@ export const getInquiryStats = async (req, res) => {
     });
   }
 };
+

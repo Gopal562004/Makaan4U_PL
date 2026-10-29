@@ -128,3 +128,4 @@ const clientInquirySchema = new mongoose.Schema(
 clientInquirySchema.index({ type: 1, status: 1, createdAt: -1 });
 
 export default mongoose.model("ClientInquiry", clientInquirySchema);
+

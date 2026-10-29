@@ -42,8 +42,11 @@ const ContactPage = () => {
       setIsSubmitting(true);
       await createInquiry({
         type: "contact-form",
+        name: formData.name,
         fullName: formData.name,
+        buyerName: formData.name,
         phone: formData.phone,
+        buyerPhone: formData.phone,
         email: formData.email,
         department: formData.department,
         city: formData.city,

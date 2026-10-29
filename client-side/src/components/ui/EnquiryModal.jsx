@@ -25,8 +25,11 @@ const EnquiryModal = ({ property, isOpen, onClose, mode = "callback" }) => {
       setIsSubmitting(true);
       await createInquiry({
         type: "callback",
+        name: name,
         fullName: name,
+        buyerName: name,
         phone: phone,
+        buyerPhone: phone,
         message: message || "Requesting full property dossier and priority callback.",
         propertyId: property.id || property._id,
         propertyTitle: property.title,

@@ -156,69 +156,243 @@ const INITIAL_DEMO_INQUIRIES = [
 ];
 
 /**
+ * Helper to normalize any incoming inquiry / visit / lead object
+ */
+export const normalizeInquiryRecord = (raw, fallbackType = "site-visit") => {
+  if (!raw) return null;
+  const id = raw._id || raw.id || `inq-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  const clientName = raw.name || raw.fullName || raw.buyerName || "Private Client";
+  const clientPhone = raw.phone || raw.buyerPhone || "";
+  const clientEmail = raw.email || raw.buyerEmail || "";
+  const visitDate = raw.date || raw.preferredDate || "";
+  const visitSlot = raw.timeSlot || raw.preferredTime || "11:00 AM - 12:30 PM";
+  const propTitle = raw.propertyTitle || raw.title || "Private Residence";
+  const propLoc = raw.propertyLocation || raw.location || "Mumbai";
+  const propPrice = raw.propertyPrice || raw.price || "";
+  const notesText = raw.message || raw.notes || "";
+
+  return {
+    _id: id,
+    id: id,
+    type: raw.type || fallbackType,
+    name: clientName,
+    fullName: clientName,
+    buyerName: clientName,
+    phone: clientPhone,
+    buyerPhone: clientPhone,
+    email: clientEmail,
+    buyerEmail: clientEmail,
+    propertyId: raw.propertyId || "",
+    propertyTitle: propTitle,
+    propertyLocation: propLoc,
+    location: propLoc,
+    propertyPrice: propPrice,
+    propertyImage: raw.propertyImage || raw.image || raw.images?.[0] || "",
+    date: visitDate,
+    preferredDate: visitDate,
+    timeSlot: visitSlot,
+    preferredTime: visitSlot,
+    visitType: raw.visitType || "In-Person Guided Tour",
+    department: raw.department || "Private Client Advisory",
+    city: raw.city || (propLoc.includes(",") ? propLoc.split(",").pop().trim() : "Mumbai"),
+    message: notesText,
+    notes: notesText,
+    status: raw.status || (raw.type === "site-visit" || fallbackType === "site-visit" ? "Requested" : "New"),
+    priority: raw.priority || "High",
+    assignedAgent: raw.assignedAgent || {
+      name: raw.agentName || "Senior Property Advisor",
+      phone: raw.agentPhone || "+91 98201 44820",
+    },
+    adminNotes: Array.isArray(raw.adminNotes) ? raw.adminNotes : [],
+    createdAt: raw.createdAt || raw.submittedDate || new Date().toISOString(),
+  };
+};
+
+/**
  * Get all inquiries (visits, callbacks, contact forms)
+ * Merges MongoDB backend + localStorage admin inquiries + user site visits + enquiries
  */
 export const getAllInquiries = async (params = {}) => {
+  let apiInquiries = [];
+
   try {
     const res = await api.get("/inquiries", { params });
-    if (res?.data?.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
-      return res.data.data;
+    if (res?.data?.success && Array.isArray(res.data.data)) {
+      apiInquiries = res.data.data.map((item) => normalizeInquiryRecord(item, item.type));
     }
   } catch (error) {
-    console.warn("⚠️ /inquiries endpoint unreachable, checking local store:", error.message);
+    console.warn("ℹ️ /inquiries API endpoint unreachable or non-admin session; reading local stores:", error.message);
   }
 
-  // Fallback to local storage + demo records
+  // Gather records from all local storages
+  const localMap = new Map();
+
+  // 1. Add API inquiries first
+  apiInquiries.forEach((item) => {
+    if (item) localMap.set(String(item._id || item.id), item);
+  });
+
+  // 2. Read explicit admin inquiries storage
   try {
-    const local = localStorage.getItem("makaan_admin_inquiries");
-    if (local) {
-      const parsed = JSON.parse(local);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+    const rawAdmin = localStorage.getItem("makaan_admin_inquiries");
+    if (rawAdmin) {
+      const parsed = JSON.parse(rawAdmin);
+      if (Array.isArray(parsed)) {
+        parsed.forEach((item) => {
+          const norm = normalizeInquiryRecord(item, item.type || "site-visit");
+          if (norm && !localMap.has(String(norm._id || norm.id))) {
+            localMap.set(String(norm._id || norm.id), norm);
+          }
+        });
       }
     }
-  } catch {}
+  } catch (e) {
+    console.warn("Error parsing makaan_admin_inquiries:", e);
+  }
 
-  // Initialize localStorage with demo records
-  localStorage.setItem("makaan_admin_inquiries", JSON.stringify(INITIAL_DEMO_INQUIRIES));
-  return INITIAL_DEMO_INQUIRIES;
+  // 3. Read site visits scheduled from website via ShortlistContext
+  try {
+    const rawVisits = localStorage.getItem("makaan_site_visits");
+    if (rawVisits) {
+      const parsed = JSON.parse(rawVisits);
+      if (Array.isArray(parsed)) {
+        parsed.forEach((item) => {
+          const norm = normalizeInquiryRecord({ ...item, type: "site-visit" }, "site-visit");
+          if (norm) {
+            const key = String(norm._id || norm.id);
+            if (!localMap.has(key)) {
+              localMap.set(key, norm);
+            }
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.warn("Error parsing makaan_site_visits:", e);
+  }
+
+  // 4. Read callback enquiries from website via ShortlistContext
+  try {
+    const rawEnq = localStorage.getItem("makaan_enquiries");
+    if (rawEnq) {
+      const parsed = JSON.parse(rawEnq);
+      if (Array.isArray(parsed)) {
+        parsed.forEach((item) => {
+          const norm = normalizeInquiryRecord({ ...item, type: "callback" }, "callback");
+          if (norm) {
+            const key = String(norm._id || norm.id);
+            if (!localMap.has(key)) {
+              localMap.set(key, norm);
+            }
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.warn("Error parsing makaan_enquiries:", e);
+  }
+
+  // 5. If completely empty, seed with INITIAL_DEMO_INQUIRIES
+  if (localMap.size === 0) {
+    INITIAL_DEMO_INQUIRIES.forEach((item) => {
+      const norm = normalizeInquiryRecord(item, item.type);
+      localMap.set(String(norm._id || norm.id), norm);
+    });
+    localStorage.setItem("makaan_admin_inquiries", JSON.stringify(Array.from(localMap.values())));
+  }
+
+  // Convert to sorted array (most recent first)
+  const combined = Array.from(localMap.values()).sort((a, b) => {
+    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+  });
+
+  return combined;
 };
 
 /**
  * Create new inquiry (public or admin manual entry)
  */
 export const createInquiry = async (inquiryData) => {
-  let created = null;
+  const normalized = normalizeInquiryRecord(inquiryData, inquiryData.type || "site-visit");
+  let serverCreated = null;
 
   try {
-    const res = await api.post("/inquiries", inquiryData);
+    const res = await api.post("/inquiries", {
+      type: normalized.type,
+      name: normalized.name,
+      phone: normalized.phone,
+      email: normalized.email,
+      propertyId: normalized.propertyId,
+      propertyTitle: normalized.propertyTitle,
+      propertyLocation: normalized.propertyLocation,
+      propertyPrice: normalized.propertyPrice,
+      propertyImage: normalized.propertyImage,
+      date: normalized.date,
+      timeSlot: normalized.timeSlot,
+      visitType: normalized.visitType,
+      department: normalized.department,
+      city: normalized.city,
+      message: normalized.message,
+      priority: normalized.priority,
+      status: normalized.status,
+    });
     if (res?.data?.success && res.data.data) {
-      created = res.data.data;
+      serverCreated = normalizeInquiryRecord(res.data.data, normalized.type);
     }
   } catch (error) {
-    console.warn("⚠️ API create inquiry failed, saving to local state:", error.message);
+    console.warn("ℹ️ API inquiry POST offline/unreachable, caching to local stores:", error.message);
   }
 
-  if (!created) {
-    created = {
-      _id: `inq-${Date.now()}`,
-      id: `inq-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      status: inquiryData.type === "site-visit" ? "Requested" : "New",
-      adminNotes: [],
-      ...inquiryData,
-    };
-  }
+  const finalRecord = serverCreated || normalized;
 
-  // Sync with localStorage
+  // Immediately persist to makaan_admin_inquiries
   try {
     const local = localStorage.getItem("makaan_admin_inquiries");
     const currentList = local ? JSON.parse(local) : INITIAL_DEMO_INQUIRIES;
-    const updated = [created, ...currentList];
+    const filtered = currentList.filter(
+      (item) => (item._id || item.id) !== (finalRecord._id || finalRecord.id)
+    );
+    const updated = [finalRecord, ...filtered];
     localStorage.setItem("makaan_admin_inquiries", JSON.stringify(updated));
-  } catch {}
+  } catch (e) {
+    console.warn("Failed to save to makaan_admin_inquiries:", e);
+  }
 
-  return created;
+  // If it's a site-visit, also sync to makaan_site_visits so user account sees it too
+  if (finalRecord.type === "site-visit") {
+    try {
+      const rawVisits = localStorage.getItem("makaan_site_visits");
+      const currentVisits = rawVisits ? JSON.parse(rawVisits) : [];
+      const updatedVisits = [
+        {
+          id: finalRecord.id,
+          propertyId: finalRecord.propertyId,
+          propertyTitle: finalRecord.propertyTitle,
+          location: finalRecord.propertyLocation,
+          date: finalRecord.date,
+          timeSlot: finalRecord.timeSlot,
+          visitType: finalRecord.visitType,
+          agentName: finalRecord.assignedAgent?.name || "Senior Property Advisor",
+          agentPhone: finalRecord.assignedAgent?.phone || "+91 98201 44820",
+          buyerName: finalRecord.name,
+          buyerPhone: finalRecord.phone,
+          buyerEmail: finalRecord.email,
+          notes: finalRecord.message,
+          status: finalRecord.status,
+          createdAt: finalRecord.createdAt,
+        },
+        ...currentVisits.filter((v) => v.id !== finalRecord.id),
+      ];
+      localStorage.setItem("makaan_site_visits", JSON.stringify(updatedVisits));
+    } catch {}
+  }
+
+  // Notify active windows/tabs
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("makaan:inquiry_added", { detail: finalRecord }));
+  }
+
+  return finalRecord;
 };
 
 /**
@@ -285,3 +459,4 @@ export const deleteInquiry = async (id) => {
 
   return { success: true };
 };
+

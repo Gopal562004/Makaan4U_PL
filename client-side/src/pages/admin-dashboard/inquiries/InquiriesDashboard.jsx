@@ -83,6 +83,26 @@ const InquiriesDashboard = () => {
 
   useEffect(() => {
     fetchData();
+
+    const handleAdded = () => fetchData();
+    const handleStorage = (e) => {
+      if (
+        !e ||
+        !e.key ||
+        e.key.includes("inquir") ||
+        e.key.includes("visit")
+      ) {
+        fetchData();
+      }
+    };
+
+    window.addEventListener("makaan:inquiry_added", handleAdded);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("makaan:inquiry_added", handleAdded);
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   // Filtered List
@@ -93,12 +113,12 @@ const InquiriesDashboard = () => {
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      const matchName = inq.name?.toLowerCase().includes(q);
-      const matchPhone = inq.phone?.toLowerCase().includes(q);
-      const matchEmail = inq.email?.toLowerCase().includes(q);
-      const matchProp = inq.propertyTitle?.toLowerCase().includes(q);
+      const matchName = (inq.name || inq.fullName || inq.buyerName)?.toLowerCase().includes(q);
+      const matchPhone = (inq.phone || inq.buyerPhone)?.toLowerCase().includes(q);
+      const matchEmail = (inq.email || inq.buyerEmail)?.toLowerCase().includes(q);
+      const matchProp = (inq.propertyTitle || inq.location)?.toLowerCase().includes(q);
       const matchCity = inq.city?.toLowerCase().includes(q);
-      const matchMsg = inq.message?.toLowerCase().includes(q);
+      const matchMsg = (inq.message || inq.notes)?.toLowerCase().includes(q);
       return matchName || matchPhone || matchEmail || matchProp || matchCity || matchMsg;
     }
     return true;
@@ -546,14 +566,14 @@ const InquiriesDashboard = () => {
                   {/* Client Name & Heading */}
                   <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
                     <h3 className="font-editorial text-lg font-bold text-[var(--color-foreground)] group-hover:text-[var(--color-terracotta)] transition-colors">
-                      {inq.name}
+                      {inq.name || inq.fullName || inq.buyerName || "Private Client"}
                     </h3>
                     <div className="text-xs text-[var(--color-muted-foreground)] flex items-center space-x-2">
-                      <span>{inq.phone}</span>
-                      {inq.email && (
+                      <span>{inq.phone || inq.buyerPhone}</span>
+                      {(inq.email || inq.buyerEmail) && (
                         <>
                           <span>•</span>
-                          <span>{inq.email}</span>
+                          <span>{inq.email || inq.buyerEmail}</span>
                         </>
                       )}
                     </div>
@@ -567,10 +587,10 @@ const InquiriesDashboard = () => {
                         {inq.propertyTitle || "Property Tour"}
                       </span>
                       <span className="text-[var(--color-muted-foreground)]">
-                        Date: <strong className="text-[var(--color-foreground)]">{inq.date}</strong> at <strong className="text-[var(--color-foreground)]">{inq.timeSlot}</strong>
+                        Date: <strong className="text-[var(--color-foreground)]">{inq.date || inq.preferredDate || "Upcoming"}</strong> at <strong className="text-[var(--color-foreground)]">{inq.timeSlot || inq.preferredTime || "11:00 AM"}</strong>
                       </span>
                       <span className="text-[var(--color-muted-foreground)] font-mono text-[11px]">
-                        {inq.visitType}
+                        {inq.visitType || "In-Person Tour"}
                       </span>
                     </div>
                   )}
@@ -685,7 +705,7 @@ const InquiriesDashboard = () => {
                   Client Request Dossier
                 </span>
                 <h2 className="font-editorial text-xl font-bold text-[var(--color-foreground)]">
-                  {selectedInquiry.name}
+                  {selectedInquiry.name || selectedInquiry.fullName || selectedInquiry.buyerName || "Private Client"}
                 </h2>
               </div>
               <button
@@ -704,8 +724,8 @@ const InquiriesDashboard = () => {
                   <span className="text-[10px] text-[var(--color-muted-foreground)] uppercase block">
                     Phone Number
                   </span>
-                  <a href={`tel:${selectedInquiry.phone}`} className="font-semibold text-emerald-600 hover:underline">
-                    {selectedInquiry.phone}
+                  <a href={`tel:${selectedInquiry.phone || selectedInquiry.buyerPhone}`} className="font-semibold text-emerald-600 hover:underline">
+                    {selectedInquiry.phone || selectedInquiry.buyerPhone}
                   </a>
                 </div>
                 <div>
@@ -713,7 +733,7 @@ const InquiriesDashboard = () => {
                     Email Address
                   </span>
                   <span className="font-medium text-[var(--color-foreground)]">
-                    {selectedInquiry.email || "Not provided"}
+                    {selectedInquiry.email || selectedInquiry.buyerEmail || "Not provided"}
                   </span>
                 </div>
                 <div>
@@ -735,16 +755,16 @@ const InquiriesDashboard = () => {
               </div>
 
               {/* Property Details if applicable */}
-              {selectedInquiry.propertyTitle && (
+              {(selectedInquiry.propertyTitle || selectedInquiry.location) && (
                 <div className="p-3 border border-[var(--color-border)] rounded bg-[var(--color-surface)] space-y-1">
                   <span className="text-[10px] text-[var(--color-terracotta)] uppercase font-semibold block">
                     Referenced Property
                   </span>
                   <h4 className="font-semibold text-sm text-[var(--color-foreground)]">
-                    {selectedInquiry.propertyTitle}
+                    {selectedInquiry.propertyTitle || "Private Residence Tour"}
                   </h4>
                   <p className="text-[11px] text-[var(--color-muted-foreground)]">
-                    {selectedInquiry.propertyLocation} {selectedInquiry.propertyPrice && `• ${selectedInquiry.propertyPrice}`}
+                    {selectedInquiry.propertyLocation || selectedInquiry.location} {selectedInquiry.propertyPrice && `• ${selectedInquiry.propertyPrice}`}
                   </p>
                 </div>
               )}
@@ -756,10 +776,10 @@ const InquiriesDashboard = () => {
                     Site Visit Appointment Schedule
                   </span>
                   <p className="font-semibold text-xs text-[var(--color-foreground)]">
-                    Date: {selectedInquiry.date} | Time Slot: {selectedInquiry.timeSlot}
+                    Date: {selectedInquiry.date || selectedInquiry.preferredDate || "Upcoming"} | Time Slot: {selectedInquiry.timeSlot || selectedInquiry.preferredTime || "11:00 AM"}
                   </p>
                   <p className="text-[11px] text-[var(--color-muted-foreground)]">
-                    Format: {selectedInquiry.visitType}
+                    Format: {selectedInquiry.visitType || "In-Person Guided Tour"}
                   </p>
                 </div>
               )}
@@ -1100,3 +1120,4 @@ const InquiriesDashboard = () => {
 };
 
 export default InquiriesDashboard;
+
