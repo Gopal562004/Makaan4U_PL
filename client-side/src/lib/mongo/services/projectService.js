@@ -12,6 +12,12 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 /**
  * Fetch all dynamic projects with optional filters (category, city, search, etc.)
  */
@@ -47,6 +53,30 @@ export const getProjectBySlug = async (slug) => {
 };
 
 /**
+ * Create a new developer project (Admin)
+ */
+export const createProject = async (projectData) => {
+  const res = await api.post("/projects", projectData);
+  return res.data;
+};
+
+/**
+ * Update an existing project (Admin)
+ */
+export const updateProject = async (id, projectData) => {
+  const res = await api.put(`/projects/${id}`, projectData);
+  return res.data;
+};
+
+/**
+ * Delete a project (Admin)
+ */
+export const deleteProject = async (id) => {
+  const res = await api.delete(`/projects/${id}`);
+  return res.data;
+};
+
+/**
  * Fetch all institutional developers
  */
 export const getAllDevelopers = async () => {
@@ -79,4 +109,3 @@ export const getDeveloperBySlug = async (slug) => {
     return found || null;
   }
 };
-

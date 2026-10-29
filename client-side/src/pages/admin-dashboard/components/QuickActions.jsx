@@ -12,13 +12,19 @@ const QuickActions = () => {
       label: "Add Property",
       icon: "Plus",
       variant: "default",
-      onClick: () => navigate("/property-listings"),
+      onClick: () => navigate("/admin/post-property"),
+    },
+    {
+      label: "Manage Catalog & Cities",
+      icon: "Layers",
+      variant: "outline",
+      onClick: () => navigate("/admin/marketplace"),
     },
     {
       label: "Generate Reports",
       icon: "FileText",
       variant: "outline",
-      onClick: () => navigate("/reports-dashboard"),
+      onClick: () => navigate("/admin/reports"),
     },
     {
       label: "Download Data",
@@ -35,12 +41,6 @@ const QuickActions = () => {
           toast.error("Failed to download data.");
         }
       },
-    },
-    {
-      label: "Manage Employees",
-      icon: "Users",
-      variant: "ghost",
-      onClick: () => navigate("/appointment-management"),
     },
   ];
 

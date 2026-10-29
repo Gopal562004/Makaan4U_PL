@@ -12,6 +12,12 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 /**
  * Fetch all dynamic cities with real-time property counts from MongoDB
  */
@@ -47,6 +53,30 @@ export const getCityBySlug = async (slug) => {
 };
 
 /**
+ * Create a new city (Admin)
+ */
+export const createCity = async (cityData) => {
+  const res = await api.post("/cities", cityData);
+  return res.data;
+};
+
+/**
+ * Update an existing city (Admin)
+ */
+export const updateCity = async (id, cityData) => {
+  const res = await api.put(`/cities/${id}`, cityData);
+  return res.data;
+};
+
+/**
+ * Delete a city (Admin)
+ */
+export const deleteCity = async (id) => {
+  const res = await api.delete(`/cities/${id}`);
+  return res.data;
+};
+
+/**
  * Fetch dynamic real-time market benchmark trends for live ticker marquee
  */
 export const getMarketTrends = async () => {
@@ -62,3 +92,10 @@ export const getMarketTrends = async () => {
   }
 };
 
+/**
+ * Update or create market trend benchmark for live ticker (Admin)
+ */
+export const updateMarketTrend = async (city, trendData) => {
+  const res = await api.put(`/market-trends/${city}`, trendData);
+  return res.data;
+};

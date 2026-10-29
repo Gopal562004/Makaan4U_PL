@@ -12,6 +12,12 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 /**
  * Fetch all dynamic insights articles with optional category/search filters
  */
@@ -46,3 +52,26 @@ export const getInsightBySlug = async (slug) => {
   }
 };
 
+/**
+ * Create a new insight publication article (Admin)
+ */
+export const createInsight = async (insightData) => {
+  const res = await api.post("/insights", insightData);
+  return res.data;
+};
+
+/**
+ * Update an existing insight article (Admin)
+ */
+export const updateInsight = async (id, insightData) => {
+  const res = await api.put(`/insights/${id}`, insightData);
+  return res.data;
+};
+
+/**
+ * Delete an insight article (Admin)
+ */
+export const deleteInsight = async (id) => {
+  const res = await api.delete(`/insights/${id}`);
+  return res.data;
+};

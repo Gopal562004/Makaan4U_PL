@@ -43,6 +43,7 @@ const ReportsDashboard = lazy(() => import("./pages/admin-dashboard/reports/Repo
 const PropertyDashboard = lazy(() => import("./pages/admin-dashboard/property/PropertyDashboard"));
 const UserDashboard = lazy(() => import("./pages/admin-dashboard/users/UserDashboard"));
 const AnalyticsDashboard = lazy(() => import("./pages/admin-dashboard/analytics/AnalyticsDashboard"));
+const MarketplaceDashboard = lazy(() => import("./pages/admin-dashboard/marketplace/MarketplaceDashboard"));
 
 // Subtle Architectural Page Loader
 const PageLoader = () => (
@@ -130,6 +131,7 @@ const Routes = () => {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="marketplace" element={<MarketplaceDashboard />} />
               <Route path="reports" element={<ReportsDashboard />} />
               <Route path="post-property" element={<PostProperty />} />
               <Route path="properties/edit/:id" element={<PostProperty />} />
