@@ -24,23 +24,26 @@ export const LogoMark = ({
 }) => {
   return (
     <div
-      className={`relative inline-flex items-center justify-center flex-shrink-0 group/mark select-none ${className}`}
+      className={`relative inline-flex items-center justify-center flex-shrink-0 group/mark select-none transition-transform duration-500 ease-out hover:[transform:perspective(600px)_rotateX(6deg)_rotateY(-6deg)_scale(1.06)] active:[transform:perspective(600px)_rotateX(-4deg)_rotateY(4deg)_scale(0.96)] ${className}`}
       style={{ width: size, height: size }}
       aria-hidden="true"
     >
-      {/* Ambient Warm Golden Aura Glow on Hover */}
+      {/* Ambient Warm Golden Aura Glow on Hover with Sonar Ripple */}
       <div
         className={`absolute inset-0 rounded-2xl transition-all duration-500 ease-out pointer-events-none opacity-40 group-hover/mark:opacity-100 ${
           animated
-            ? "blur-md group-hover/mark:blur-lg scale-90 group-hover/mark:scale-110"
+            ? "blur-md group-hover/mark:blur-xl scale-90 group-hover/mark:scale-125"
             : ""
         }`}
         style={{
           background: inverted
-            ? "radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, rgba(217, 91, 48, 0.15) 70%, transparent 100%)"
-            : "radial-gradient(circle, rgba(230, 138, 46, 0.4) 0%, rgba(194, 78, 40, 0.2) 65%, transparent 100%)",
+            ? "radial-gradient(circle, rgba(245, 158, 11, 0.45) 0%, rgba(217, 91, 48, 0.25) 70%, transparent 100%)"
+            : "radial-gradient(circle, rgba(245, 158, 11, 0.5) 0%, rgba(212, 83, 39, 0.3) 65%, transparent 100%)",
         }}
       />
+
+      {/* Expanding Ripple Ring on Hover */}
+      <div className="absolute inset-0 rounded-2xl border border-amber-500/0 group-hover/mark:border-amber-400/40 pointer-events-none transition-all duration-700 ease-out group-hover/mark:scale-140 group-hover/mark:opacity-0" />
 
       <svg
         viewBox="0 0 64 64"
@@ -53,8 +56,8 @@ export const LogoMark = ({
         }`}
         style={{
           filter: inverted
-            ? "drop-shadow(0 4px 12px rgba(0,0,0,0.35))"
-            : "drop-shadow(0 4px 14px rgba(184, 78, 48, 0.16))",
+            ? "drop-shadow(0 4px 14px rgba(0,0,0,0.45)) drop-shadow(0 0 8px rgba(245, 158, 11, 0.2))"
+            : "drop-shadow(0 4px 16px rgba(184, 78, 48, 0.22)) drop-shadow(0 0 10px rgba(245, 158, 11, 0.25))",
         }}
       >
         <defs>
@@ -247,7 +250,7 @@ export const LogoMark = ({
         {/* ====================================================================
             3. POLARIS COMPASS STAR (Crowning North Star of Certified Truth)
         ==================================================================== */}
-        <g className="origin-center transition-transform duration-500 ease-out animate-star-twinkle group-hover/mark:rotate-45 group-hover/mark:scale-125">
+        <g className="origin-center transition-transform duration-700 ease-out animate-star-twinkle group-hover/mark:rotate-180 group-hover/mark:scale-135">
           {/* Ambient Flare Ring */}
           <circle cx="32" cy="10" r="5" fill="url(#m4u-star-flare)" opacity="0.6" />
 

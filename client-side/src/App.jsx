@@ -1,29 +1,3 @@
-// import React from "react";
-// import { ToastContainer } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
-// import Routes from "./Routes";
-
-// function App() {
-//   return (
-//     <>
-//       <Routes />
-//       <ToastContainer
-//         position="top-right"
-//         autoClose={5000}
-//         hideProgressBar={false}
-//         newestOnTop={false}
-//         closeOnClick
-//         rtl={false}
-//         pauseOnFocusLoss
-//         draggable
-//         pauseOnHover
-//         theme="light"
-//       />
-//     </>
-//   );
-// }
-
-// export default App;
 import React, { useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -32,22 +6,24 @@ import Routes from "./Routes";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ShortlistProvider } from "./contexts/ShortlistContext";
 import { PreferencesProvider } from "./contexts/PreferencesContext";
+import PwaInstallPrompt from "./components/ui/PwaInstallPrompt";
+import PwaSplashScreen from "./components/pwa/PwaSplashScreen";
 
-// IMPORT YOUR 4 PERFORMANCE FILES
+// Core Web Vitals & Performance Monitoring
 import { usePerformanceMonitor } from "./hooks/usePerformanceMonitor";
 import { checkPerformanceBudget } from "./utils/performanceBudget";
 import { trackSEOEvents } from "./utils/analytics";
 
 function App() {
-  // ✔ 1. Track Core Web Vitals (LCP, CLS)
+  // Track Core Web Vitals (LCP, CLS)
   usePerformanceMonitor();
 
   useEffect(() => {
-    // ✔ 2. Check performance budget (page size, load time)
+    // Check performance budget
     const result = checkPerformanceBudget();
     console.log("Performance Budget:", result);
 
-    // ✔ 3. Track first page view
+    // Track first page view
     if (window.gtag) {
       window.gtag("config", "G-BKYZF93DS4", {
         page_path: window.location.pathname,
@@ -59,7 +35,10 @@ function App() {
     <ThemeProvider>
       <ShortlistProvider>
         <PreferencesProvider>
+          {/* Cinema-grade PWA Animated Opening Splash Screen */}
+          <PwaSplashScreen />
           <Routes />
+          <PwaInstallPrompt />
           <ToastContainer 
             position="bottom-right"
             autoClose={3500}

@@ -1,32 +1,88 @@
 {
+  "id": "/",
+  "name": "Makaan4U — Verified Indian Luxury Real Estate",
   "short_name": "Makaan4U",
-  "name": "Makaan4U - Premium Real Estate Platform",
-  "description": "Find your dream property with Makaan4U - India's leading real estate platform",
+  "description": "Architectural property discovery marketplace bridging high-trust verified residential inventory with micro-market intelligence.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "portrait-primary",
+  "background_color": "#FAF8F5",
+  "theme_color": "#AA4824",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": [
+    "lifestyle",
+    "business",
+    "real-estate",
+    "shopping"
+  ],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/favicon-192.png",
-      "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/favicon-512.png",
-      "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
-  "start_url": "/",
-  "display": "standalone",
-  "theme_color": "#2563eb",
-  "background_color": "#ffffff",
-  "orientation": "portrait-primary",
-  "categories": ["business", "real-estate", "shopping"],
-  "scope": "/"
+  "shortcuts": [
+    {
+      "name": "Explore Properties",
+      "short_name": "Properties",
+      "description": "Browse verified penthouses, villas, and apartments",
+      "url": "/properties?source=pwa_shortcut",
+      "icons": [{ "src": "/favicon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Saved Shortlist",
+      "short_name": "Shortlist",
+      "description": "View your saved residences and compare floor plans",
+      "url": "/account/saved?source=pwa_shortcut",
+      "icons": [{ "src": "/favicon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Site Visits",
+      "short_name": "Appointments",
+      "description": "Check scheduled guided tours and digital QR gate passes",
+      "url": "/account/visits?source=pwa_shortcut",
+      "icons": [{ "src": "/favicon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Post Property",
+      "short_name": "Post Listing",
+      "description": "List your premium residential property for verification",
+      "url": "/post-property?source=pwa_shortcut",
+      "icons": [{ "src": "/favicon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }

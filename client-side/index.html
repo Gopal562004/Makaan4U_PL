@@ -12,79 +12,69 @@
       gtag('config', 'G-BKYZF93DS4');
     </script>
     
-    <!-- <script>
-  (function(w,d,s,k){
-    w['_rumConfig'] = { 
-      apiKey: k, 
-      endpoint: 'http://localhost:5000/api/rum/ingest/' + k 
-    };
-    var f=d.getElementsByTagName(s)[0],j=d.createElement(s);j.async=true;
-    j.src='http://localhost:5000/rum-sdk.js';f.parentNode.insertBefore(j,f);
-  })(window,document,'script','ak_32f29668ba7b43d5aa55187acea93316');
-</script> -->
+    <script>
+      (function(w,d,s,k){
+        w['_rumConfig']={
+          apiKey:k,
+          baseUrl:'https://lognexis-node.onrender.com',
+          endpoint:'https://lognexis-node.onrender.com/api/v1/m/e/'+k
+        };
+        var f=d.getElementsByTagName(s)[0],j=d.createElement(s);j.async=true;
+        j.src='https://lognexis-node.onrender.com/core.js';f.parentNode.insertBefore(j,f);
+      })(window,document,'script','ak_32f29668ba7b43d5aa55187acea93316');
+    </script>
 
-<script>
-  (function(w,d,s,k){
-    w['_rumConfig']={
-      apiKey:k,
-      baseUrl:'https://lognexis-node.onrender.com',
-      endpoint:'https://lognexis-node.onrender.com/api/v1/m/e/'+k
-    };
-    var f=d.getElementsByTagName(s)[0],j=d.createElement(s);j.async=true;
-    j.src='https://lognexis-node.onrender.com/core.js';f.parentNode.insertBefore(j,f);
-  })(window,document,'script','ak_32f29668ba7b43d5aa55187acea93316');
-</script>
-    <!-- 🔥 ENHANCED: Dynamic Title with Fallback -->
+    <!-- Title & Viewport -->
     <title>Makaan4U - Find Your Dream Property | Premium Real Estate Platform</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
     
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#2563eb" />
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <meta name="theme-color" content="#AA4824" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Makaan4U" />
+    <meta name="application-name" content="Makaan4U" />
     
-    <!-- 🔥 ENHANCED: SEO Meta Description -->
+    <!-- SEO Meta Description -->
     <meta
       name="description"
       content="Makaan4U - India's leading real estate platform. Find apartments, villas, plots for sale & rent. Verified properties with prices, photos & contact details. Buy, sell, rent properties across major cities."
     />
     
-    <!-- 🔥 ENHANCED: Keywords & SEO Meta Tags -->
+    <!-- Keywords & SEO Meta Tags -->
     <meta name="keywords" content="real estate, property, buy property, rent apartment, sell house, flats, villas, commercial property, residential property, India real estate" />
     <meta name="author" content="Makaan4U" />
     <meta name="robots" content="index, follow" />
     <meta name="language" content="English" />
     <meta name="revisit-after" content="7 days" />
     
-    <!-- 🔥 ENHANCED: Open Graph Meta Tags -->
+    <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="Makaan4U - Find Your Dream Property | Premium Real Estate Platform" />
     <meta property="og:description" content="India's leading real estate platform. Find apartments, villas, plots for sale & rent. Verified properties with prices, photos & contact details." />
-    <meta property="og:image" content="/images/makaan4u-og-image.jpg" />
+    <meta property="og:image" content="/favicon-512.png" />
     <meta property="og:url" content="https://makaan4u.com" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Makaan4U" />
     <meta property="og:locale" content="en_IN" />
     
-    <!-- 🔥 ENHANCED: Twitter Card Meta Tags -->
+    <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Makaan4U - Find Your Dream Property" />
     <meta name="twitter:description" content="India's leading real estate platform. Find apartments, villas, plots for sale & rent." />
-    <meta name="twitter:image" content="/images/makaan4u-twitter-image.jpg" />
+    <meta name="twitter:image" content="/favicon-512.png" />
     <meta name="twitter:site" content="@makaan4u" />
     <meta name="twitter:creator" content="@makaan4u" />
     
-    <!-- 🔥 ENHANCED: SVG Favicon & App Icons -->
+    <!-- SVG Favicon & App Icons -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    
-    <!-- Fallback for older browsers -->
     <link rel="icon" href="/favicon.ico" sizes="any">
-    
-    <!-- Apple Touch Icon (optional - create if you have SVG to PNG converter) -->
-    <!-- <link rel="apple-touch-icon" href="/apple-touch-icon.png"> -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     
     <!-- Web App Manifest -->
     <link rel="manifest" href="/manifest.json" />
-    <meta name="apple-mobile-web-app-title" content="Makaan4U">
-    <meta name="application-name" content="Makaan4U">
     
-    <!-- 🔥 ENHANCED: Preload & Preconnect for Performance -->
+    <!-- Preload & Preconnect for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -92,12 +82,10 @@
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     
-    <!-- Preload critical resources -->
-    
-    <!-- 🔥 ENHANCED: Canonical URL -->
+    <!-- Canonical URL -->
     <link rel="canonical" href="https://makaan4u.com" />
     
-    <!-- 🔥 ENHANCED: Structured Data for Homepage -->
+    <!-- Structured Data for Homepage -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -105,7 +93,7 @@
       "name": "Makaan4U",
       "description": "India's leading real estate platform for buying, selling, and renting properties",
       "url": "https://makaan4u.com",
-      "logo": "https://makaan4u.com/logo.svg",
+      "logo": "https://makaan4u.com/favicon-512.png",
       "address": {
         "@type": "PostalAddress",
         "addressCountry": "IN"
@@ -128,7 +116,37 @@
     <noscript>
       <strong>You need to enable JavaScript to run Makaan4U. Please enable JavaScript in your browser settings.</strong>
     </noscript>
-    <div class="dhiwise-code" id="root"></div>
+    <div class="dhiwise-code" id="root">
+      <!-- Instant 0ms Zero-Latency PWA Splash (Replaced seamlessly when React mounts) -->
+      <div id="pwa-instant-splash" style="position:fixed;inset:0;background:#0D0806;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999;font-family:'Plus Jakarta Sans',-apple-system,sans-serif;color:#ffffff;overflow:hidden;-webkit-user-select:none;user-select:none;">
+        <div style="position:relative;width:96px;height:96px;display:flex;align-items:center;justify-content:center;">
+          <div style="position:absolute;inset:-14px;border-radius:28px;background:radial-gradient(circle,rgba(245,158,11,0.4) 0%,rgba(217,83,39,0.18) 70%,transparent 100%);filter:blur(18px);animation:pwa-instant-pulse 2s infinite ease-in-out;"></div>
+          <img src="/favicon.svg" alt="Makaan4U" style="width:76px;height:76px;position:relative;z-index:10;filter:drop-shadow(0 10px 24px rgba(217,83,39,0.55));" />
+        </div>
+        <div style="margin-top:24px;text-align:center;">
+          <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:22px;letter-spacing:0.18em;text-transform:uppercase;color:#FAF1E4;">
+            MAKAAN<span style="color:#F59E0B;margin-left:4px;">4U</span>
+          </div>
+          <div style="margin-top:8px;font-size:9.5px;letter-spacing:0.3em;text-transform:uppercase;color:#D97706;font-family:monospace;font-weight:600;">
+            Verified Luxury Real Estate
+          </div>
+        </div>
+        <div style="margin-top:28px;width:140px;height:2px;background:#241611;border-radius:2px;overflow:hidden;">
+          <div style="width:40%;height:100%;background:linear-gradient(90deg,#D45327,#F59E0B);animation:pwa-bar-load 1.2s infinite ease-in-out;"></div>
+        </div>
+        <style>
+          @keyframes pwa-instant-pulse {
+            0%, 100% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1.15); opacity: 0.9; }
+          }
+          @keyframes pwa-bar-load {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+            100% { transform: translateX(250%); }
+          }
+        </style>
+      </div>
+    </div>
     <script type="module" src="/src/index.jsx"></script>
   </body>
 </html>
