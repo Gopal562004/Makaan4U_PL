@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import {
@@ -8,7 +8,8 @@ import {
   ShieldCheck,
   Share2,
   MapPin,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from "lucide-react";
 import Header from "../../components/ui/Header";
 import Footer from "../../components/ui/Footer";
@@ -17,13 +18,40 @@ import PropertyCard from "../../components/ui/PropertyCard";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import CompareDrawer from "../../components/ui/CompareDrawer";
 import { INSIGHTS_ARTICLES, PROPERTIES, LOCALITIES } from "../../data/propertyData";
+import { getInsightBySlug } from "../../lib/mongo/services/insightService";
 import { toast } from "react-toastify";
 
 const ArticleDetails = () => {
   const { slug } = useParams();
-  const article = INSIGHTS_ARTICLES.find((a) => a.slug === slug || a.id === slug) || INSIGHTS_ARTICLES[0];
+  const fallback = INSIGHTS_ARTICLES.find((a) => a.slug === slug || a.id === slug) || INSIGHTS_ARTICLES[0];
+  const [article, setArticle] = useState(fallback);
+  const [loading, setLoading] = useState(false);
 
-  const relatedArticles = INSIGHTS_ARTICLES.filter((a) => a.id !== article.id).slice(0, 2);
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+
+    getInsightBySlug(slug)
+      .then((data) => {
+        if (!isMounted) return;
+        if (data) setArticle(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.warn("Could not fetch article by slug, using fallback:", err.message);
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [slug]);
+
+  const relatedArticles = (article?.relatedArticles?.length
+    ? article.relatedArticles
+    : INSIGHTS_ARTICLES.filter((a) => a.id !== article?.id)
+  ).slice(0, 2);
+
   const relatedProperties = PROPERTIES.slice(0, 2);
 
   const handleShare = () => {
@@ -76,16 +104,16 @@ const ArticleDetails = () => {
           <div className="flex items-center justify-between pt-4 border-t border-[var(--color-border)]">
             <div className="flex items-center space-x-3">
               <img
-                src={article.author.avatar}
-                alt={article.author.name}
+                src={article.author?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80"}
+                alt={article.author?.name || "Author"}
                 className="w-11 h-11 rounded-full object-cover border border-[var(--color-border)]"
               />
               <div>
                 <p className="font-semibold text-xs sm:text-sm text-[var(--color-foreground)]">
-                  {article.author.name}
+                  {article.author?.name || "Editorial Desk"}
                 </p>
                 <p className="text-[11px] text-[var(--color-muted-foreground)]">
-                  {article.author.title}
+                  {article.author?.title || "Property Research"}
                 </p>
               </div>
             </div>
@@ -103,7 +131,7 @@ const ArticleDetails = () => {
         {/* Immersive Hero Photo */}
         <div className="h-80 sm:h-[450px] w-full rounded-sm overflow-hidden bg-[var(--color-subtle)]">
           <img
-            src={article.heroImage}
+            src={article.heroImage || article.coverImage || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&auto=format&fit=crop&q=80"}
             alt={article.title}
             className="w-full h-full object-cover"
           />
