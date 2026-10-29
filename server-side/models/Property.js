@@ -198,138 +198,50 @@ const propertySchema = new mongoose.Schema(
       // Additional features
       parking: {
         type: String,
-        enum: ["none", "open", "covered", "basement", "multiple"],
         default: "none",
+        trim: true,
       },
       parkingCount: { type: Number, default: 0 },
       lift: { type: Boolean, default: false },
       powerBackup: { type: Boolean, default: false },
       waterSupply: {
         type: String,
-        enum: ["corporation", "borewell", "both", "other"],
         default: "corporation",
       },
       overlooking: [
         {
           type: String,
-          enum: ["garden", "park", "road", "pool", "sea", "mountain", "other"],
+          trim: true,
         },
       ],
 
       // Legal details
       ownership: {
         type: String,
-        enum: ["freehold", "leasehold", "co-operative", "power-of-attorney"],
         default: "freehold",
       },
       approvedBy: [
         {
           type: String,
-          enum: ["rera", "municipal", "development-authority", "other"],
+          trim: true,
         },
       ],
       occupancyCertificate: { type: Boolean, default: false },
     },
 
-    // Enhanced Amenities
+    // Enhanced Amenities (Accepts standard or custom amenities)
     amenities: [
       {
         type: String,
-        enum: [
-          // Security
-          "24x7-security",
-          "cctv",
-          "security-guards",
-          "intercom",
-          "fire-safety",
-
-          // Outdoor
-          "swimming-pool",
-          "garden",
-          "park",
-          "children-play-area",
-          "club-house",
-          "jogging-track",
-          "tennis-court",
-          "basketball-court",
-          "squash-court",
-          "badminton-court",
-          "gym",
-          "yoga-area",
-          "meditation-hall",
-
-          // Indoor
-          "community-hall",
-          "party-area",
-          "barbecue-area",
-          "indoor-games",
-          "library",
-          "business-center",
-          "cafeteria",
-          "restaurant",
-
-          // Health & Wellness
-          "spa",
-          "sauna",
-          "steam-room",
-          "jacuzzi",
-
-          // Services
-          "concierge",
-          "valet-parking",
-          "car-wash",
-          "house-keeping",
-          "maintenance-staff",
-          "power-backup",
-          "water-storage",
-
-          // Accessibility
-          "pet-friendly",
-          "senior-living",
-          "wheelchair-accessible",
-          "high-speed-internet",
-          "smart-home",
-
-          // Utilities
-          "central-ac",
-          "central-heating",
-          "fireplace",
-          "walk-in-closet",
-          "hardwood-floors",
-          "modular-kitchen",
-          "wardrobes",
-        ],
+        trim: true,
       },
     ],
 
-    // Property Features
+    // Property Features (Accepts standard or custom features)
     features: [
       {
         type: String,
-        enum: [
-          "corner-property",
-          "main-road-facing",
-          "green-view",
-          "lake-view",
-          "sea-view",
-          "mountain-view",
-          "corner-apartment",
-          "premium-location",
-          "corner-plot",
-          "gated-community",
-          "water-harvesting",
-          "solar-panels",
-          "vaastu-compliant",
-          "energy-efficient",
-          "sound-proof",
-          "panic-room",
-          "home-theater",
-          "wine-cellar",
-          "private-pool",
-          "private-garden",
-          "private-terrace",
-          "private-lift",
-        ],
+        trim: true,
       },
     ],
 

@@ -1845,8 +1845,9 @@ export const updateProperty = async (req, res) => {
 
     // Check authorization
     if (
-      property.postedBy.toString() !== req.user.id &&
-      req.user.role !== "admin"
+      req.user.role !== "admin" &&
+      property.postedBy &&
+      property.postedBy.toString() !== req.user.id
     ) {
       return res.status(403).json({
         success: false,
@@ -1877,6 +1878,10 @@ export const updateProperty = async (req, res) => {
       }
     }
 
+    if (req.body.price !== undefined) {
+      req.body.price = Number(req.body.price) || 0;
+    }
+
     // Handle new images
     if (req.files && req.files.length > 0) {
       const newImages = req.files.map((file, index) => {
@@ -1903,7 +1908,7 @@ export const updateProperty = async (req, res) => {
 
     property = await Property.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
-      runValidators: true,
+      runValidators: false,
     }).populate("postedBy", "name email phone avatar designation");
 
     res.status(200).json({

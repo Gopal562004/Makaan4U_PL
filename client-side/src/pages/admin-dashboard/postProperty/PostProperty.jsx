@@ -287,12 +287,31 @@ const PostProperty = () => {
                 superBuiltUpArea: raw.specifications?.superBuiltUpArea !== undefined ? String(raw.specifications.superBuiltUpArea) : "",
                 builtYear: raw.specifications?.builtYear || "",
                 ageOfConstruction: raw.specifications?.ageOfConstruction || "",
-                constructionStatus: raw.specifications?.constructionStatus || "ready-to-move",
+                constructionStatus: (() => {
+                  const cs = String(raw.specifications?.constructionStatus || "ready-to-move").toLowerCase();
+                  if (cs.includes("under")) return "under-construction";
+                  if (cs.includes("launch")) return "new-launch";
+                  if (cs.includes("resale")) return "resale";
+                  return "ready-to-move";
+                })(),
                 floor: raw.specifications?.floor !== undefined ? String(raw.specifications.floor) : "",
                 totalFloors: raw.specifications?.totalFloors !== undefined ? String(raw.specifications.totalFloors) : "",
                 facing: raw.specifications?.facing || "north",
-                furnishing: raw.specifications?.furnishing || "unfurnished",
-                parking: raw.specifications?.parking || "none",
+                furnishing: (() => {
+                  const f = String(raw.specifications?.furnishing || raw.furnishing || "unfurnished").toLowerCase();
+                  if (f.includes("semi")) return "semi-furnished";
+                  if (f.includes("fully") || f.includes("full")) return "fully-furnished";
+                  return "unfurnished";
+                })(),
+                parking: (() => {
+                  const p = String(raw.specifications?.parking || raw.parking || "none").toLowerCase();
+                  if (p.includes("covered")) return "covered";
+                  if (p.includes("open")) return "open";
+                  if (p.includes("basement")) return "basement";
+                  if (p.includes("multiple")) return "multiple";
+                  if (["none", "open", "covered", "basement", "multiple"].includes(p)) return p;
+                  return "none";
+                })(),
                 parkingCount: raw.specifications?.parkingCount !== undefined ? String(raw.specifications.parkingCount) : "",
                 lift: !!raw.specifications?.lift,
                 powerBackup: !!raw.specifications?.powerBackup,
@@ -863,9 +882,9 @@ const PostProperty = () => {
       });
       setCurrentStep(1);
     } catch (error) {
-      console.error("Error creating property:", error);
+      console.error(isEditMode ? "Error updating property:" : "Error creating property:", error);
       toast.update(toastId, {
-        render: error.message || "Error posting property. Please try again.",
+        render: error.message || `Error ${isEditMode ? 'updating' : 'posting'} property. Please try again.`,
         type: "error",
         isLoading: false,
         autoClose: 4000,
