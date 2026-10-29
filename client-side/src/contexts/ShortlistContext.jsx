@@ -98,17 +98,36 @@ export const ShortlistProvider = ({ children }) => {
 
   // Actions
   const isSaved = (propertyId) => {
-    return savedProperties.some((p) => p.id === propertyId || p._id === propertyId);
+    if (!propertyId) return false;
+    return savedProperties.some(
+      (p) => p.id === propertyId || p._id === propertyId || p.slug === propertyId
+    );
   };
 
   const toggleSaveProperty = (property) => {
+    if (!property) return;
+    const propId = property.id || property._id || property.slug;
     setSavedProperties((prev) => {
-      const exists = prev.some((p) => (p.id || p._id) === (property.id || property._id));
+      const exists = prev.some((p) => (p.id || p._id || p.slug) === propId);
       if (exists) {
-        return prev.filter((p) => (p.id || p._id) !== (property.id || property._id));
+        return prev.filter((p) => (p.id || p._id || p.slug) !== propId);
       }
       return [property, ...prev];
     });
+  };
+
+  const removeSavedProperty = (propertyIdOrObj) => {
+    if (!propertyIdOrObj) return;
+    const targetId = typeof propertyIdOrObj === "object"
+      ? (propertyIdOrObj?.id || propertyIdOrObj?._id || propertyIdOrObj?.slug)
+      : propertyIdOrObj;
+    setSavedProperties((prev) =>
+      prev.filter((p) => {
+        const pId = p.id || p._id || p.slug;
+        const pAlt = p._id || p.id;
+        return pId !== targetId && pAlt !== targetId;
+      })
+    );
   };
 
   const isInCompare = (propertyId) => {
@@ -199,6 +218,7 @@ export const ShortlistProvider = ({ children }) => {
         savedProperties,
         isSaved,
         toggleSaveProperty,
+        removeSavedProperty,
         compareList,
         isInCompare,
         toggleCompare,

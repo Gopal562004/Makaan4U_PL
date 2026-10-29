@@ -12,7 +12,8 @@ import {
   Building,
   CheckCircle,
   Clock,
-  ArrowUpRight
+  ArrowUpRight,
+  Trash2
 } from "lucide-react";
 import { useShortlist } from "../../contexts/ShortlistContext";
 import { toast } from "react-toastify";
@@ -23,7 +24,7 @@ const PropertyCard = ({
   className = "",
   onSelectOnMap,
 }) => {
-  const { isSaved, toggleSaveProperty, isInCompare, toggleCompare, removeFromCompare } = useShortlist();
+  const { isSaved, toggleSaveProperty, removeSavedProperty, isInCompare, toggleCompare, removeFromCompare } = useShortlist();
 
   if (!property) return null;
 
@@ -49,6 +50,17 @@ const PropertyCard = ({
     e.stopPropagation();
     toggleSaveProperty(property);
     toast.success(saved ? "Removed from Shortlist" : "Saved to Shortlist");
+  };
+
+  const handleRemoveSaved = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof removeSavedProperty === "function") {
+      removeSavedProperty(property);
+    } else {
+      toggleSaveProperty(property);
+    }
+    toast.success("Removed from Shortlist");
   };
 
   const handleCompare = (e) => {
@@ -156,10 +168,12 @@ const PropertyCard = ({
           </div>
           <div className="flex items-center justify-between mt-4 pt-3 border-t border-[var(--color-border)] text-xs">
             <button
-              onClick={() => removeFromCompare(property.id || property._id)}
-              className="text-red-600 hover:underline"
+              type="button"
+              onClick={handleRemoveSaved}
+              className="text-red-600 hover:text-red-700 hover:underline flex items-center space-x-1 font-medium transition-colors cursor-pointer"
             >
-              Remove
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Remove</span>
             </button>
             <div className="flex items-center space-x-2">
               <button
