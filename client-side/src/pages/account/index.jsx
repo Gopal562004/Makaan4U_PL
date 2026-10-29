@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import {
   User,
@@ -30,21 +30,40 @@ import { toast } from "react-toastify";
 
 const AccountPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { savedProperties, siteVisits, enquiries, savedSearches, recentlyViewed } = useShortlist();
   const { currency, setCurrency, language, setLanguage } = usePreferences();
 
   // Determine subview from pathname
-  const getInitialTab = () => {
-    if (location.pathname.includes("/saved")) return "saved";
-    if (location.pathname.includes("/visits")) return "visits";
-    if (location.pathname.includes("/enquiries")) return "enquiries";
-    if (location.pathname.includes("/alerts")) return "alerts";
-    if (location.pathname.includes("/recent")) return "recent";
-    if (location.pathname.includes("/settings")) return "settings";
+  const getTabFromPath = (path) => {
+    if (path.includes("/visits")) return "visits";
+    if (path.includes("/enquiries")) return "enquiries";
+    if (path.includes("/alerts")) return "alerts";
+    if (path.includes("/recent")) return "recent";
+    if (
+      path.includes("/settings") ||
+      path.includes("/profile") ||
+      path === "/account" ||
+      path === "/account/"
+    ) {
+      return "settings";
+    }
+    if (path.includes("/saved")) return "saved";
     return "saved";
   };
 
-  const [activeTab, setActiveTab] = useState(getInitialTab);
+  const [activeTab, setActiveTab] = useState(() => getTabFromPath(location.pathname));
+
+  // Sync activeTab whenever URL route changes
+  useEffect(() => {
+    const matchedTab = getTabFromPath(location.pathname);
+    setActiveTab(matchedTab);
+  }, [location.pathname]);
+
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+    navigate(`/account/${tabId}`);
+  };
 
   const [userProfile, setUserProfile] = useState(() => {
     try {
@@ -140,7 +159,7 @@ const AccountPage = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabClick(tab.id)}
                 className={`pb-2.5 transition-colors whitespace-nowrap flex items-center space-x-1.5 border-b-2 ${
                   activeTab === tab.id
                     ? "border-[var(--color-terracotta)] text-[var(--color-foreground)]"

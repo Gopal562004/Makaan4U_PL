@@ -14,20 +14,43 @@ const MobileNav = () => {
       label: "Saved",
       href: "/account/saved",
       icon: Heart,
-      badge: savedProperties.length > 0 ? savedProperties.length : null
+      badge: savedProperties.length > 0 ? savedProperties.length : null,
     },
     {
       label: "Visits",
       href: "/account/visits",
       icon: Calendar,
-      badge: siteVisits.length > 0 ? siteVisits.length : null
+      badge: siteVisits.length > 0 ? siteVisits.length : null,
     },
-    { label: "Account", href: "/account", icon: User }
+    { label: "Account", href: "/account/settings", icon: User },
   ];
 
-  const isActive = (href) => {
-    if (href === "/") return location.pathname === "/" || location.pathname === "/home-page";
-    return location.pathname.startsWith(href);
+  const checkIsActive = (item) => {
+    if (item.href === "/") {
+      return location.pathname === "/" || location.pathname === "/home-page";
+    }
+    if (item.href === "/properties") {
+      return (
+        location.pathname === "/properties" ||
+        location.pathname.startsWith("/properties?") ||
+        location.pathname === "/property-listings"
+      );
+    }
+    if (item.href === "/account/saved") {
+      return location.pathname.includes("/saved");
+    }
+    if (item.href === "/account/visits") {
+      return location.pathname.includes("/visits");
+    }
+    if (item.href === "/account/settings") {
+      return (
+        location.pathname === "/account" ||
+        location.pathname === "/account/" ||
+        location.pathname.includes("/settings") ||
+        location.pathname.startsWith("/profile")
+      );
+    }
+    return location.pathname.startsWith(item.href);
   };
 
   return (
@@ -35,7 +58,7 @@ const MobileNav = () => {
       <nav className="flex items-center justify-around h-14 px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = isActive(item.href);
+          const active = checkIsActive(item);
           return (
             <Link
               key={item.label}
@@ -54,7 +77,9 @@ const MobileNav = () => {
                   </span>
                 )}
               </div>
-              <span className="text-[10px] mt-0.5 tracking-tight">{item.label}</span>
+              <span className={`text-[10px] mt-0.5 tracking-tight ${active ? "text-[var(--color-terracotta)]" : ""}`}>
+                {item.label}
+              </span>
             </Link>
           );
         })}
@@ -63,4 +88,4 @@ const MobileNav = () => {
   );
 };
 
-export default MobileNav;
+export default React.memo(MobileNav);
