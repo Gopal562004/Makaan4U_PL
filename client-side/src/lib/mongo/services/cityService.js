@@ -99,3 +99,11 @@ export const updateMarketTrend = async (city, trendData) => {
   const res = await api.put(`/market-trends/${city}`, trendData);
   return res.data;
 };
+
+/**
+ * Delete a market trend benchmark (Admin)
+ */
+export const deleteMarketTrend = async (city) => {
+  const res = await api.delete(`/market-trends/${city}`);
+  return res.data;
+};

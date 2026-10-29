@@ -282,3 +282,34 @@ export const updateMarketTrend = async (req, res) => {
     });
   }
 };
+
+// @desc    Delete market trend (Admin)
+// @route   DELETE /market-trends/:city
+// @access  Private (Admin)
+export const deleteMarketTrend = async (req, res) => {
+  try {
+    const { city } = req.params;
+    const trend = await MarketTrend.findOneAndDelete({
+      city: { $regex: new RegExp(`^${city}$`, "i") },
+    });
+
+    if (!trend) {
+      return res.status(404).json({
+        success: false,
+        message: "Market trend not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Market trend for ${city} deleted successfully`,
+    });
+  } catch (error) {
+    console.error("❌ Error in deleteMarketTrend:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error deleting market trend",
+      error: error.message,
+    });
+  }
+};

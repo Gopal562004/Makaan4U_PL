@@ -354,8 +354,32 @@ const AdminLayout = () => {
           </aside>
 
           {/* Main Content Area */}
-          <div className="flex-1 min-w-0">
-            <Outlet />
+          <div className="flex-1 min-w-0 flex flex-col">
+            {/* Mobile Admin Sub-Navigation Strip (Visible on mobile/tablet) */}
+            <div className="lg:hidden bg-[var(--color-surface)] border-b border-[var(--color-border)] px-3 py-2 overflow-x-auto scrollbar-none flex items-center space-x-2 sticky top-16 z-20 shadow-xs">
+              {sidebarItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => navigate(item.path)}
+                  className={`px-2.5 py-1.5 rounded-sm whitespace-nowrap text-xs font-medium transition-colors flex items-center space-x-1.5 flex-shrink-0 ${
+                    isActivePath(item.path)
+                      ? "bg-[var(--color-foreground)] text-[var(--color-surface)] font-semibold shadow-xs"
+                      : "bg-[var(--color-subtle)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] border border-[var(--color-border)]"
+                  }`}
+                >
+                  <Icon
+                    name={item.icon}
+                    size={13}
+                    className={isActivePath(item.path) ? "text-[var(--color-surface)]" : ""}
+                  />
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex-1">
+              <Outlet />
+            </div>
           </div>
         </div>
       )}
