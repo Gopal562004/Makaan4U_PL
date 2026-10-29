@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { MapPin, TrendingUp, ArrowRight, Building2 } from "lucide-react";
@@ -7,9 +7,34 @@ import Footer from "../../components/ui/Footer";
 import MobileNav from "../../components/ui/MobileNav";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import CompareDrawer from "../../components/ui/CompareDrawer";
-import { CITIES } from "../../data/propertyData";
+import { getAllCities } from "../../lib/mongo/services/cityService";
+import { CITIES as FALLBACK_CITIES } from "../../data/propertyData";
 
 const CitiesPage = () => {
+  const [cities, setCities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+
+    getAllCities()
+      .then((data) => {
+        if (!isMounted) return;
+        if (data?.length) setCities(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const citiesList = cities.length ? cities : FALLBACK_CITIES;
+
   return (
     <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-foreground)] flex flex-col font-sans transition-colors duration-300">
       <Helmet>
@@ -38,10 +63,10 @@ const CitiesPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {CITIES.map((city) => (
+          {citiesList.map((city) => (
             <Link
-              key={city.id}
-              to={`/cities/${city.id}`}
+              key={city.id || city.slug}
+              to={`/cities/${city.slug || city.id}`}
               className="group bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm overflow-hidden transition-all duration-300 flex flex-col"
             >
               <div className="relative h-60 w-full overflow-hidden bg-[var(--color-subtle)]">
@@ -67,14 +92,15 @@ const CitiesPage = () => {
                     {city.description}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-1.5">
-                    {city.topLocalities.slice(0, 4).map((loc) => (
-                      <span
-                        key={loc}
-                        className="px-2 py-0.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-[10px] text-[var(--color-foreground)]"
-                      >
-                        {loc}
-                      </span>
-                    ))}
+                    {city.topLocalities &&
+                      city.topLocalities.slice(0, 4).map((loc) => (
+                        <span
+                          key={loc}
+                          className="px-2 py-0.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-[10px] text-[var(--color-foreground)]"
+                        >
+                          {loc}
+                        </span>
+                      ))}
                   </div>
                 </div>
 

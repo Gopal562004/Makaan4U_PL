@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { Building2, Search, Filter, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
@@ -8,17 +8,68 @@ import MobileNav from "../../components/ui/MobileNav";
 import ProjectCard from "../../components/ui/ProjectCard";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import CompareDrawer from "../../components/ui/CompareDrawer";
-import { PROJECTS, CITIES, DEVELOPERS } from "../../data/propertyData";
+import { getAllProjects, getAllDevelopers } from "../../lib/mongo/services/projectService";
+import { getAllCities } from "../../lib/mongo/services/cityService";
+import {
+  PROJECTS as FALLBACK_PROJECTS,
+  CITIES as FALLBACK_CITIES,
+  DEVELOPERS as FALLBACK_DEVELOPERS,
+} from "../../data/propertyData";
 
 const ProjectsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedCity, setSelectedCity] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const categories = ["All", "New Launch", "Ready to Move", "Under Construction", "Ultra-Luxury", "Premium Projects"];
+  const [projects, setProjects] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [developers, setDevelopers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredProjects = PROJECTS.filter((proj) => {
-    if (selectedCategory !== "All" && proj.category !== selectedCategory && proj.status !== selectedCategory) {
+  const categories = [
+    "All",
+    "New Launch",
+    "Ready to Move",
+    "Under Construction",
+    "Ultra-Luxury",
+    "Premium Projects",
+  ];
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+
+    Promise.all([
+      getAllProjects(),
+      getAllCities(),
+      getAllDevelopers(),
+    ])
+      .then(([projectsData, citiesData, devsData]) => {
+        if (!isMounted) return;
+        if (projectsData?.length) setProjects(projectsData);
+        if (citiesData?.length) setCities(citiesData);
+        if (devsData?.length) setDevelopers(devsData);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const projectsList = projects.length ? projects : FALLBACK_PROJECTS;
+  const citiesList = cities.length ? cities : FALLBACK_CITIES;
+  const developersList = developers.length ? developers : FALLBACK_DEVELOPERS;
+
+  const filteredProjects = projectsList.filter((proj) => {
+    if (
+      selectedCategory !== "All" &&
+      proj.category !== selectedCategory &&
+      proj.status !== selectedCategory
+    ) {
       return false;
     }
     if (selectedCity !== "All" && proj.city.toLowerCase() !== selectedCity.toLowerCase()) {
@@ -90,8 +141,10 @@ const ProjectsPage = () => {
               className="h-8 px-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm text-xs text-[var(--color-foreground)] focus:outline-none"
             >
               <option value="All">All Cities</option>
-              {CITIES.map((c) => (
-                <option key={c.id} value={c.name}>{c.name}</option>
+              {citiesList.map((c) => (
+                <option key={c.id || c.slug} value={c.name}>
+                  {c.name}
+                </option>
               ))}
             </select>
 
@@ -111,14 +164,16 @@ const ProjectsPage = () => {
         {/* Project Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((proj) => (
-            <ProjectCard key={proj.id} project={proj} />
+            <ProjectCard key={proj.id || proj.slug} project={proj} />
           ))}
         </div>
 
         {filteredProjects.length === 0 && (
           <div className="text-center py-12 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm p-8">
             <p className="text-sm font-semibold text-[var(--color-foreground)]">No developer projects found</p>
-            <p className="text-xs text-[var(--color-muted-foreground)] mt-1">Try resetting the category or city filters.</p>
+            <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
+              Try resetting the category or city filters.
+            </p>
           </div>
         )}
 
@@ -127,18 +182,18 @@ const ProjectsPage = () => {
           <span className="text-[11px] uppercase tracking-widest font-semibold text-[var(--color-muted-foreground)] block mb-4">
             Authorized Institutional Developers
           </span>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-            {DEVELOPERS.map((dev) => (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+            {developersList.map((dev) => (
               <Link
-                key={dev.id}
-                to={`/developers/${dev.id}`}
+                key={dev.id || dev.slug}
+                to={`/developers/${dev.slug || dev.id}`}
                 className="p-3 bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm text-center transition-all group"
               >
                 <p className="font-semibold text-xs text-[var(--color-foreground)] group-hover:text-[var(--color-terracotta)]">
                   {dev.name}
                 </p>
                 <p className="text-[10px] text-[var(--color-muted-foreground)] mt-0.5">
-                  Est. {dev.established} • {dev.completedProjects} Completed
+                  Est. {dev.established} • {dev.activeProjectsCount || dev.completedProjects || 10}+ Projects
                 </p>
               </Link>
             ))}

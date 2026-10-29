@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { Building2, ShieldCheck, ArrowRight, Award, CheckCircle2 } from "lucide-react";
@@ -7,9 +7,34 @@ import Footer from "../../components/ui/Footer";
 import MobileNav from "../../components/ui/MobileNav";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import CompareDrawer from "../../components/ui/CompareDrawer";
-import { DEVELOPERS } from "../../data/propertyData";
+import { getAllDevelopers } from "../../lib/mongo/services/projectService";
+import { DEVELOPERS as FALLBACK_DEVELOPERS } from "../../data/propertyData";
 
 const DevelopersPage = () => {
+  const [developers, setDevelopers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+
+    getAllDevelopers()
+      .then((data) => {
+        if (!isMounted) return;
+        if (data?.length) setDevelopers(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const developersList = developers.length ? developers : FALLBACK_DEVELOPERS;
+
   return (
     <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-foreground)] flex flex-col font-sans transition-colors duration-300">
       <Helmet>
@@ -38,10 +63,10 @@ const DevelopersPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {DEVELOPERS.map((dev) => (
+          {developersList.map((dev) => (
             <Link
-              key={dev.id}
-              to={`/developers/${dev.id}`}
+              key={dev.id || dev.slug}
+              to={`/developers/${dev.slug || dev.id}`}
               className="p-6 bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm transition-all duration-300 flex flex-col justify-between group space-y-5"
             >
               <div className="space-y-4">
@@ -61,29 +86,18 @@ const DevelopersPage = () => {
                   </div>
                 </div>
 
-                <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed line-clamp-3">
+                <p className="text-xs text-[var(--color-muted-foreground)] line-clamp-3 leading-relaxed">
                   {dev.description}
                 </p>
-
-                <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-[var(--color-border)]">
-                  <div className="p-2 bg-[var(--color-subtle)] rounded text-center">
-                    <span className="text-[10px] text-[var(--color-muted-foreground)] block">Completed</span>
-                    <strong className="text-[var(--color-foreground)] font-mono">{dev.completedProjects} Projects</strong>
-                  </div>
-                  <div className="p-2 bg-[var(--color-subtle)] rounded text-center">
-                    <span className="text-[10px] text-[var(--color-muted-foreground)] block">Ongoing</span>
-                    <strong className="text-emerald-600 font-mono">{dev.ongoingProjects} Active</strong>
-                  </div>
-                </div>
               </div>
 
               <div className="pt-3 border-t border-[var(--color-border)] flex items-center justify-between text-xs">
-                <span className="text-[11px] font-mono text-emerald-600 font-semibold flex items-center">
-                  <ShieldCheck className="w-3.5 h-3.5 mr-1" />
-                  <span>{dev.reraCompliance}</span>
-                </span>
-                <span className="font-semibold text-xs text-[var(--color-terracotta)]">
-                  Portfolio Details →
+                <div className="flex items-center space-x-1.5 text-emerald-600 font-semibold text-[11px]">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>100% RERA Certified</span>
+                </div>
+                <span className="text-[var(--color-terracotta)] font-semibold flex items-center">
+                  View Portfolio →
                 </span>
               </div>
             </Link>

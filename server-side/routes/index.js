@@ -11,6 +11,12 @@ import leadRoutes from "./leads.js";
 import adminRoutes from "./admin.js";
 import reportRoutes from "./reports.js";
 import newsRoutes from "./news.js";
+import cityRoutes from "./cities.js";
+import projectRoutes from "./projects.js";
+import developerRoutes from "./developers.js";
+import insightRoutes from "./insights.js";
+import localityRoutes from "./localities.js";
+import marketTrendRoutes from "./marketTrends.js";
 
 const router = express.Router();
 
@@ -26,5 +32,11 @@ router.use("/leads", leadRoutes);
 router.use("/admin", adminRoutes);
 router.use("/reports", reportRoutes);
 router.use("/news", newsRoutes);
+router.use("/cities", cityRoutes);
+router.use("/projects", projectRoutes);
+router.use("/developers", developerRoutes);
+router.use("/insights", insightRoutes);
+router.use("/localities", localityRoutes);
+router.use("/market-trends", marketTrendRoutes);
 
 export default router;

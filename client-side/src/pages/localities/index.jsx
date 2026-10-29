@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { MapPin, TrendingUp, ArrowRight, ShieldCheck } from "lucide-react";
@@ -7,9 +7,34 @@ import Footer from "../../components/ui/Footer";
 import MobileNav from "../../components/ui/MobileNav";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import CompareDrawer from "../../components/ui/CompareDrawer";
-import { LOCALITIES } from "../../data/propertyData";
+import { getAllLocalities } from "../../lib/mongo/services/localityService";
+import { LOCALITIES as FALLBACK_LOCALITIES } from "../../data/propertyData";
 
 const LocalitiesPage = () => {
+  const [localities, setLocalities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+
+    getAllLocalities()
+      .then((data) => {
+        if (!isMounted) return;
+        if (data?.length) setLocalities(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const localitiesList = localities.length ? localities : FALLBACK_LOCALITIES;
+
   return (
     <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-foreground)] flex flex-col font-sans transition-colors duration-300">
       <Helmet>
@@ -38,10 +63,10 @@ const LocalitiesPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {LOCALITIES.map((loc) => (
+          {localitiesList.map((loc) => (
             <Link
-              key={loc.id}
-              to={`/localities/${loc.id}`}
+              key={loc.id || loc.slug}
+              to={`/localities/${loc.slug || loc.id}`}
               className="p-5 bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm transition-all duration-300 flex flex-col justify-between group space-y-4"
             >
               <div>
@@ -58,18 +83,22 @@ const LocalitiesPage = () => {
                   {loc.name}
                 </h2>
 
-                <p className="text-xs text-[var(--color-muted-foreground)] mt-2 line-clamp-3 leading-relaxed">
+                <p className="text-xs text-[var(--color-muted-foreground)] line-clamp-3 mt-2 leading-relaxed">
                   {loc.description}
                 </p>
               </div>
 
               <div className="pt-3 border-t border-[var(--color-border)] flex items-center justify-between text-xs font-mono">
                 <div>
-                  <span className="text-[10px] text-[var(--color-muted-foreground)] block">Benchmark Value</span>
-                  <strong className="text-[var(--color-foreground)] text-sm">{loc.avgPrice}</strong>
+                  <span className="text-[10px] text-[var(--color-muted-foreground)] block">Benchmark</span>
+                  <span className="font-bold text-[var(--color-foreground)]">{loc.avgPrice}</span>
                 </div>
-                <span className="text-xs font-semibold text-[var(--color-terracotta)]">
-                  Explore Locality →
+                <div className="text-right">
+                  <span className="text-[10px] text-[var(--color-muted-foreground)] block">Yield</span>
+                  <span className="text-emerald-600 font-semibold">{loc.rentalYield || "3.8%"}</span>
+                </div>
+                <span className="text-[var(--color-terracotta)] text-xs font-semibold group-hover:translate-x-0.5 transition-transform">
+                  Explore →
                 </span>
               </div>
             </Link>

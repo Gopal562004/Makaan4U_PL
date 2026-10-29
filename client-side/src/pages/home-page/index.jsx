@@ -29,12 +29,16 @@ import MobileNav from "../../components/ui/MobileNav";
 import PropertyCard from "../../components/ui/PropertyCard";
 import ProjectCard from "../../components/ui/ProjectCard";
 import CompareDrawer from "../../components/ui/CompareDrawer";
+import { getAllCities, getMarketTrends } from "../../lib/mongo/services/cityService";
+import { getAllProjects } from "../../lib/mongo/services/projectService";
+import { getAllInsights } from "../../lib/mongo/services/insightService";
+import { getAllLocalities } from "../../lib/mongo/services/localityService";
 import {
-  PROJECTS,
-  CITIES,
-  LOCALITIES,
-  INSIGHTS_ARTICLES,
-  MARKET_TRENDS_DATA
+  PROJECTS as FALLBACK_PROJECTS,
+  CITIES as FALLBACK_CITIES,
+  LOCALITIES as FALLBACK_LOCALITIES,
+  INSIGHTS_ARTICLES as FALLBACK_INSIGHTS,
+  MARKET_TRENDS_DATA as FALLBACK_MARKET_TRENDS
 } from "../../data/propertyData";
 
 // Phrases for the auto-typing headline effect
@@ -104,9 +108,18 @@ const HomePage = () => {
   const [properties, setProperties] = useState([]);
   const [loadingProperties, setLoadingProperties] = useState(true);
 
+  // Dynamic Marketplace Catalog State (Fetched from Backend API)
+  const [cities, setCities] = useState([]);
+  const [marketTrends, setMarketTrends] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [insights, setInsights] = useState([]);
+  const [localities, setLocalities] = useState([]);
+
   useEffect(() => {
     let isMounted = true;
     setLoadingProperties(true);
+
+    // Fetch live properties from database
     getAllProperties({ limit: 12 })
       .then((res) => {
         if (!isMounted) return;
@@ -118,6 +131,31 @@ const HomePage = () => {
       .catch(() => {
         if (isMounted) setLoadingProperties(false);
       });
+
+    // Fetch dynamic cities with live listing metrics from backend
+    getAllCities().then((data) => {
+      if (isMounted && data?.length) setCities(data);
+    });
+
+    // Fetch dynamic live market trends ticker data
+    getMarketTrends().then((data) => {
+      if (isMounted && data?.length) setMarketTrends(data);
+    });
+
+    // Fetch dynamic master development projects
+    getAllProjects({ limit: 6 }).then((data) => {
+      if (isMounted && data?.length) setProjects(data);
+    });
+
+    // Fetch dynamic insights publication
+    getAllInsights({ limit: 3 }).then((data) => {
+      if (isMounted && data?.length) setInsights(data);
+    });
+
+    // Fetch dynamic micro-market localities
+    getAllLocalities({ limit: 4 }).then((data) => {
+      if (isMounted && data?.length) setLocalities(data);
+    });
 
     return () => {
       isMounted = false;
@@ -188,8 +226,11 @@ const HomePage = () => {
     setSliderIdx((prev) => (prev >= maxSliderIdx ? 0 : prev + 1));
   };
 
-  const trendingProjects = PROJECTS.slice(0, 3);
-  const editorialArticles = INSIGHTS_ARTICLES.slice(0, 3);
+  const citiesList = cities.length ? cities : FALLBACK_CITIES;
+  const trendsList = marketTrends.length ? marketTrends : FALLBACK_MARKET_TRENDS;
+  const trendingProjects = (projects.length ? projects : FALLBACK_PROJECTS).slice(0, 3);
+  const localitiesList = localities.length ? localities : FALLBACK_LOCALITIES;
+  const editorialArticles = (insights.length ? insights : FALLBACK_INSIGHTS).slice(0, 3);
 
   return (
     <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-foreground)] flex flex-col font-sans transition-colors duration-300">
@@ -269,8 +310,8 @@ const HomePage = () => {
                         className="w-full h-11 px-3 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm text-xs text-[var(--color-foreground)] focus:outline-none focus:border-[var(--color-foreground)]"
                       >
                         <option value="All">All Indian Metros</option>
-                        {CITIES.map((c) => (
-                          <option key={c.id} value={c.name}>
+                        {citiesList.map((c) => (
+                          <option key={c.id || c.slug} value={c.name}>
                             {c.name}
                           </option>
                         ))}
@@ -494,34 +535,24 @@ const HomePage = () => {
               <div className="animate-marquee-track flex items-center space-x-8 text-[11px] font-mono">
                 {/* Track Part 1 */}
                 <div className="flex items-center space-x-8 flex-shrink-0">
-                  {MARKET_TRENDS_DATA.map((item) => (
+                  {trendsList.map((item) => (
                     <div key={`part1-${item.city}`} className="flex items-center space-x-1.5 flex-shrink-0">
                       <span className="font-bold text-[var(--color-foreground)]">{item.city}:</span>
-                      <span className="text-[var(--color-foreground)]">₹{item.avgPrice.toLocaleString("en-IN")}/sq.ft</span>
+                      <span className="text-[var(--color-foreground)]">₹{Number(item.avgPrice).toLocaleString("en-IN")}/sq.ft</span>
                       <span className="text-emerald-600 font-semibold">(+{item.yoyGrowth}%)</span>
                     </div>
                   ))}
-                  <div className="flex items-center space-x-1.5 flex-shrink-0">
-                    <span className="font-bold text-[var(--color-foreground)]">Thane:</span>
-                    <span className="text-[var(--color-foreground)]">₹14,200/sq.ft</span>
-                    <span className="text-emerald-600 font-semibold">(+9.1%)</span>
-                  </div>
                 </div>
 
                 {/* Track Part 2 (Exact Duplicate for Continuous Loop) */}
                 <div className="flex items-center space-x-8 flex-shrink-0" aria-hidden="true">
-                  {MARKET_TRENDS_DATA.map((item) => (
+                  {trendsList.map((item) => (
                     <div key={`part2-${item.city}`} className="flex items-center space-x-1.5 flex-shrink-0">
                       <span className="font-bold text-[var(--color-foreground)]">{item.city}:</span>
-                      <span className="text-[var(--color-foreground)]">₹{item.avgPrice.toLocaleString("en-IN")}/sq.ft</span>
+                      <span className="text-[var(--color-foreground)]">₹{Number(item.avgPrice).toLocaleString("en-IN")}/sq.ft</span>
                       <span className="text-emerald-600 font-semibold">(+{item.yoyGrowth}%)</span>
                     </div>
                   ))}
-                  <div className="flex items-center space-x-1.5 flex-shrink-0">
-                    <span className="font-bold text-[var(--color-foreground)]">Thane:</span>
-                    <span className="text-[var(--color-foreground)]">₹14,200/sq.ft</span>
-                    <span className="text-emerald-600 font-semibold">(+9.1%)</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -529,7 +560,7 @@ const HomePage = () => {
         </section>
 
         {/* ====================================================================
-            SECTION 02: CITY DISCOVERY PORTALS (Editorial Typography)
+            SECTION 02: CITY DISCOVERY PORTALS (Dynamic Live Catalog)
         ==================================================================== */}
         <section className="py-14 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[var(--color-border)]">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
@@ -545,16 +576,16 @@ const HomePage = () => {
               to="/cities"
               className="text-xs font-semibold text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] transition-colors inline-flex items-center"
             >
-              <span>View All 6 Cities & Market Indexes</span>
+              <span>View All {citiesList.length} Cities & Market Indexes</span>
               <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {CITIES.map((city) => (
+            {citiesList.map((city) => (
               <Link
-                key={city.id}
-                to={`/cities/${city.id}`}
+                key={city.id || city.slug}
+                to={`/cities/${city.slug || city.id}`}
                 className="group relative bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm overflow-hidden transition-all duration-300"
               >
                 <div className="relative h-48 w-full overflow-hidden bg-[var(--color-subtle)]">
@@ -772,10 +803,10 @@ const HomePage = () => {
             </div>
 
             <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {LOCALITIES.slice(0, 4).map((loc) => (
+              {localitiesList.slice(0, 4).map((loc) => (
                 <Link
-                  key={loc.id}
-                  to={`/localities/${loc.id}`}
+                  key={loc.id || loc.slug}
+                  to={`/localities/${loc.slug || loc.id}`}
                   className="p-4 bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm transition-all group"
                 >
                   <div className="flex items-center justify-between">
@@ -831,7 +862,7 @@ const HomePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {editorialArticles.map((art) => (
               <article
-                key={art.id}
+                key={art.id || art.slug}
                 className="group bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm overflow-hidden transition-all flex flex-col"
               >
                 <div className="relative h-44 w-full overflow-hidden bg-[var(--color-subtle)]">

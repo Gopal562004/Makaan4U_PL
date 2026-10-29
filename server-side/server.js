@@ -3,6 +3,7 @@ import app from "./app.js";
 import connectDB from "./config/database.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import { seedMarketplaceData } from "./scripts/seedMarketplaceData.js";
 
 const PORT = process.env.PORT || 5000;
 
@@ -11,7 +12,10 @@ const __dirname = path.dirname(__filename);
 
 // Connect DB and start server
 connectDB()
-  .then(() => {
+  .then(async () => {
+    // Seed initial marketplace catalog if collections are empty
+    await seedMarketplaceData();
+
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
       console.log(`🌐 LAN: http://192.168.1.34:${PORT}`);
