@@ -1,30 +1,60 @@
-<svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="fav-terracotta" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#D9653B" />
-      <stop offset="100%" stopColor="#9E3B1B" />
+    <!-- Luminous Pearl Ivory Badge Canvas -->
+    <linearGradient id="fav-surface" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FFFDF8" />
+      <stop offset="60%" stopColor="#FAF1E4" />
+      <stop offset="100%" stopColor="#F5E4CE" />
     </linearGradient>
-    <radialGradient id="fav-bg" cx="50%" cy="30%" r="70%">
-      <stop offset="0%" stopColor="#292524" />
-      <stop offset="100%" stopColor="#141210" />
-    </radialGradient>
+
+    <!-- 24K Champagne Gold -->
+    <linearGradient id="fav-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FCD34D" />
+      <stop offset="50%" stopColor="#F59E0B" />
+      <stop offset="100%" stopColor="#D97706" />
+    </linearGradient>
+
+    <!-- Radiant Burnished Terracotta -->
+    <linearGradient id="fav-terracotta" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#F2774B" />
+      <stop offset="50%" stopColor="#D45327" />
+      <stop offset="100%" stopColor="#963617" />
+    </linearGradient>
+
+    <!-- Jewelry Badge Border -->
+    <linearGradient id="fav-border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FBBF24" />
+      <stop offset="50%" stopColor="#D9653B" />
+      <stop offset="100%" stopColor="#F59E0B" />
+    </linearGradient>
   </defs>
-  <!-- Dark Luxury Squircle Frame -->
-  <rect x="2" y="2" width="40" height="40" rx="10" fill="url(#fav-bg)" stroke="#44403C" stroke-width="1.2" />
-  
-  <!-- Shaded Facets -->
-  <path d="M 10 18 L 16 11 L 22 18 L 22 25 L 10 25 Z" fill="#D9653B" fill-opacity="0.25" />
-  <path d="M 22 18 L 28 11 L 34 18 L 34 25 L 22 25 Z" fill="#F59E0B" fill-opacity="0.18" />
-  
-  <!-- M-Monogram Roofline -->
-  <path d="M 10 33 L 10 18 L 16 11 L 22 18 L 28 11 L 34 18 L 34 33" stroke="#FAF8F5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-  
-  <!-- 4-Lintel & Center Spine -->
-  <path d="M 7 25 L 37 25" stroke="#FAF8F5" stroke-width="1.6" stroke-linecap="round" />
-  <path d="M 22 18 L 22 33" stroke="url(#fav-terracotta)" stroke-width="2.2" stroke-linecap="round" />
-  <path d="M 8 33 L 36 33" stroke="#A8A29E" stroke-width="1.4" stroke-linecap="round" />
-  
-  <!-- Intelligence North Star -->
-  <path d="M 22 5.5 L 23.2 8.2 L 26 9.2 L 23.2 10.2 L 22 13 L 20.8 10.2 L 18 9.2 L 20.8 8.2 Z" fill="url(#fav-terracotta)" />
-  <circle cx="22" cy="9.2" r="0.8" fill="#FFE8D6" />
+
+  <!-- Luxury Chamfered Squircle Badge (Light & Radiant) -->
+  <rect x="3.5" y="3.5" width="57" height="57" rx="15" fill="url(#fav-surface)" stroke="url(#fav-border)" stroke-width="2" />
+  <rect x="6.5" y="6.5" width="51" height="51" rx="12" fill="none" stroke="rgba(217, 101, 59, 0.25)" stroke-width="1" stroke-dasharray="4 2" />
+
+  <!-- Corner Accents -->
+  <circle cx="10" cy="10" r="1.2" fill="url(#fav-gold)" />
+  <circle cx="54" cy="10" r="1.2" fill="url(#fav-gold)" />
+  <circle cx="10" cy="54" r="1.2" fill="url(#fav-gold)" />
+  <circle cx="54" cy="54" r="1.2" fill="url(#fav-gold)" />
+
+  <!-- Sculpted Architectural Monogram -->
+  <path d="M 15 47 L 15 28 L 24 17 L 28 21.5 L 20.5 30 L 20.5 47 Z" fill="url(#fav-terracotta)" />
+  <path d="M 24 17 L 32 27 L 32 32.5 L 24 22 Z" fill="url(#fav-gold)" />
+  <path d="M 32 27 L 40 17 L 40 22 L 32 32.5 Z" fill="url(#fav-gold)" />
+  <path d="M 40 17 L 49 28 L 49 47 L 43.5 47 L 43.5 30 L 36 21.5 Z" fill="url(#fav-terracotta)" />
+
+  <!-- Vault Arch & Lintel Crossbar -->
+  <path d="M 24 47 L 24 37 C 24 32 40 32 40 37 L 40 47" fill="none" stroke="url(#fav-gold)" stroke-width="2" stroke-linecap="round" />
+  <path d="M 22 39.5 L 42 39.5" stroke="url(#fav-gold)" stroke-width="2" stroke-linecap="round" />
+  <path d="M 34 32.5 L 34 47" stroke="url(#fav-terracotta)" stroke-width="2.5" stroke-linecap="round" />
+
+  <!-- Pedestal Base -->
+  <line x1="12" y1="49.5" x2="52" y2="49.5" stroke="url(#fav-gold)" stroke-width="2" stroke-linecap="round" />
+
+  <!-- Crowning Polaris Compass Star -->
+  <path d="M 32 4 L 33.6 8.4 L 38 10 L 33.6 11.6 L 32 16 L 30.4 11.6 L 26 10 L 30.4 8.4 Z" fill="url(#fav-gold)" />
+  <path d="M 32 6.5 L 34.5 10 L 32 13.5 L 29.5 10 Z" fill="#FFFBEB" />
+  <circle cx="32" cy="10" r="1.2" fill="#FFFFFF" />
 </svg>
