@@ -16,6 +16,7 @@ import Footer from "../../components/ui/Footer";
 import MobileNav from "../../components/ui/MobileNav";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import CompareDrawer from "../../components/ui/CompareDrawer";
+import { createInquiry } from "../../lib/mongo/services/inquiryService";
 import { toast } from "react-toastify";
 
 const ContactPage = () => {
@@ -28,13 +29,33 @@ const ContactPage = () => {
     message: ""
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.phone) {
       toast.error("Please provide your name and phone number.");
       return;
     }
+
+    try {
+      setIsSubmitting(true);
+      await createInquiry({
+        type: "contact-form",
+        fullName: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        department: formData.department,
+        city: formData.city,
+        message: formData.message,
+        sourcePage: "/contact",
+      });
+    } catch (err) {
+      console.warn("Direct contact form sync error, offline fallback engaged:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+
     setSubmitted(true);
     toast.success("Enquiry dispatched to designated regional desk");
   };

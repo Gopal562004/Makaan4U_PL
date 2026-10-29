@@ -5,6 +5,7 @@ import Developer from "../models/Developer.js";
 import Insight from "../models/Insight.js";
 import Locality from "../models/Locality.js";
 import MarketTrend from "../models/MarketTrend.js";
+import ClientInquiry from "../models/ClientInquiry.js";
 
 export const initialCities = [
   {
@@ -472,6 +473,116 @@ export const initialMarketTrends = [
   { city: "Thane", avgPrice: 14200, yoyGrowth: 9.1, rentalYield: 3.6, topMicroMarket: "Kolshet Road", order: 7 },
 ];
 
+export const initialInquiries = [
+  {
+    type: "site-visit",
+    name: "Vikramaditya Singhania",
+    phone: "+91 98200 87654",
+    email: "v.singhania@apexholding.in",
+    propertyTitle: "Oberoi Forestville — 4 BHK Forest Vista",
+    propertyLocation: "Kolshet Road, Thane West, Mumbai",
+    propertyPrice: "₹3.85 Cr",
+    propertyImage: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80",
+    date: "2026-11-02",
+    timeSlot: "11:00 AM - 12:30 PM",
+    visitType: "In-Person Guided Tour",
+    status: "Confirmed",
+    priority: "High",
+    message: "Interested in the high-floor tower B unit with uninterrupted Yeoor Hills deck views. Need technical architect to discuss customized layout.",
+    assignedAgent: {
+      name: "Sunil Varma",
+      phone: "+91 98201 44820",
+      email: "sunil.varma@makaan4u.com",
+      designation: "Senior Luxury Consultant",
+    },
+    adminNotes: [
+      { text: "QR Pass dispatched via WhatsApp. Buyer pre-qualified through ICICI Wealth Desk.", author: "Admin" },
+    ],
+  },
+  {
+    type: "site-visit",
+    name: "Meera Nair",
+    phone: "+91 97401 22345",
+    email: "meera.nair@techventures.io",
+    propertyTitle: "DLF The Camellias — Ultra Luxury Penthouse",
+    propertyLocation: "Golf Course Road, Gurgaon, Delhi NCR",
+    propertyPrice: "₹35.00 Cr",
+    propertyImage: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&auto=format&fit=crop&q=80",
+    date: "2026-11-04",
+    timeSlot: "03:00 PM - 04:30 PM",
+    visitType: "Private Executive Escort",
+    status: "Requested",
+    priority: "Urgent",
+    message: "Relocating from Singapore next month. Seeking fully furnished turnkey residence with DLF Golf Club view.",
+    assignedAgent: {
+      name: "Rohit Malhotra",
+      phone: "+91 98110 33456",
+      email: "rohit.m@makaan4u.com",
+      designation: "NCR Regional Director",
+    },
+  },
+  {
+    type: "callback",
+    name: "Dr. Arvind Swaminathan",
+    phone: "+91 98450 11998",
+    email: "dr.arvind@apollohospitals.org",
+    propertyTitle: "Prestige Kingfisher Towers — 4 BHK Imperial Residence",
+    propertyLocation: "Lavelle Road, Ashok Nagar, Bangalore",
+    propertyPrice: "₹28.50 Cr",
+    propertyImage: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&auto=format&fit=crop&q=80",
+    message: "Requesting full title search report and maintenance fee schedule before signing token.",
+    status: "New",
+    priority: "High",
+    assignedAgent: {
+      name: "Pooja Hegde",
+      phone: "+91 98800 77123",
+      email: "pooja.h@makaan4u.com",
+      designation: "Bangalore Prime Advisor",
+    },
+  },
+  {
+    type: "callback",
+    name: "Rajeshwar Rao",
+    phone: "+91 99890 44556",
+    email: "r.rao@hyderabadtech.com",
+    propertyTitle: "Luxury Penthouse with Private Terrace",
+    propertyLocation: "Worli, South Mumbai",
+    propertyPrice: "₹3.50 Cr",
+    propertyImage: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&auto=format&fit=crop&q=80",
+    message: "Need callback to discuss home loan eligibility under SBI High Net Worth NRI scheme.",
+    status: "Contacted",
+    priority: "Medium",
+    assignedAgent: {
+      name: "Sunil Varma",
+      phone: "+91 98201 44820",
+      email: "sunil.varma@makaan4u.com",
+      designation: "Senior Luxury Consultant",
+    },
+  },
+  {
+    type: "contact-form",
+    name: "Anita & Cyrus Godrej",
+    phone: "+91 98210 55667",
+    email: "anita.godrej@consortium.in",
+    department: "Developer Partnerships",
+    city: "Mumbai",
+    message: "We have a 4.5-acre parcel in Alibaug suitable for gated ultra-luxury wellness villas. Requesting developer onboarding and title audit meeting at BKC office.",
+    status: "New",
+    priority: "Urgent",
+  },
+  {
+    type: "contact-form",
+    name: "Captain Devender Sharma",
+    phone: "+91 98100 99887",
+    email: "d.sharma@aviationgroup.com",
+    department: "Private Client Advisory",
+    city: "Goa",
+    message: "Looking for a Portuguese heritage villa in North Goa (Assagao/Anjuna) with minimum 12,000 sq.ft plot and clear legal sanad. Budget ₹15-20 Cr.",
+    status: "In Progress",
+    priority: "High",
+  },
+];
+
 /**
  * Idempotently seeds initial marketplace data into MongoDB collections
  */
@@ -517,6 +628,13 @@ export const seedMarketplaceData = async () => {
       console.log("🌱 Seeding initial MarketTrend collection...");
       await MarketTrend.insertMany(initialMarketTrends);
       console.log("✅ MarketTrend collection seeded");
+    }
+
+    const inquiryCount = await ClientInquiry.countDocuments();
+    if (inquiryCount === 0) {
+      console.log("🌱 Seeding initial ClientInquiry collection...");
+      await ClientInquiry.insertMany(initialInquiries);
+      console.log("✅ ClientInquiry collection seeded");
     }
   } catch (error) {
     console.error("⚠️ Error seeding marketplace data:", error.message);

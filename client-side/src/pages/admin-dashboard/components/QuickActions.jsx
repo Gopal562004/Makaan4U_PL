@@ -21,6 +21,12 @@ const QuickActions = () => {
       onClick: () => navigate("/admin/marketplace"),
     },
     {
+      label: "Visits & Leads Hub",
+      icon: "CalendarCheck",
+      variant: "outline",
+      onClick: () => navigate("/admin/inquiries"),
+    },
+    {
       label: "Generate Reports",
       icon: "FileText",
       variant: "outline",

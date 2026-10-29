@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { X, PhoneCall, ShieldCheck, CheckCircle2, Clock } from "lucide-react";
 import { useShortlist } from "../../contexts/ShortlistContext";
+import { createInquiry } from "../../lib/mongo/services/inquiryService";
 import { toast } from "react-toastify";
 
 const EnquiryModal = ({ property, isOpen, onClose, mode = "callback" }) => {
@@ -9,14 +10,35 @@ const EnquiryModal = ({ property, isOpen, onClose, mode = "callback" }) => {
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen || !property) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !phone) {
       toast.error("Please enter your name and phone number");
       return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await createInquiry({
+        type: "callback",
+        fullName: name,
+        phone: phone,
+        message: message || "Requesting full property dossier and priority callback.",
+        propertyId: property.id || property._id,
+        propertyTitle: property.title,
+        propertyLocation: `${property.locality || ""}, ${property.city || ""}`.trim().replace(/^,|,$/g, ""),
+        propertyPrice: property.price ? String(property.price) : "",
+        propertyImage: property.images?.[0] || property.image || "",
+        sourcePage: window.location.pathname,
+      });
+    } catch (err) {
+      console.warn("Direct callback sync error, offline fallback engaged:", err);
+    } finally {
+      setIsSubmitting(false);
     }
 
     addEnquiry({

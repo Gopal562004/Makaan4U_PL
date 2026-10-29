@@ -45,6 +45,7 @@ const UserDashboard = lazy(() => import("./pages/admin-dashboard/users/UserDashb
 const AnalyticsDashboard = lazy(() => import("./pages/admin-dashboard/analytics/AnalyticsDashboard"));
 const MarketplaceDashboard = lazy(() => import("./pages/admin-dashboard/marketplace/MarketplaceDashboard"));
 const AdminPostProperty = lazy(() => import("./pages/admin-dashboard/postProperty/PostProperty"));
+const InquiriesDashboard = lazy(() => import("./pages/admin-dashboard/inquiries/InquiriesDashboard"));
 
 // Helper redirect for public /properties/edit/:id to admin editor
 const EditPropertyRedirect = () => {
@@ -144,6 +145,9 @@ const Routes = () => {
               <Route path="post-property" element={<AdminPostProperty />} />
               <Route path="properties/edit/:id" element={<AdminPostProperty />} />
               <Route path="properties" element={<PropertyDashboard />} />
+              <Route path="inquiries" element={<InquiriesDashboard />} />
+              <Route path="visits" element={<Navigate to="/admin/inquiries" replace />} />
+              <Route path="leads" element={<Navigate to="/admin/inquiries" replace />} />
               <Route path="users" element={<UserDashboard />} />
               <Route path="analytics" element={<AnalyticsDashboard />} />
             </Route>

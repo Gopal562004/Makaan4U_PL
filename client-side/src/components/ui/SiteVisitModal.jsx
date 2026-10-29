@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { X, Calendar, Clock, User, Phone, Mail, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { useShortlist } from "../../contexts/ShortlistContext";
+import { createInquiry } from "../../lib/mongo/services/inquiryService";
 import { toast } from "react-toastify";
 
 const SiteVisitModal = ({ property, isOpen, onClose }) => {
   const { scheduleVisit } = useShortlist();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     date: "",
     timeSlot: "11:00 AM - 12:30 PM",
@@ -18,11 +20,35 @@ const SiteVisitModal = ({ property, isOpen, onClose }) => {
 
   if (!isOpen || !property) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.phone || !formData.date) {
       toast.error("Please fill in date, full name, and phone number.");
       return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await createInquiry({
+        type: "site-visit",
+        fullName: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        preferredDate: formData.date,
+        preferredTime: formData.timeSlot,
+        visitType: formData.visitType,
+        message: formData.notes,
+        propertyId: property.id || property._id,
+        propertyTitle: property.title,
+        propertyLocation: `${property.locality || ""}, ${property.city || ""}`.trim().replace(/^,|,$/g, ""),
+        propertyPrice: property.price ? String(property.price) : "",
+        propertyImage: property.images?.[0] || property.image || "",
+        sourcePage: window.location.pathname,
+      });
+    } catch (err) {
+      console.warn("Direct site visit sync error, offline fallback engaged:", err);
+    } finally {
+      setIsSubmitting(false);
     }
 
     scheduleVisit({

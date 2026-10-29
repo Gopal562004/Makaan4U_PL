@@ -142,6 +142,12 @@ const AdminLayout = () => {
         path: "/admin/post-property",
       },
       {
+        id: "inquiries",
+        label: "Visits & Leads",
+        icon: "CalendarCheck",
+        path: "/admin/inquiries",
+      },
+      {
         id: "users",
         label: "Users & Staff",
         icon: "Users",

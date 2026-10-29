@@ -17,6 +17,7 @@ import developerRoutes from "./developers.js";
 import insightRoutes from "./insights.js";
 import localityRoutes from "./localities.js";
 import marketTrendRoutes from "./marketTrends.js";
+import inquiryRoutes from "./inquiries.js";
 
 const router = express.Router();
 
@@ -38,5 +39,6 @@ router.use("/developers", developerRoutes);
 router.use("/insights", insightRoutes);
 router.use("/localities", localityRoutes);
 router.use("/market-trends", marketTrendRoutes);
+router.use("/inquiries", inquiryRoutes);
 
 export default router;
