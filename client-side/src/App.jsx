@@ -7,7 +7,6 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { ShortlistProvider } from "./contexts/ShortlistContext";
 import { PreferencesProvider } from "./contexts/PreferencesContext";
 import PwaInstallPrompt from "./components/ui/PwaInstallPrompt";
-import PwaSplashScreen from "./components/pwa/PwaSplashScreen";
 
 // Core Web Vitals & Performance Monitoring
 import { usePerformanceMonitor } from "./hooks/usePerformanceMonitor";
@@ -35,8 +34,6 @@ function App() {
     <ThemeProvider>
       <ShortlistProvider>
         <PreferencesProvider>
-          {/* Cinema-grade PWA Animated Opening Splash Screen */}
-          <PwaSplashScreen />
           <Routes />
           <PwaInstallPrompt />
           <ToastContainer 

@@ -122,19 +122,8 @@ const PwaInstallPrompt = () => {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  if (window.replayPwaLaunchAnimation) window.replayPwaLaunchAnimation();
-                }}
-                className="px-2 py-1.5 text-amber-600 dark:text-amber-400 hover:text-amber-500 font-mono text-[10px] flex items-center space-x-1 transition-colors"
-                title="Preview App Opening Sequence"
-              >
-                <Sparkles className="w-3 h-3" />
-                <span>Preview Launch</span>
-              </button>
-              <button
-                type="button"
                 onClick={handleDismiss}
-                className="px-2 py-1.5 text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"
+                className="px-2.5 py-1.5 text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"
               >
                 Not now
               </button>

@@ -1,9 +1,7 @@
 import React, { Suspense, lazy } from "react";
-import { BrowserRouter, Routes as RouterRoutes, Route, Navigate, useParams, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { BrowserRouter, Routes as RouterRoutes, Route, Navigate, useParams } from "react-router-dom";
 import ScrollToTop from "components/ScrollToTop";
 import ErrorBoundary from "components/ErrorBoundary";
-import PwaStandaloneBar from "./components/pwa/PwaStandaloneBar";
 
 // Lazy-loaded Core Public Pages
 const HomePage = lazy(() => import("./pages/home-page"));
@@ -67,126 +65,101 @@ const PageLoader = () => (
   </div>
 );
 
-// Inner Component to Handle Fluid Route Cross-fade Animations
-const AnimatedAppRoutes = () => {
-  const location = useLocation();
-
-  return (
-    <>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={location.pathname}
-          initial={{ opacity: 0, y: 8, scale: 0.995 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -6, scale: 0.997 }}
-          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full min-h-screen"
-        >
-          <Suspense fallback={<PageLoader />}>
-            <RouterRoutes location={location}>
-              {/* Primary Discovery & Marketplace Routes */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/home-page" element={<HomePage />} />
-              <Route path="/properties" element={<PropertyListings />} />
-              <Route path="/property-listings" element={<PropertyListings />} />
-              <Route path="/properties/:slug" element={<PropertyDetails />} />
-              <Route path="/property-details/:slug" element={<PropertyDetails />} />
-
-              {/* Project Discovery Routes */}
-              <Route path="/projects" element={<ProjectsPage />} />
-              <Route path="/projects/:slug" element={<ProjectDetails />} />
-
-              {/* City Regional Portals */}
-              <Route path="/cities" element={<CitiesPage />} />
-              <Route path="/cities/:city" element={<CityDetails />} />
-
-              {/* Micro-Market Locality Intelligence */}
-              <Route path="/localities" element={<LocalitiesPage />} />
-              <Route path="/localities/:slug" element={<LocalityDetails />} />
-
-              {/* Insights & Publication */}
-              <Route path="/insights" element={<InsightsPage />} />
-              <Route path="/blog" element={<InsightsPage />} />
-              <Route path="/insights/:slug" element={<ArticleDetails />} />
-              <Route path="/market-insights" element={<MarketInsightsPage />} />
-
-              {/* Comparison Experience */}
-              <Route path="/compare" element={<ComparePage />} />
-
-              {/* Certified Advisors & Developer Profiles */}
-              <Route path="/agents" element={<AgentsPage />} />
-              <Route path="/agents/:id" element={<AgentDetails />} />
-              <Route path="/developers" element={<DevelopersPage />} />
-              <Route path="/developers/:id" element={<DeveloperDetails />} />
-
-              {/* Institutional Information & Contact */}
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<ContactPage />} />
-
-              {/* Property Listing Onboarding */}
-              <Route path="/post-property" element={<PostProperty />} />
-              <Route path="/properties/edit/:id" element={<EditPropertyRedirect />} />
-
-              {/* User Account Workspace */}
-              <Route path="/account" element={<AccountPage />} />
-              <Route path="/account/saved" element={<AccountPage />} />
-              <Route path="/account/visits" element={<AccountPage />} />
-              <Route path="/account/enquiries" element={<AccountPage />} />
-              <Route path="/account/alerts" element={<AccountPage />} />
-              <Route path="/account/recent" element={<AccountPage />} />
-              <Route path="/account/settings" element={<AccountPage />} />
-              <Route path="/profile" element={<AccountPage />} />
-              <Route path="/profile/*" element={<AccountPage />} />
-
-              {/* Auth Routes with Layout */}
-              <Route path="/auth" element={<AuthLayout />}>
-                <Route path="login" element={<Signin />} />
-                <Route path="register" element={<Signup />} />
-                <Route path="forgot-password" element={<ForgotPassword />} />
-                <Route path="reset-password" element={<ResetPassword />} />
-              </Route>
-              <Route path="/login" element={<AuthLayout><Signin /></AuthLayout>} />
-              <Route path="/register" element={<AuthLayout><Signup /></AuthLayout>} />
-
-              {/* Admin Management Routes (Protected by AdminLayout Gate) */}
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="marketplace" element={<MarketplaceDashboard />} />
-                <Route path="reports" element={<ReportsDashboard />} />
-                <Route path="post-property" element={<AdminPostProperty />} />
-                <Route path="properties/edit/:id" element={<AdminPostProperty />} />
-                <Route path="properties" element={<PropertyDashboard />} />
-                <Route path="inquiries" element={<InquiriesDashboard />} />
-                <Route path="visits" element={<Navigate to="/admin/inquiries" replace />} />
-                <Route path="leads" element={<Navigate to="/admin/inquiries" replace />} />
-                <Route path="users" element={<UserDashboard />} />
-                <Route path="analytics" element={<AnalyticsDashboard />} />
-              </Route>
-
-              {/* Backward compatibility redirects */}
-              <Route path="/admin-dashboard" element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="/reports-dashboard" element={<Navigate to="/admin/reports" replace />} />
-
-              {/* Architectural 404 Route */}
-              <Route path="*" element={<NotFound />} />
-            </RouterRoutes>
-          </Suspense>
-        </motion.div>
-      </AnimatePresence>
-
-      {/* Floating Standalone App Controller Bar */}
-      <PwaStandaloneBar />
-    </>
-  );
-};
-
 const Routes = () => {
   return (
     <BrowserRouter>
       <ErrorBoundary>
         <ScrollToTop />
-        <AnimatedAppRoutes />
+        <Suspense fallback={<PageLoader />}>
+          <RouterRoutes>
+            {/* Primary Discovery & Marketplace Routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/home-page" element={<HomePage />} />
+            <Route path="/properties" element={<PropertyListings />} />
+            <Route path="/property-listings" element={<PropertyListings />} />
+            <Route path="/properties/:slug" element={<PropertyDetails />} />
+            <Route path="/property-details/:slug" element={<PropertyDetails />} />
+
+            {/* Project Discovery Routes */}
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/projects/:slug" element={<ProjectDetails />} />
+
+            {/* City Regional Portals */}
+            <Route path="/cities" element={<CitiesPage />} />
+            <Route path="/cities/:city" element={<CityDetails />} />
+
+            {/* Micro-Market Locality Intelligence */}
+            <Route path="/localities" element={<LocalitiesPage />} />
+            <Route path="/localities/:slug" element={<LocalityDetails />} />
+
+            {/* Insights & Publication */}
+            <Route path="/insights" element={<InsightsPage />} />
+            <Route path="/blog" element={<InsightsPage />} />
+            <Route path="/insights/:slug" element={<ArticleDetails />} />
+            <Route path="/market-insights" element={<MarketInsightsPage />} />
+
+            {/* Comparison Experience */}
+            <Route path="/compare" element={<ComparePage />} />
+
+            {/* Certified Advisors & Developer Profiles */}
+            <Route path="/agents" element={<AgentsPage />} />
+            <Route path="/agents/:id" element={<AgentDetails />} />
+            <Route path="/developers" element={<DevelopersPage />} />
+            <Route path="/developers/:id" element={<DeveloperDetails />} />
+
+            {/* Institutional Information & Contact */}
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<ContactPage />} />
+
+            {/* Property Listing Onboarding */}
+            <Route path="/post-property" element={<PostProperty />} />
+            <Route path="/properties/edit/:id" element={<EditPropertyRedirect />} />
+
+            {/* User Account Workspace */}
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/account/saved" element={<AccountPage />} />
+            <Route path="/account/visits" element={<AccountPage />} />
+            <Route path="/account/enquiries" element={<AccountPage />} />
+            <Route path="/account/alerts" element={<AccountPage />} />
+            <Route path="/account/recent" element={<AccountPage />} />
+            <Route path="/account/settings" element={<AccountPage />} />
+            <Route path="/profile" element={<AccountPage />} />
+            <Route path="/profile/*" element={<AccountPage />} />
+
+            {/* Auth Routes with Layout */}
+            <Route path="/auth" element={<AuthLayout />}>
+              <Route path="login" element={<Signin />} />
+              <Route path="register" element={<Signup />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="reset-password" element={<ResetPassword />} />
+            </Route>
+            <Route path="/login" element={<AuthLayout><Signin /></AuthLayout>} />
+            <Route path="/register" element={<AuthLayout><Signup /></AuthLayout>} />
+
+            {/* Admin Management Routes (Protected by AdminLayout Gate) */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="marketplace" element={<MarketplaceDashboard />} />
+              <Route path="reports" element={<ReportsDashboard />} />
+              <Route path="post-property" element={<AdminPostProperty />} />
+              <Route path="properties/edit/:id" element={<AdminPostProperty />} />
+              <Route path="properties" element={<PropertyDashboard />} />
+              <Route path="inquiries" element={<InquiriesDashboard />} />
+              <Route path="visits" element={<Navigate to="/admin/inquiries" replace />} />
+              <Route path="leads" element={<Navigate to="/admin/inquiries" replace />} />
+              <Route path="users" element={<UserDashboard />} />
+              <Route path="analytics" element={<AnalyticsDashboard />} />
+            </Route>
+
+            {/* Backward compatibility redirects */}
+            <Route path="/admin-dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="/reports-dashboard" element={<Navigate to="/admin/reports" replace />} />
+
+            {/* Architectural 404 Route */}
+            <Route path="*" element={<NotFound />} />
+          </RouterRoutes>
+        </Suspense>
       </ErrorBoundary>
     </BrowserRouter>
   );
