@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { Building2, ShieldCheck, CheckCircle2, MapPin, ArrowRight } from "lucide-react";
@@ -9,13 +9,30 @@ import ProjectCard from "../../components/ui/ProjectCard";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import CompareDrawer from "../../components/ui/CompareDrawer";
 import { DEVELOPERS, PROJECTS } from "../../data/propertyData";
+import { getDeveloperBySlug } from "../../lib/mongo/services/companyService";
 
 const DeveloperDetails = () => {
   const { id } = useParams();
-  const developer = DEVELOPERS.find((d) => d.id === id || d.name.toLowerCase().includes(id?.toLowerCase())) || DEVELOPERS[0];
+  const [developer, setDeveloper] = useState(
+    () => DEVELOPERS.find((d) => d.id === id || d.slug === id || d.name.toLowerCase().includes(id?.toLowerCase())) || DEVELOPERS[0]
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+    getDeveloperBySlug(id)
+      .then((data) => {
+        if (isMounted && data) {
+          setDeveloper(data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
 
   const developerProjects = PROJECTS.filter(
-    (p) => p.developer.toLowerCase().includes(developer.name.toLowerCase()) || p.developerId === developer.id
+    (p) => p.developer?.toLowerCase().includes(developer.name?.toLowerCase()) || p.developerId === developer.id || p.developerId === developer.slug
   );
 
   return (
@@ -47,7 +64,7 @@ const DeveloperDetails = () => {
               <div className="space-y-1">
                 <span className="text-[10px] uppercase font-mono px-2 py-0.5 bg-emerald-950/20 text-emerald-600 font-semibold rounded flex items-center w-fit">
                   <ShieldCheck className="w-3.5 h-3.5 mr-1" />
-                  <span>{developer.reraCompliance}</span>
+                  <span>{developer.reraCompliance || "100% RERA Registered"}</span>
                 </span>
                 <h1 className="font-editorial text-2xl sm:text-4xl font-bold tracking-tight text-[var(--color-foreground)]">
                   {developer.name}
@@ -62,13 +79,13 @@ const DeveloperDetails = () => {
               <div>
                 <span className="text-[10px] uppercase tracking-wider text-[var(--color-muted-foreground)] block">Delivered Track Record</span>
                 <span className="font-mono text-xl font-bold text-[var(--color-foreground)] mt-0.5 block">
-                  {developer.completedProjects} Completed
+                  {developer.completedProjects || 80}+ Completed
                 </span>
               </div>
               <div>
                 <span className="text-[10px] uppercase tracking-wider text-[var(--color-muted-foreground)] block">Under Construction</span>
                 <span className="font-mono text-xl font-bold text-emerald-600 mt-0.5 block">
-                  {developer.ongoingProjects} Active
+                  {developer.ongoingProjects || developer.activeProjectsCount || 12} Active
                 </span>
               </div>
             </div>

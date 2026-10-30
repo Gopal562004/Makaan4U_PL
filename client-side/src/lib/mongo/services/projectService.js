@@ -53,6 +53,31 @@ export const getProjectBySlug = async (slug) => {
 };
 
 /**
+ * Create a new developer (Admin)
+ */
+export const createDeveloper = async (devData) => {
+  const res = await api.post("/developers", devData);
+  return res.data;
+};
+
+/**
+ * Update an existing developer (Admin)
+ */
+export const updateDeveloper = async (slug, devData) => {
+  const res = await api.put(`/developers/${slug}`, devData);
+  return res.data;
+};
+
+/**
+ * Delete a developer (Admin)
+ */
+export const deleteDeveloper = async (slug) => {
+  const res = await api.delete(`/developers/${slug}`);
+  return res.data;
+};
+
+
+/**
  * Create a new developer project (Admin)
  */
 export const createProject = async (projectData) => {
@@ -109,3 +134,4 @@ export const getDeveloperBySlug = async (slug) => {
     return found || null;
   }
 };
+

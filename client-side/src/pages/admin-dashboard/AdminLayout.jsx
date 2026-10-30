@@ -125,7 +125,7 @@ const AdminLayout = () => {
       },
       {
         id: "marketplace",
-        label: "Catalog & Cities",
+        label: "Company & Catalog",
         icon: "Layers",
         path: "/admin/marketplace",
       },

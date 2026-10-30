@@ -18,6 +18,9 @@ import insightRoutes from "./insights.js";
 import localityRoutes from "./localities.js";
 import marketTrendRoutes from "./marketTrends.js";
 import inquiryRoutes from "./inquiries.js";
+import agentRoutes from "./agents.js";
+import officeRoutes from "./offices.js";
+import companySettingRoutes from "./companySettings.js";
 
 const router = express.Router();
 
@@ -40,5 +43,8 @@ router.use("/insights", insightRoutes);
 router.use("/localities", localityRoutes);
 router.use("/market-trends", marketTrendRoutes);
 router.use("/inquiries", inquiryRoutes);
+router.use("/agents", agentRoutes);
+router.use("/regional-offices", officeRoutes);
+router.use("/company-settings", companySettingRoutes);
 
 export default router;

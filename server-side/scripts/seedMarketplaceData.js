@@ -6,6 +6,9 @@ import Insight from "../models/Insight.js";
 import Locality from "../models/Locality.js";
 import MarketTrend from "../models/MarketTrend.js";
 import ClientInquiry from "../models/ClientInquiry.js";
+import Agent from "../models/Agent.js";
+import RegionalOffice from "../models/RegionalOffice.js";
+import CompanySetting from "../models/CompanySetting.js";
 
 export const initialCities = [
   {
@@ -583,6 +586,143 @@ export const initialInquiries = [
   },
 ];
 
+export const initialAgents = [
+  {
+    slug: "agent-1",
+    name: "Rajeshwar Sengupta",
+    agency: "South Mumbai Private Office",
+    phone: "+91 98201 44820",
+    email: "rajeshwar.s@makaan4u.com",
+    reraNo: "A51900034821",
+    rating: 4.9,
+    experience: "16 Years in Luxury S-Mumbai",
+    areasServed: ["Worli", "Prabhadevi", "Lower Parel", "BKC", "Malabar Hill"],
+    languages: ["English", "Hindi", "Marathi", "Bengali"],
+    specializations: ["Sea-Facing Penthouses", "High-Net-Worth Portfolios", "Developer Mandates"],
+    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
+    bio: "With over 16 years representing family offices, diaspora leaders, and tech founders, Rajeshwar heads Makaan4U's South Mumbai luxury desk with an uncompromising code of discretion and forensic title scrutiny.",
+    activeListingsCount: 18,
+    totalDealsClosed: 142,
+    order: 1,
+    featured: true,
+  },
+  {
+    slug: "agent-2",
+    name: "Tanya Shroff",
+    agency: "Bandra Heritage Estates",
+    phone: "+91 98190 28411",
+    email: "tanya.shroff@makaan4u.com",
+    reraNo: "A51800021940",
+    rating: 5.0,
+    experience: "12 Years in Pali Hill & Carter Road",
+    areasServed: ["Bandra West", "Pali Hill", "Carter Road", "Khar West", "Juhu"],
+    languages: ["English", "Hindi", "Gujarati"],
+    specializations: ["Bungalow Acquisitions", "Turnkey Luxury Fitouts", "High-End Residential Leases"],
+    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80",
+    bio: "Tanya is the trusted advisor to leading creative figures and entrepreneurs looking for distinctive character properties and historic bungalows in Bandra West and Pali Hill.",
+    activeListingsCount: 14,
+    totalDealsClosed: 98,
+    order: 2,
+    featured: true,
+  },
+  {
+    slug: "agent-4",
+    name: "Vikramaditya Oberoi",
+    agency: "Capital Assets Advisory NCR",
+    phone: "+91 99100 84729",
+    email: "vikramaditya@makaan4u.com",
+    reraNo: "HRERA-PKL-REA-2020-044",
+    rating: 4.9,
+    experience: "18 Years in Luxury NCR Real Estate",
+    areasServed: ["Golf Course Road", "DLF Phase 5", "Dwarka Expressway", "Vasant Vihar"],
+    languages: ["English", "Hindi", "Punjabi"],
+    specializations: ["Golf Course High-Rises", "Diplomatic Leases", "Commercial Land Parcels"],
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80",
+    bio: "Specializing in DLF The Camellias, Magnolias, and Aralias, Vikramaditya advises executive c-suites and multinational corporations on marquee acquisitions across Gurgaon and Central Delhi.",
+    activeListingsCount: 22,
+    totalDealsClosed: 180,
+    order: 3,
+    featured: true,
+  },
+];
+
+export const initialOffices = [
+  {
+    city: "Mumbai (Headquarters)",
+    address: "Maker Maxity, 5th Floor, North Avenue, Bandra Kurla Complex (BKC), Mumbai 400051",
+    phone: "+91 22 6982 4400",
+    email: "mumbai@makaan4u.com",
+    order: 1,
+    isActive: true,
+  },
+  {
+    city: "Delhi NCR (Gurgaon)",
+    address: "One Horizon Center, 14th Floor, Golf Course Road, DLF Phase 5, Gurgaon 122002",
+    phone: "+91 124 489 2200",
+    email: "ncr@makaan4u.com",
+    order: 2,
+    isActive: true,
+  },
+  {
+    city: "Bangalore",
+    address: "Prestige Meridian II, 8th Floor, MG Road / Lavelle Road Corridor, Bangalore 560001",
+    phone: "+91 80 4120 8800",
+    email: "bangalore@makaan4u.com",
+    order: 3,
+    isActive: true,
+  },
+  {
+    city: "Goa (Coastal Desk)",
+    address: "Assagao Heritage Villa 12, Badem Road, Assagao, North Goa 403507",
+    phone: "+91 832 291 0400",
+    email: "goa@makaan4u.com",
+    order: 4,
+    isActive: true,
+  },
+];
+
+export const initialCompanySetting = {
+  key: "about_page",
+  convictionTagline: "Our Founding Conviction",
+  convictionTitle: "Indian real estate was broken by speculative, phantom listings.",
+  convictionSubtitle: "We rebuilt the marketplace around forensic proof.",
+  convictionDescription:
+    "For decades, buying property in Mumbai, Bangalore, or Gurgaon meant navigating unverified portal bait, duplicate broker listings, and speculative price inflation. Makaan4U was established by real estate valuers, legal counsels, and product designers with a single standard: zero unverified inventory.",
+  pillars: [
+    {
+      number: "01",
+      category: "REGULATORY AUDIT",
+      title: "State RERA Title Reconciliation",
+      description:
+        "Before any residential development is approved on Makaan4U, our legal team verifies the promoter's active MahaRERA, KarRERA, or HRERA quarterly compliance reports, confirming that 70% of buyer collections remain ring-fenced within designated escrow accounts.",
+    },
+    {
+      number: "02",
+      category: "PHYSICAL AUDIT",
+      title: "On-Site Measurement & Acoustic Verification",
+      description:
+        "We physically deploy certified property inspectors to measure usable carpet area in compliance with the statutory RERA definition. We verify floor orientation, cross-ventilation, daylight penetration, and building maintenance fund reserves.",
+    },
+    {
+      number: "03",
+      category: "VALUATION SCRUTINY",
+      title: "Registered Registry Price Calibration",
+      description:
+        "Our guide valuations reflect genuine sub-registrar stamp duty transaction data, not speculative asking prices inflated by multi-tier broker chains.",
+    },
+  ],
+  footprint: [
+    { city: "Mumbai & MMR", localities: "BKC, Worli, Bandra, Thane" },
+    { city: "Delhi NCR", localities: "Golf Course Rd, DLF 5, South Delhi" },
+    { city: "Bangalore", localities: "Indiranagar, Lavelle Rd, Whitefield" },
+    { city: "Pune", localities: "Koregaon Park, Baner, Kalyani Nagar" },
+    { city: "Hyderabad", localities: "Jubilee Hills, Kokapet, Gachibowli" },
+    { city: "Goa", localities: "Assagao, Siolim, Candolim" },
+  ],
+  leadershipDeskTitle: "Connect with our Leadership Desk",
+  leadershipDeskSubtitle: "For institutional mandates, family office representation, or developer onboarding.",
+};
+
 /**
  * Idempotently seeds initial marketplace data into MongoDB collections
  */
@@ -635,6 +775,27 @@ export const seedMarketplaceData = async () => {
       console.log("🌱 Seeding initial ClientInquiry collection...");
       await ClientInquiry.insertMany(initialInquiries);
       console.log("✅ ClientInquiry collection seeded");
+    }
+
+    const agentCount = await Agent.countDocuments();
+    if (agentCount === 0) {
+      console.log("🌱 Seeding initial Agent collection...");
+      await Agent.insertMany(initialAgents);
+      console.log("✅ Agent collection seeded");
+    }
+
+    const officeCount = await RegionalOffice.countDocuments();
+    if (officeCount === 0) {
+      console.log("🌱 Seeding initial RegionalOffice collection...");
+      await RegionalOffice.insertMany(initialOffices);
+      console.log("✅ RegionalOffice collection seeded");
+    }
+
+    const companyCount = await CompanySetting.countDocuments();
+    if (companyCount === 0) {
+      console.log("🌱 Seeding initial CompanySetting collection...");
+      await CompanySetting.create(initialCompanySetting);
+      console.log("✅ CompanySetting collection seeded");
     }
   } catch (error) {
     console.error("⚠️ Error seeding marketplace data:", error.message);

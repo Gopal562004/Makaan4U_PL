@@ -6,7 +6,10 @@ const OFFLINE_URL = "/offline.html";
 const PRECACHE_ASSETS = [
   "/",
   "/manifest.json",
+  "/favicon.ico",
   "/favicon.svg",
+  "/favicon-16x16.png",
+  "/favicon-32x32.png",
   "/favicon-192.png",
   "/favicon-512.png",
   "/apple-touch-icon.png",

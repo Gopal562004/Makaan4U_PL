@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import {
   MapPin,
@@ -17,6 +17,7 @@ import MobileNav from "../../components/ui/MobileNav";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import CompareDrawer from "../../components/ui/CompareDrawer";
 import { createInquiry } from "../../lib/mongo/services/inquiryService";
+import { getAllOffices, FALLBACK_OFFICES } from "../../lib/mongo/services/companyService";
 import { toast } from "react-toastify";
 
 const ContactPage = () => {
@@ -30,6 +31,21 @@ const ContactPage = () => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [offices, setOffices] = useState(FALLBACK_OFFICES);
+
+  useEffect(() => {
+    let isMounted = true;
+    getAllOffices()
+      .then((data) => {
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          setOffices(data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,33 +78,6 @@ const ContactPage = () => {
     setSubmitted(true);
     toast.success("Enquiry dispatched to designated regional desk");
   };
-
-  const offices = [
-    {
-      city: "Mumbai (Headquarters)",
-      address: "Maker Maxity, 5th Floor, North Avenue, Bandra Kurla Complex (BKC), Mumbai 400051",
-      phone: "+91 22 6982 4400",
-      email: "mumbai@makaan4u.com"
-    },
-    {
-      city: "Delhi NCR (Gurgaon)",
-      address: "One Horizon Center, 14th Floor, Golf Course Road, DLF Phase 5, Gurgaon 122002",
-      phone: "+91 124 489 2200",
-      email: "ncr@makaan4u.com"
-    },
-    {
-      city: "Bangalore",
-      address: "Prestige Meridian II, 8th Floor, MG Road / Lavelle Road Corridor, Bangalore 560001",
-      phone: "+91 80 4120 8800",
-      email: "bangalore@makaan4u.com"
-    },
-    {
-      city: "Goa (Coastal Desk)",
-      address: "Assagao Heritage Villa 12, Badem Road, Assagao, North Goa 403507",
-      phone: "+91 832 291 0400",
-      email: "goa@makaan4u.com"
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-foreground)] flex flex-col font-sans transition-colors duration-300">

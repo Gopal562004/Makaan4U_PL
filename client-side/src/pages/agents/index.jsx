@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { ShieldCheck, Phone, Mail, MapPin, Award, Star, ArrowRight } from "lucide-react";
@@ -7,9 +7,32 @@ import Footer from "../../components/ui/Footer";
 import MobileNav from "../../components/ui/MobileNav";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import CompareDrawer from "../../components/ui/CompareDrawer";
-import { AGENTS } from "../../data/propertyData";
+import { getAllAgents } from "../../lib/mongo/services/companyService";
+import { AGENTS as FALLBACK_AGENTS } from "../../data/propertyData";
 
 const AgentsPage = () => {
+  const [agents, setAgents] = useState(FALLBACK_AGENTS);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    getAllAgents()
+      .then((data) => {
+        if (!isMounted) return;
+        if (Array.isArray(data) && data.length > 0) {
+          setAgents(data);
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-foreground)] flex flex-col font-sans transition-colors duration-300">
       <Helmet>
@@ -38,9 +61,9 @@ const AgentsPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {AGENTS.map((agent) => (
+          {agents.map((agent) => (
             <div
-              key={agent.id}
+              key={agent.id || agent.slug}
               className="bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm p-6 space-y-5 transition-all duration-300 flex flex-col justify-between"
             >
               <div className="space-y-4">
@@ -72,7 +95,7 @@ const AgentsPage = () => {
                       Micro-Markets Covered
                     </span>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {agent.areasServed.map((a) => (
+                      {(Array.isArray(agent.areasServed) ? agent.areasServed : []).map((a) => (
                         <span key={a} className="px-2 py-0.5 bg-[var(--color-subtle)] text-[11px] rounded">
                           {a}
                         </span>
@@ -85,7 +108,7 @@ const AgentsPage = () => {
                       Specializations
                     </span>
                     <p className="text-[11px] text-[var(--color-foreground)] font-medium mt-0.5">
-                      {agent.specializations.join(" • ")}
+                      {(Array.isArray(agent.specializations) ? agent.specializations : []).join(" • ")}
                     </p>
                   </div>
                 </div>
@@ -93,10 +116,10 @@ const AgentsPage = () => {
 
               <div className="pt-4 border-t border-[var(--color-border)] flex items-center justify-between text-xs">
                 <span className="text-[11px] text-[var(--color-muted-foreground)]">
-                  {agent.activeListingsCount} Active Mandates
+                  {agent.activeListingsCount || 10} Active Mandates
                 </span>
                 <Link
-                  to={`/agents/${agent.id}`}
+                  to={`/agents/${agent.slug || agent.id}`}
                   className="font-semibold text-xs text-[var(--color-terracotta)] hover:underline inline-flex items-center space-x-1"
                 >
                   <span>Advisor Profile</span>

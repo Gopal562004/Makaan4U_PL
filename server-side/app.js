@@ -36,7 +36,9 @@ const allowedOrigins = [
   "http://172.17.144.1:3000",
   "https://makaan4u-clean.vercel.app",
   "https://client-side-eta-umber.vercel.app",
-];
+  process.env.CLIENT_URL,
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 // Security headers
 app.use(helmet({

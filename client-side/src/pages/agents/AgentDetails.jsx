@@ -19,12 +19,27 @@ import PropertyCard from "../../components/ui/PropertyCard";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import CompareDrawer from "../../components/ui/CompareDrawer";
 import { AGENTS } from "../../data/propertyData";
+import { getAgentById } from "../../lib/mongo/services/companyService";
 import { getAllProperties } from "../../lib/mongo/services/propertyService";
 import { toast } from "react-toastify";
 
 const AgentDetails = () => {
   const { id } = useParams();
-  const agent = AGENTS.find((a) => a.id === id) || AGENTS[0];
+  const [agent, setAgent] = useState(() => AGENTS.find((a) => a.id === id || a.slug === id) || AGENTS[0]);
+
+  useEffect(() => {
+    let isMounted = true;
+    getAgentById(id)
+      .then((data) => {
+        if (isMounted && data) {
+          setAgent(data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
 
   const [agentProperties, setAgentProperties] = useState([]);
   const [loadingProps, setLoadingProps] = useState(true);
@@ -113,7 +128,7 @@ const AgentDetails = () => {
                 </p>
 
                 <p className="text-xs text-[var(--color-foreground)] font-medium pt-1">
-                  Languages: {agent.languages.join(", ")}
+                  Languages: {(Array.isArray(agent.languages) ? agent.languages : ["English", "Hindi"]).join(", ")}
                 </p>
               </div>
             </div>
@@ -156,7 +171,7 @@ const AgentDetails = () => {
                   Operating Micro-Markets
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
-                  {agent.areasServed.map((area) => (
+                  {(Array.isArray(agent.areasServed) ? agent.areasServed : []).map((area) => (
                     <span key={area} className="px-2.5 py-1 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs">
                       {area}
                     </span>
@@ -169,7 +184,7 @@ const AgentDetails = () => {
                   Asset Specializations
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
-                  {agent.specializations.map((spec) => (
+                  {(Array.isArray(agent.specializations) ? agent.specializations : []).map((spec) => (
                     <span key={spec} className="px-2.5 py-1 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-xs">
                       {spec}
                     </span>

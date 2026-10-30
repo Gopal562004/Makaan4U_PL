@@ -60,63 +60,33 @@ function generateIcon(size, isMaskable = false) {
   const cornerRadius = badgeSize * 0.26;
   const cx = size / 2;
   const cy = size / 2;
-  const halfBadge = badgeSize / 2;
+  const rx = badgeSize / 2;
+  const ry = badgeSize / 2;
 
   return createPNG(size, size, (x, y) => {
-    // Background canvas
-    const distToBorder = dSquircle(x, y, cx, cy, halfBadge, halfBadge, cornerRadius);
-
-    if (distToBorder > 1) {
-      if (isMaskable) {
-        // Safe maskable full background
-        return [250, 241, 228, 255]; // Warm pearl ivory
-      }
-      return [0, 0, 0, 0]; // Transparent outer
+    // Check if inside squircle
+    const dist = dSquircle(x, y, cx, cy, rx, ry, cornerRadius);
+    if (dist > 0.5) {
+      // Outside badge: transparent or maskable background
+      return isMaskable ? [250, 248, 245, 255] : [0, 0, 0, 0];
     }
 
-    // Anti-aliased outer edge
-    const edgeAlpha = distToBorder > 0 ? 1 - distToBorder : 1;
+    // Inside badge background: Luxury Warm Ivory (#FAF8F5) with subtle vignette
+    const nx = (x - cx) / rx;
+    const ny = (y - cy) / ry;
+    const vignette = 1 - 0.08 * (nx * nx + ny * ny);
+    const bgR = 250 * vignette;
+    const bgG = 248 * vignette;
+    const bgB = 245 * vignette;
 
-    // Outer border (Gold/Bronze gradient)
-    const borderWidth = size * 0.035;
-    if (distToBorder > -borderWidth) {
-      const t = (x + y) / (size * 2);
-      // Gold to Terracotta border
-      const r = 245 * (1 - t) + 212 * t;
-      const g = 158 * (1 - t) + 83 * t;
-      const b = 11 * (1 - t) + 39 * t;
-      return [r, g, b, 255 * edgeAlpha];
-    }
+    // Architectural "M" Monogram & Classical Arch
+    const scale = badgeSize * 0.72;
+    const px = (x - cx) / (scale / 2);
+    const py = (y - (cy + badgeSize * 0.04)) / (scale / 2);
 
-    // Inside badge: Pearl ivory radiant gradient
-    const ny = (y - (cy - halfBadge)) / badgeSize;
-    const nx = (x - (cx - halfBadge)) / badgeSize;
-    const bgR = 255 - ny * 8;
-    const bgG = 253 - ny * 15;
-    const bgB = 248 - ny * 24;
-
-    // Architectural Monogram Rendering (M + Vault + Gold Star)
-    // Normalized coords relative to center (-1 to +1)
-    const px = (x - cx) / (halfBadge * 0.75);
-    const py = (y - cy) / (halfBadge * 0.75);
-
-    // 1. Crown Polaris Compass Star at top (center at px=0, py=-0.62)
-    const starDist = Math.hypot(px, py + 0.62);
-    if (starDist < 0.28) {
-      const angle = Math.atan2(py + 0.62, px);
-      const modAngle = Math.abs(Math.cos(angle * 4));
-      const starRay = 0.06 + 0.22 * Math.pow(modAngle, 6);
-      if (starDist < starRay) {
-        // Bright gold star
-        const core = starDist < 0.06;
-        if (core) return [255, 255, 255, 255];
-        return [245, 158, 11, 255];
-      }
-    }
-
-    // 2. Terracotta Monogram Columns (Left: px=-0.6 to -0.3, Right: px=0.3 to 0.6)
-    const leftCol = px >= -0.62 && px <= -0.32 && py >= -0.35 && py <= 0.65;
-    const rightCol = px >= 0.32 && px <= 0.62 && py >= -0.35 && py <= 0.65;
+    // Left and Right Vertical Columns
+    const leftCol = px >= -0.75 && px <= -0.45 && py >= -0.75 && py <= 0.75;
+    const rightCol = px >= 0.45 && px <= 0.75 && py >= -0.75 && py <= 0.75;
     
     // Diagonal Chevron beams to center
     const leftDiag = px >= -0.45 && px <= 0.05 && Math.abs(py - (px * 0.9 - 0.05)) < 0.16 && py <= 0.15;
@@ -133,13 +103,13 @@ function generateIcon(size, isMaskable = false) {
     const pedestal = Math.abs(px) <= 0.75 && py >= 0.68 && py <= 0.8;
 
     if (leftCol || rightCol) {
-      // Terracotta columns with subtle vertical lighting
+      // Terracotta columns with subtle vertical lighting (#AA4824)
       const grad = 0.5 + 0.5 * ny;
       return [170 * grad, 72 * grad, 36 * grad, 255];
     }
 
     if (leftDiag || rightDiag || inArch || pedestal) {
-      // 24K Champagne Gold
+      // 24K Champagne Gold (#F59E0B)
       return [245, 158, 11, 255];
     }
 
@@ -152,22 +122,67 @@ function generateIcon(size, isMaskable = false) {
   });
 }
 
-const publicDir = path.join(__dirname, '..', 'client-side', 'public');
+// Builds a multi-resolution Windows .ico file containing PNG data
+function buildIco(pngBuffers, sizes) {
+  const count = pngBuffers.length;
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0); // Reserved
+  header.writeUInt16LE(1, 2); // 1 = ICO
+  header.writeUInt16LE(count, 4);
 
-console.log('Generating PWA icons in:', publicDir);
+  let offset = 6 + count * 16;
+  const dirEntries = [];
+  for (let i = 0; i < count; i++) {
+    const s = sizes[i];
+    const buf = pngBuffers[i];
+    const entry = Buffer.alloc(16);
+    entry.writeUInt8(s >= 256 ? 0 : s, 0); // Width
+    entry.writeUInt8(s >= 256 ? 0 : s, 1); // Height
+    entry.writeUInt8(0, 2); // Color palette
+    entry.writeUInt8(0, 3); // Reserved
+    entry.writeUInt16LE(1, 4); // Color planes
+    entry.writeUInt16LE(32, 6); // Bits per pixel
+    entry.writeUInt32LE(buf.length, 8); // Size of image data
+    entry.writeUInt32LE(offset, 12); // Offset to image data
+    dirEntries.push(entry);
+    offset += buf.length;
+  }
+
+  return Buffer.concat([header, ...dirEntries, ...pngBuffers]);
+}
+
+const publicDir = path.join(__dirname, '..', 'client-side', 'public');
+console.log('Generating PWA and Favicon icons in:', publicDir);
+
+const icon16 = generateIcon(16, false);
+fs.writeFileSync(path.join(publicDir, 'favicon-16x16.png'), icon16);
+console.log('✓ favicon-16x16.png created');
+
+const icon32 = generateIcon(32, false);
+fs.writeFileSync(path.join(publicDir, 'favicon-32x32.png'), icon32);
+console.log('✓ favicon-32x32.png created');
+
+const icon48 = generateIcon(48, false);
+fs.writeFileSync(path.join(publicDir, 'favicon-48x48.png'), icon48);
+console.log('✓ favicon-48x48.png created');
 
 const icon192 = generateIcon(192, false);
 fs.writeFileSync(path.join(publicDir, 'favicon-192.png'), icon192);
-console.log('✓ favicon-192.png created (192x192)');
+console.log('✓ favicon-192.png created');
 
 const icon512 = generateIcon(512, false);
 fs.writeFileSync(path.join(publicDir, 'favicon-512.png'), icon512);
-console.log('✓ favicon-512.png created (512x512)');
+console.log('✓ favicon-512.png created');
 
 const iconMaskable = generateIcon(512, true);
 fs.writeFileSync(path.join(publicDir, 'maskable-icon-512.png'), iconMaskable);
-console.log('✓ maskable-icon-512.png created (512x512 maskable)');
+console.log('✓ maskable-icon-512.png created');
 
 const appleTouch = generateIcon(180, false);
 fs.writeFileSync(path.join(publicDir, 'apple-touch-icon.png'), appleTouch);
-console.log('✓ apple-touch-icon.png created (180x180)');
+console.log('✓ apple-touch-icon.png created');
+
+// Multi-resolution ICO file
+const icoBuffer = buildIco([icon16, icon32, icon48], [16, 32, 48]);
+fs.writeFileSync(path.join(publicDir, 'favicon.ico'), icoBuffer);
+console.log('✓ favicon.ico created (multi-resolution 16x16, 32x32, 48x48)');

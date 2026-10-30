@@ -16,7 +16,7 @@ const developerSchema = new mongoose.Schema(
       trim: true,
     },
     established: {
-      type: Number,
+      type: String, // Can be "1990" or number
       required: true,
     },
     headquarters: {
@@ -26,7 +26,7 @@ const developerSchema = new mongoose.Schema(
     },
     totalDeliveredSqFt: {
       type: String,
-      required: true,
+      default: "10M+ sq.ft",
     },
     activeProjectsCount: {
       type: Number,
@@ -35,6 +35,22 @@ const developerSchema = new mongoose.Schema(
     experienceYears: {
       type: Number,
       default: 0,
+    },
+    reraCompliance: {
+      type: String,
+      default: "100% RERA Registered",
+    },
+    completedProjects: {
+      type: Number,
+      default: 0,
+    },
+    ongoingProjects: {
+      type: Number,
+      default: 0,
+    },
+    rating: {
+      type: Number,
+      default: 4.8,
     },
     logo: {
       type: String,
@@ -68,4 +84,3 @@ developerSchema.set("toObject", { virtuals: true });
 const Developer = mongoose.models.Developer || mongoose.model("Developer", developerSchema);
 
 export default Developer;
-
