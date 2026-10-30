@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
 import { generateSitemap } from "../scripts/generateSitemap.js";
+import "./User.js";
 
 const propertySchema = new mongoose.Schema(
   {

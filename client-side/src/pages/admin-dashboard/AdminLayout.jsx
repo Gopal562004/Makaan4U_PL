@@ -26,8 +26,8 @@ const AdminLayout = () => {
   });
 
   // Login Form States (for in-place admin gate)
-  const [loginEmail, setLoginEmail] = useState("mayur@example.com");
-  const [loginPassword, setLoginPassword] = useState("admin123");
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authError, setAuthError] = useState("");
 
@@ -198,49 +198,6 @@ const AdminLayout = () => {
                 <span>{authError}</span>
               </div>
             )}
-
-            {/* Quick Demo Admin Logins */}
-            <div className="space-y-2">
-              <span className="text-[10px] uppercase font-mono tracking-wider font-semibold text-[var(--color-muted-foreground)] block">
-                Quick 1-Click Verification Logins:
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  disabled={isAuthenticating}
-                  onClick={() => handleAdminLogin(null, "mayur@example.com", "admin123")}
-                  className="p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm text-left transition-all hover:bg-[var(--color-surface)]"
-                >
-                  <span className="font-bold text-xs text-[var(--color-foreground)] block truncate">
-                    Mayur Kadam
-                  </span>
-                  <span className="text-[10px] text-[var(--color-terracotta)] font-mono block">
-                    Lead Advisor (Admin)
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isAuthenticating}
-                  onClick={() => handleAdminLogin(null, "gopalgawas2004@gmail.com", "admin123")}
-                  className="p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm text-left transition-all hover:bg-[var(--color-surface)]"
-                >
-                  <span className="font-bold text-xs text-[var(--color-foreground)] block truncate">
-                    Gopal Gawas
-                  </span>
-                  <span className="text-[10px] text-[var(--color-terracotta)] font-mono block">
-                    System Admin
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            <div className="relative flex items-center justify-center">
-              <div className="border-t border-[var(--color-border)] w-full" />
-              <span className="bg-[var(--color-surface)] px-2 text-[10px] text-[var(--color-muted-foreground)] uppercase font-mono absolute">
-                or enter credentials
-              </span>
-            </div>
 
             {/* Standard Login Form */}
             <form onSubmit={handleAdminLogin} className="space-y-3.5 text-xs">

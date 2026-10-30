@@ -1,4 +1,8 @@
 import apminsight from "apminsight"; // Must be the first import for APM monitoring
+import dotenv from "dotenv";
+dotenv.config();
+
+import "./config/database.js"; // Loads DNS patch and Mongo config
 import app from "./app.js";
 import connectDB from "./config/database.js";
 import path from "path";

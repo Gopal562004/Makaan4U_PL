@@ -85,12 +85,6 @@ const Signin = () => {
     executeLogin(emailOrPhone, password);
   };
 
-  const handleQuickLogin = (email, pass) => {
-    setEmailOrPhone(email);
-    setPassword(pass);
-    executeLogin(email, pass);
-  };
-
   return (
     <div className="space-y-6 text-xs">
       <div>
@@ -103,41 +97,6 @@ const Signin = () => {
         <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
           Review saved shortlists, manage scheduled site visits, and access verified dossiers.
         </p>
-      </div>
-
-      {/* Quick 1-Click Verification Logins */}
-      <div className="p-3 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm space-y-2">
-        <span className="text-[10px] uppercase font-mono tracking-wider font-semibold text-[var(--color-muted-foreground)] block">
-          Quick 1-Click Verification Accounts:
-        </span>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => handleQuickLogin("mayur@example.com", "admin123")}
-            className="p-2 bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm text-left transition-colors"
-          >
-            <span className="font-bold text-xs text-[var(--color-foreground)] block truncate">
-              Mayur Kadam
-            </span>
-            <span className="text-[10px] text-[var(--color-terracotta)] font-mono block">
-              Lead Admin
-            </span>
-          </button>
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => handleQuickLogin("gopalgawas2004@gmail.com", "admin123")}
-            className="p-2 bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm text-left transition-colors"
-          >
-            <span className="font-bold text-xs text-[var(--color-foreground)] block truncate">
-              Gopal Gawas
-            </span>
-            <span className="text-[10px] text-[var(--color-terracotta)] font-mono block">
-              System Admin
-            </span>
-          </button>
-        </div>
       </div>
 
       {/* Auth Method Switcher */}

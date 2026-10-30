@@ -1,5 +1,5 @@
-/* Makaan4U Progressive Web App Service Worker (v1.0.0) */
-const CACHE_NAME = "makaan4u-pwa-v1";
+/* Makaan4U Progressive Web App Service Worker (v1.0.1) */
+const CACHE_NAME = "makaan4u-pwa-v1.0.1";
 const OFFLINE_URL = "/offline.html";
 
 // Static assets to pre-cache on install
@@ -47,6 +47,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Do not intercept external third-party requests (Google Analytics, LogNexis, Unsplash, CDNs)
+  // Let the browser handle cross-origin network requests natively without worker interference
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
   // 1. Navigation (HTML document requests): Network First -> Cache -> Offline Fallback
   if (request.mode === "navigate") {
     event.respondWith(
@@ -68,7 +74,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 2. Static Assets (Scripts, CSS, Images, Fonts): Stale-While-Revalidate
+  // 2. Static Assets (Scripts, CSS, Images, Fonts): Cache-First with Network Revalidation
   const isStaticAsset =
     request.destination === "style" ||
     request.destination === "script" ||
@@ -84,17 +90,28 @@ self.addEventListener("fetch", (event) => {
   if (isStaticAsset) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
-        const fetchPromise = fetch(request)
+        if (cachedResponse) {
+          // Revalidate cache in background
+          fetch(request)
+            .then((networkResponse) => {
+              if (networkResponse && networkResponse.status === 200) {
+                const responseClone = networkResponse.clone();
+                caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+              }
+            })
+            .catch(() => {});
+          return cachedResponse;
+        }
+
+        // Not in cache, fetch from network
+        return fetch(request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
               const responseClone = networkResponse.clone();
               caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
             }
             return networkResponse;
-          })
-          .catch(() => cachedResponse);
-
-        return cachedResponse || fetchPromise;
+          });
       })
     );
     return;
@@ -111,27 +128,8 @@ self.addEventListener("fetch", (event) => {
           }
           return networkResponse;
         })
-        .catch(async () => {
-          const cached = await caches.match(request);
-          if (cached) return cached;
-          return new Response(JSON.stringify({ error: "Offline mode active" }), {
-            status: 503,
-            headers: { "Content-Type": "application/json" }
-          });
-        })
+        .catch(() => caches.match(request))
     );
     return;
-  }
-
-  // Default: Network with Cache fallback
-  event.respondWith(
-    fetch(request).catch(() => caches.match(request))
-  );
-});
-
-// Support instant update triggering
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") {
-    self.skipWaiting();
   }
 });

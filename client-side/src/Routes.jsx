@@ -95,6 +95,8 @@ const Routes = () => {
             {/* Insights & Publication */}
             <Route path="/insights" element={<InsightsPage />} />
             <Route path="/blog" element={<InsightsPage />} />
+            <Route path="/blogs" element={<InsightsPage />} />
+            <Route path="/news" element={<InsightsPage />} />
             <Route path="/insights/:slug" element={<ArticleDetails />} />
             <Route path="/market-insights" element={<MarketInsightsPage />} />
 

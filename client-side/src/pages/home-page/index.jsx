@@ -850,13 +850,22 @@ const HomePage = () => {
                 Legal, Financial & Architectural Analysis
               </h2>
             </div>
-            <Link
-              to="/insights"
-              className="text-xs font-semibold text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] transition-colors inline-flex items-center"
-            >
-              <span>View All Publication Stories</span>
-              <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </Link>
+            <div className="flex items-center space-x-3 flex-wrap gap-2">
+              <Link
+                to="/insights?tab=live"
+                className="text-xs font-semibold px-2.5 py-1 rounded-xs bg-red-500/10 text-red-600 dark:bg-red-950/40 dark:text-red-400 hover:bg-red-500/20 transition-colors inline-flex items-center space-x-1.5"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                <span>Live Market Wire</span>
+              </Link>
+              <Link
+                to="/insights"
+                className="text-xs font-semibold text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] transition-colors inline-flex items-center"
+              >
+                <span>View All Stories</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
