@@ -340,8 +340,9 @@ export const createProperty = async (data) => {
 
     Object.keys(data).forEach((key) => {
       if (key === "images") return;
+      if (data[key] === undefined || data[key] === null || data[key] === "null") return;
 
-      if (Array.isArray(data[key]) || typeof data[key] === "object") {
+      if (Array.isArray(data[key]) || (typeof data[key] === "object" && !(data[key] instanceof File))) {
         formData.append(key, JSON.stringify(data[key]));
       } else {
         formData.append(key, data[key]);
@@ -375,8 +376,9 @@ export const updateProperty = async (id, data) => {
 
     Object.keys(data).forEach((key) => {
       if (key === "images") return;
+      if (data[key] === undefined || data[key] === null || data[key] === "null") return;
 
-      if (Array.isArray(data[key]) || typeof data[key] === "object") {
+      if (Array.isArray(data[key]) || (typeof data[key] === "object" && !(data[key] instanceof File))) {
         formData.append(key, JSON.stringify(data[key]));
       } else {
         formData.append(key, data[key]);

@@ -9,15 +9,15 @@ import { PreferencesProvider } from "./contexts/PreferencesContext";
 import PwaInstallPrompt from "./components/ui/PwaInstallPrompt";
 
 // Core Web Vitals & Performance Monitoring
-import { usePerformanceMonitor } from "./hooks/usePerformanceMonitor";
+import { initPerformanceMonitor } from "./hooks/usePerformanceMonitor";
 import { checkPerformanceBudget } from "./utils/performanceBudget";
 import { trackSEOEvents } from "./utils/analytics";
 
 function App() {
-  // Track Core Web Vitals (LCP, CLS)
-  usePerformanceMonitor();
-
   useEffect(() => {
+    // Track Core Web Vitals (LCP, CLS)
+    const cleanupMonitor = initPerformanceMonitor();
+
     // Check performance budget
     const result = checkPerformanceBudget();
     console.log("Performance Budget:", result);
@@ -28,6 +28,12 @@ function App() {
         page_path: window.location.pathname,
       });
     }
+
+    return () => {
+      if (typeof cleanupMonitor === "function") {
+        cleanupMonitor();
+      }
+    };
   }, []);
 
   return (
@@ -48,8 +54,8 @@ function App() {
             pauseOnHover
             toastClassName="!bg-[var(--color-surface)] !text-[var(--color-foreground)] !rounded-sm !border !border-[var(--color-border)] !shadow-lg !font-medium !text-xs !mb-2"
             bodyClassName="!m-0 !p-3 flex items-center"
-            closeButton={true}
           />
+          <Analytics />
         </PreferencesProvider>
       </ShortlistProvider>
     </ThemeProvider>

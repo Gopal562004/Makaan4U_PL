@@ -10,13 +10,7 @@ import {
   X,
   ChevronDown,
   RotateCcw,
-  ShieldCheck,
-  Building,
-  Check,
   MapPin,
-  ArrowUpDown,
-  Filter,
-  Sparkles
 } from "lucide-react";
 import Header from "../../components/ui/Header";
 import Footer from "../../components/ui/Footer";
@@ -24,27 +18,24 @@ import MobileNav from "../../components/ui/MobileNav";
 import PropertyCard from "../../components/ui/PropertyCard";
 import InteractiveMap from "../../components/ui/InteractiveMap";
 import CompareDrawer from "../../components/ui/CompareDrawer";
-import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import { EmptyProperties } from "../../components/ui/EmptyStates";
 import { getAllProperties } from "../../lib/mongo/services/propertyService";
+import { PROPERTIES as FALLBACK_PROPERTIES, AGENTS as FALLBACK_AGENTS } from "../../data/propertyData";
+import FilterSidebar from "./components/FilterSidebar";
 
 const CITIES_LIST = [
   { id: "All", name: "All Cities" },
   { id: "Mumbai", name: "Mumbai" },
-  { id: "Thane", name: "Thane" },
-  { id: "Pune", name: "Pune" },
+  { id: "Delhi", name: "Delhi" },
   { id: "Bangalore", name: "Bangalore" },
-  { id: "Delhi NCR", name: "Delhi NCR" },
   { id: "Hyderabad", name: "Hyderabad" },
-  { id: "Goa", name: "Goa" }
-];
-
-const PROPERTY_TYPES = [
-  { id: "All", label: "All Types" },
-  { id: "apartment", label: "Apartments" },
-  { id: "villa", label: "Villas" },
-  { id: "penthouse", label: "Penthouses" },
-  { id: "commercial", label: "Commercial" }
+  { id: "Chennai", name: "Chennai" },
+  { id: "Kolkata", name: "Kolkata" },
+  { id: "Pune", name: "Pune" },
+  { id: "Ahmedabad", name: "Ahmedabad" },
+  { id: "Thane", name: "Thane" },
+  { id: "Gurugram", name: "Gurugram" },
+  { id: "Noida", name: "Noida" },
 ];
 
 const PropertyListings = () => {
@@ -54,120 +45,85 @@ const PropertyListings = () => {
   // Parse URL query params
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
 
-  // State
+  // Raw fetched properties from DB
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showMap, setShowMap] = useState(false); // Map hidden by default as requested
+  const [showMap, setShowMap] = useState(false);
   const [cardLayout, setCardLayout] = useState("grid"); // "grid" | "list"
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [selectedPropId, setSelectedPropId] = useState(null);
 
-  // Filter facets
+  // Top bar quick controls
   const [purpose, setPurpose] = useState(searchParams.get("purpose") || "Buy");
-  const [city, setCity] = useState(searchParams.get("city") || "All");
-  const [propertyType, setPropertyType] = useState(searchParams.get("type") || "All");
-  const [bedrooms, setBedrooms] = useState(searchParams.get("bedrooms") || "All");
-  const [maxBudget, setMaxBudget] = useState(Number(searchParams.get("maxBudget")) || 100000000);
-  const [possession, setPossession] = useState(searchParams.get("possession") || "All");
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [sortBy, setSortBy] = useState("price-desc");
 
-  // Keep state synchronized with URL query params
+  // Comprehensive Filters state matching FilterSidebar
+  const [filters, setFilters] = useState(() => ({
+    priceRange: {
+      min: searchParams.get("minPrice") || "",
+      max: searchParams.get("maxPrice") || "",
+    },
+    location: searchParams.get("city") && searchParams.get("city") !== "All"
+      ? [searchParams.get("city")]
+      : searchParams.get("location")
+      ? searchParams.get("location").split(",").filter(Boolean)
+      : [],
+    propertyType: searchParams.get("type") && searchParams.get("type") !== "All"
+      ? [searchParams.get("type")]
+      : [],
+    bedrooms: searchParams.get("bedrooms") && searchParams.get("bedrooms") !== "All"
+      ? searchParams.get("bedrooms")
+      : "",
+    bathrooms: searchParams.get("bathrooms") || "",
+    amenities: searchParams.get("amenities")
+      ? searchParams.get("amenities").split(",").filter(Boolean)
+      : [],
+    agent: searchParams.get("agent") || "",
+  }));
+
+  // Sync state when URL search changes externally
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.has("purpose")) setPurpose(params.get("purpose"));
-    if (params.has("city")) setCity(params.get("city"));
-    if (params.has("type")) setPropertyType(params.get("type"));
-    if (params.has("bedrooms")) setBedrooms(params.get("bedrooms"));
     if (params.has("search")) setSearchQuery(params.get("search"));
+
+    setFilters((prev) => ({
+      ...prev,
+      priceRange: {
+        min: params.get("minPrice") || prev.priceRange.min,
+        max: params.get("maxPrice") || prev.priceRange.max,
+      },
+      location: params.get("city") && params.get("city") !== "All"
+        ? [params.get("city")]
+        : params.get("location")
+        ? params.get("location").split(",").filter(Boolean)
+        : prev.location,
+      propertyType: params.get("type") && params.get("type") !== "All"
+        ? [params.get("type")]
+        : prev.propertyType,
+      bedrooms: params.get("bedrooms") && params.get("bedrooms") !== "All"
+        ? params.get("bedrooms")
+        : prev.bedrooms,
+    }));
   }, [location.search]);
 
-  // Update URL search parameters cleanly
-  const updateUrl = (newFilters) => {
-    const params = new URLSearchParams(location.search);
-    Object.entries(newFilters).forEach(([k, v]) => {
-      if (v && v !== "All" && v !== "") {
-        params.set(k, v);
-      } else {
-        params.delete(k);
-      }
-    });
-    navigate(`/properties?${params.toString()}`, { replace: true });
-  };
-
-  const handleCityChange = (newCity) => {
-    setCity(newCity);
-    updateUrl({ city: newCity });
-  };
-
-  const handlePurposeChange = (newPurpose) => {
-    setPurpose(newPurpose);
-    updateUrl({ purpose: newPurpose });
-  };
-
-  const handleTypeChange = (newType) => {
-    setPropertyType(newType);
-    updateUrl({ type: newType });
-  };
-
-  const handleBedroomsChange = (newBhk) => {
-    setBedrooms(newBhk);
-    updateUrl({ bedrooms: newBhk });
-  };
-
-  // Fetch properties from live MongoDB service
+  // Load properties from backend with fallback to verified catalog
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
 
-    const apiFilters = {
-      search: searchQuery,
-      city: city !== "All" ? city : undefined,
-      type: propertyType !== "All" ? propertyType.toLowerCase() : undefined,
-      bedrooms: bedrooms !== "All" ? bedrooms : undefined,
-      maxPrice: maxBudget < 100000000 ? maxBudget : undefined,
-    };
-
-    getAllProperties(apiFilters)
+    getAllProperties({ limit: 100 })
       .then((res) => {
         if (!isMounted) return;
-        let list = res?.properties || [];
-
-        // Apply purpose filter (Buy / Rent / Commercial)
-        if (purpose && purpose !== "All") {
-          if (purpose === "Commercial") {
-            list = list.filter((p) => p.isCommercial || p.propertyType?.toLowerCase().includes("commercial"));
-          } else if (purpose === "Rent") {
-            list = list.filter((p) => p.listingType?.toLowerCase() === "rent");
-          } else if (purpose === "Buy") {
-            list = list.filter((p) => !p.isCommercial && p.listingType?.toLowerCase() === "buy");
-          }
-        }
-
-        // Apply verified filter
-        if (verifiedOnly) {
-          list = list.filter((p) => p.verified);
-        }
-
-        // Apply possession
-        if (possession && possession !== "All") {
-          list = list.filter((p) => p.possession?.toLowerCase().includes(possession.toLowerCase()));
-        }
-
-        // Sort by price
-        if (sortBy === "price-desc") {
-          list.sort((a, b) => (b.priceNumeric || 0) - (a.priceNumeric || 0));
-        } else if (sortBy === "price-asc") {
-          list.sort((a, b) => (a.priceNumeric || 0) - (b.priceNumeric || 0));
-        }
-
-        setProperties(list);
+        const fetched = res?.properties || [];
+        setProperties(fetched.length > 0 ? fetched : FALLBACK_PROPERTIES);
         setLoading(false);
       })
       .catch((err) => {
         if (isMounted) {
           console.error("Error loading properties:", err);
+          setProperties(FALLBACK_PROPERTIES);
           setLoading(false);
         }
       });
@@ -175,59 +131,335 @@ const PropertyListings = () => {
     return () => {
       isMounted = false;
     };
-  }, [purpose, city, propertyType, bedrooms, maxBudget, possession, verifiedOnly, searchQuery, sortBy]);
+  }, []);
 
-  const resetFilters = () => {
-    setPurpose("Buy");
-    setCity("All");
-    setPropertyType("All");
-    setBedrooms("All");
-    setMaxBudget(100000000);
-    setPossession("All");
-    setVerifiedOnly(false);
+  // Update URL search parameters when filters change
+  const updateUrl = (updatedFilters, updatedPurpose = purpose, updatedSearch = searchQuery) => {
+    const params = new URLSearchParams();
+    if (updatedPurpose && updatedPurpose !== "All") params.set("purpose", updatedPurpose);
+    if (updatedSearch) params.set("search", updatedSearch);
+
+    if (updatedFilters?.priceRange?.min) params.set("minPrice", updatedFilters.priceRange.min);
+    if (updatedFilters?.priceRange?.max) params.set("maxPrice", updatedFilters.priceRange.max);
+    if (updatedFilters?.location?.length === 1) {
+      params.set("city", updatedFilters.location[0]);
+    } else if (updatedFilters?.location?.length > 1) {
+      params.set("location", updatedFilters.location.join(","));
+    }
+    if (updatedFilters?.propertyType?.length === 1) {
+      params.set("type", updatedFilters.propertyType[0]);
+    }
+    if (updatedFilters?.bedrooms) params.set("bedrooms", updatedFilters.bedrooms);
+    if (updatedFilters?.bathrooms) params.set("bathrooms", updatedFilters.bathrooms);
+    if (updatedFilters?.amenities?.length) params.set("amenities", updatedFilters.amenities.join(","));
+    if (updatedFilters?.agent) params.set("agent", updatedFilters.agent);
+
+    navigate(`/properties?${params.toString()}`, { replace: true });
+  };
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    updateUrl(newFilters, purpose, searchQuery);
+  };
+
+  const handlePurposeChange = (newPurpose) => {
+    setPurpose(newPurpose);
+    updateUrl(filters, newPurpose, searchQuery);
+  };
+
+  const handleQuickCityChange = (cityName) => {
+    const nextLocations = cityName === "All" || cityName === "All Cities" ? [] : [cityName];
+    const newFilters = { ...filters, location: nextLocations };
+    setFilters(newFilters);
+    updateUrl(newFilters, purpose, searchQuery);
+  };
+
+  const resetAllFilters = () => {
+    const cleared = {
+      priceRange: { min: "", max: "" },
+      location: [],
+      propertyType: [],
+      bedrooms: "",
+      bathrooms: "",
+      amenities: [],
+      agent: "",
+    };
+    setFilters(cleared);
     setSearchQuery("");
+    setPurpose("Buy");
     navigate("/properties", { replace: true });
   };
 
-  const formatRupees = (val) => {
-    if (val >= 10000000) return `₹${(val / 10000000).toFixed(1)} Cr`;
-    if (val >= 100000) return `₹${(val / 100000).toFixed(1)} L`;
-    return `₹${val.toLocaleString("en-IN")}`;
+  // Master filtered properties calculation
+  const filteredProperties = useMemo(() => {
+    let list = [...properties];
+
+    // Purpose filter
+    if (purpose && purpose !== "All") {
+      if (purpose === "Commercial") {
+        list = list.filter(
+          (p) =>
+            p.isCommercial ||
+            p.propertyType?.toLowerCase().includes("commercial") ||
+            p.category === "commercial" ||
+            p.type?.toLowerCase().includes("commercial")
+        );
+      } else if (purpose === "Rent") {
+        list = list.filter(
+          (p) =>
+            p.listingType?.toLowerCase() === "rent" ||
+            p.purpose?.toLowerCase() === "rent"
+        );
+      } else if (purpose === "Buy") {
+        list = list.filter(
+          (p) =>
+            !p.isCommercial &&
+            (p.listingType?.toLowerCase() === "buy" ||
+              p.purpose?.toLowerCase() === "buy" ||
+              !p.listingType)
+        );
+      } else if (purpose === "Plots") {
+        list = list.filter(
+          (p) =>
+            p.type?.toLowerCase().includes("plot") ||
+            p.type?.toLowerCase().includes("land") ||
+            p.propertyType?.toLowerCase().includes("plot") ||
+            p.propertyType?.toLowerCase().includes("land") ||
+            p.category?.toLowerCase() === "agricultural"
+        );
+      }
+    }
+
+    // Keyword Search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(
+        (p) =>
+          (p.title && p.title.toLowerCase().includes(q)) ||
+          (p.description && p.description.toLowerCase().includes(q)) ||
+          (p.location?.city && p.location.city.toLowerCase().includes(q)) ||
+          (p.location?.locality && p.location.locality.toLowerCase().includes(q)) ||
+          (p.location?.address && p.location.address.toLowerCase().includes(q))
+      );
+    }
+
+    // Price Range Filter
+    const minP = Number(filters.priceRange?.min);
+    if (!isNaN(minP) && minP > 0) {
+      list = list.filter((p) => (p.priceNumeric || p.price || 0) >= minP);
+    }
+    const maxP = Number(filters.priceRange?.max);
+    if (!isNaN(maxP) && maxP > 0) {
+      list = list.filter((p) => (p.priceNumeric || p.price || 0) <= maxP);
+    }
+
+    // Location Filter (Multi-select)
+    if (filters.location?.length > 0) {
+      list = list.filter((p) => {
+        const cityStr = (p.location?.city || p.city || "").toLowerCase();
+        const locStr = (p.location?.locality || p.locality || "").toLowerCase();
+        const addrStr = (p.location?.address || p.address || "").toLowerCase();
+        return filters.location.some((loc) => {
+          const l = loc.toLowerCase();
+          return cityStr.includes(l) || locStr.includes(l) || addrStr.includes(l);
+        });
+      });
+    }
+
+    // Property Type Filter (Multi-select)
+    if (filters.propertyType?.length > 0) {
+      list = list.filter((p) => {
+        const pType = (p.type || p.propertyType || p.category || "").toLowerCase();
+        return filters.propertyType.some((t) => {
+          const target = t.toLowerCase().replace(/-/g, " ");
+          return pType.includes(target) || pType.includes(t.toLowerCase());
+        });
+      });
+    }
+
+    // Bedrooms Filter
+    if (filters.bedrooms) {
+      list = list.filter((p) => {
+        const pBhk = Number(
+          p.specifications?.bedrooms || p.bedrooms || p.bhk || 0
+        );
+        if (filters.bedrooms === "6+") {
+          return pBhk >= 6;
+        }
+        return pBhk === Number(filters.bedrooms);
+      });
+    }
+
+    // Bathrooms Filter
+    if (filters.bathrooms) {
+      list = list.filter((p) => {
+        const pBath = Number(
+          p.specifications?.bathrooms || p.bathrooms || 0
+        );
+        if (filters.bathrooms === "6+") {
+          return pBath >= 6;
+        }
+        return pBath === Number(filters.bathrooms);
+      });
+    }
+
+    // Amenities Filter
+    if (filters.amenities?.length > 0) {
+      list = list.filter((p) => {
+        const pAmenities = (p.amenities || []).map((a) =>
+          (typeof a === "string" ? a : a?.name || "")
+            .toLowerCase()
+            .replace(/-/g, " ")
+        );
+        return filters.amenities.every((reqA) => {
+          const target = reqA.toLowerCase().replace(/-/g, " ").trim();
+          return pAmenities.some(
+            (pa) => pa.includes(target) || target.includes(pa)
+          );
+        });
+      });
+    }
+
+    // Agent Filter (Real Agent matching by ID or Name)
+    if (filters.agent) {
+      const targetAgent = String(filters.agent).toLowerCase().trim();
+      list = list.filter((p) => {
+        const ag = p.agent || p.assignedAgent || p.postedBy || p.agentInfo;
+        const agId = String(ag?.id || ag?._id || "").toLowerCase().trim();
+        const agName = String(ag?.name || "").toLowerCase().trim();
+        return (
+          agId === targetAgent ||
+          agName === targetAgent ||
+          agName.includes(targetAgent) ||
+          targetAgent.includes(agName)
+        );
+      });
+    }
+
+    // Sort by price
+    if (sortBy === "price-desc") {
+      list.sort((a, b) => (b.priceNumeric || b.price || 0) - (a.priceNumeric || a.price || 0));
+    } else if (sortBy === "price-asc") {
+      list.sort((a, b) => (a.priceNumeric || a.price || 0) - (b.priceNumeric || b.price || 0));
+    }
+
+    return list;
+  }, [properties, purpose, searchQuery, filters, sortBy]);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
+
+  // Reset to page 1 whenever filters, search, purpose, or sort change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, searchQuery, purpose, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProperties.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedProperties = useMemo(() => {
+    return filteredProperties.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredProperties, startIndex, itemsPerPage]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setCurrentPage(newPage);
+    const feed = document.getElementById("property-results-feed");
+    if (feed) {
+      feed.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
-  // Active filter count for badge
+  // Active filter count for badge display
   const activeFilterCount = useMemo(() => {
     let count = 0;
-    if (city !== "All") count++;
-    if (propertyType !== "All") count++;
-    if (bedrooms !== "All") count++;
-    if (maxBudget < 100000000) count++;
+    if (filters.priceRange?.min || filters.priceRange?.max) count++;
+    if (filters.location?.length > 0) count += filters.location.length;
+    if (filters.propertyType?.length > 0) count += filters.propertyType.length;
+    if (filters.bedrooms) count++;
+    if (filters.bathrooms) count++;
+    if (filters.amenities?.length > 0) count += filters.amenities.length;
+    if (filters.agent) count++;
     if (searchQuery) count++;
-    if (verifiedOnly) count++;
-    if (possession !== "All") count++;
     return count;
-  }, [city, propertyType, bedrooms, maxBudget, searchQuery, verifiedOnly, possession]);
+  }, [filters, searchQuery]);
 
   // Active filter dismissable chips
   const activeChips = useMemo(() => {
     const chips = [];
-    if (city !== "All") chips.push({ label: `City: ${city}`, onRemove: () => handleCityChange("All") });
-    if (propertyType !== "All") chips.push({ label: `Type: ${propertyType}`, onRemove: () => handleTypeChange("All") });
-    if (bedrooms !== "All") chips.push({ label: `${bedrooms} BHK`, onRemove: () => handleBedroomsChange("All") });
-    if (searchQuery) chips.push({ label: `"${searchQuery}"`, onRemove: () => setSearchQuery("") });
-    if (maxBudget < 100000000) chips.push({ label: `≤ ${formatRupees(maxBudget)}`, onRemove: () => setMaxBudget(100000000) });
-    if (verifiedOnly) chips.push({ label: "Verified Only", onRemove: () => setVerifiedOnly(false) });
-    if (possession !== "All") chips.push({ label: possession, onRemove: () => setPossession("All") });
+    if (searchQuery) {
+      chips.push({
+        label: `"${searchQuery}"`,
+        onRemove: () => {
+          setSearchQuery("");
+          updateUrl(filters, purpose, "");
+        },
+      });
+    }
+    if (filters.priceRange?.min || filters.priceRange?.max) {
+      const minTxt = filters.priceRange?.min ? `₹${Number(filters.priceRange.min).toLocaleString("en-IN")}` : "0";
+      const maxTxt = filters.priceRange?.max ? `₹${Number(filters.priceRange.max).toLocaleString("en-IN")}` : "∞";
+      chips.push({
+        label: `${minTxt} - ${maxTxt}`,
+        onRemove: () => handleFilterChange({ ...filters, priceRange: { min: "", max: "" } }),
+      });
+    }
+    (filters.location || []).forEach((loc) => {
+      chips.push({
+        label: loc,
+        onRemove: () =>
+          handleFilterChange({
+            ...filters,
+            location: filters.location.filter((l) => l !== loc),
+          }),
+      });
+    });
+    (filters.propertyType || []).forEach((type) => {
+      chips.push({
+        label: type,
+        onRemove: () =>
+          handleFilterChange({
+            ...filters,
+            propertyType: filters.propertyType.filter((t) => t !== type),
+          }),
+      });
+    });
+    if (filters.bedrooms) {
+      chips.push({
+        label: `${filters.bedrooms} BHK`,
+        onRemove: () => handleFilterChange({ ...filters, bedrooms: "" }),
+      });
+    }
+    if (filters.bathrooms) {
+      chips.push({
+        label: `${filters.bathrooms} Bath`,
+        onRemove: () => handleFilterChange({ ...filters, bathrooms: "" }),
+      });
+    }
+    (filters.amenities || []).forEach((amenity) => {
+      chips.push({
+        label: amenity,
+        onRemove: () =>
+          handleFilterChange({
+            ...filters,
+            amenities: filters.amenities.filter((a) => a !== amenity),
+          }),
+      });
+    });
+
     return chips;
-  }, [city, propertyType, bedrooms, searchQuery, maxBudget, verifiedOnly, possession]);
+  }, [filters, searchQuery, purpose]);
+
+  const primaryCityName =
+    filters.location?.length === 1 ? filters.location[0] : "India";
 
   return (
     <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-foreground)] flex flex-col font-sans transition-colors duration-300">
       <Helmet>
-        <title>{`Properties for ${purpose} in ${city === "All" ? "India" : city} | Makaan4U`}</title>
+        <title>{`Properties for ${purpose} in ${primaryCityName} | Makaan4U`}</title>
         <meta
           name="description"
-          content={`Explore verified residential and commercial properties for ${purpose} in ${city}. Real prices, verified floor plans, authentic photos.`}
+          content={`Explore verified residential and commercial properties for ${purpose} in ${primaryCityName}. Real prices, verified floor plans, authentic photos.`}
         />
       </Helmet>
 
@@ -238,30 +470,31 @@ const PropertyListings = () => {
       ==================================================================== */}
       <div className="sticky top-16 sm:top-20 z-30 bg-[var(--color-surface)]/95 backdrop-blur-md border-b border-[var(--color-border)] px-4 sm:px-6 lg:px-8 py-2.5 shadow-xs transition-colors">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Left Controls: Purpose + City Picker */}
+          {/* Left Controls: Purpose + Quick City Picker */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Purpose Selector */}
             <div className="flex border border-[var(--color-border)] rounded-sm p-0.5 text-xs font-semibold bg-[var(--color-subtle)]">
-              {["Buy", "Rent", "Commercial"].map((p) => (
+              {["All", "Buy", "Rent", "Commercial", "Plots"].map((p) => (
                 <button
                   key={p}
+                  type="button"
                   onClick={() => handlePurposeChange(p)}
                   className={`px-3 py-1 rounded-xs transition-colors ${
                     purpose === p
-                      ? "bg-[var(--color-foreground)] text-[var(--color-surface)] shadow-xs"
+                      ? "bg-[var(--color-foreground)] text-[var(--color-surface)] shadow-xs font-bold"
                       : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
                   }`}
                 >
-                  {p}
+                  {p === "Plots" ? "Plots / Land" : p}
                 </button>
               ))}
             </div>
 
-            {/* City Dropdown */}
+            {/* Quick City Dropdown */}
             <div className="relative">
               <select
-                value={city}
-                onChange={(e) => handleCityChange(e.target.value)}
+                value={filters.location?.length === 1 ? filters.location[0] : "All"}
+                onChange={(e) => handleQuickCityChange(e.target.value)}
                 className="h-8 pl-7 pr-7 bg-[var(--color-subtle)] border border-[var(--color-border)] hover:border-[var(--color-foreground)] rounded-sm text-xs font-medium text-[var(--color-foreground)] focus:outline-none cursor-pointer appearance-none"
               >
                 {CITIES_LIST.map((c) => (
@@ -276,6 +509,7 @@ const PropertyListings = () => {
 
             {/* Mobile Filters Button (< lg) */}
             <button
+              type="button"
               onClick={() => setIsFilterDrawerOpen(true)}
               className="lg:hidden flex items-center space-x-1.5 h-8 px-3 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm text-xs font-semibold text-[var(--color-foreground)]"
             >
@@ -291,8 +525,9 @@ const PropertyListings = () => {
 
           {/* Right Controls: Sort, Show Map Toggle & View Mode */}
           <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2">
-            {/* Show / Hide Map Button (Hidden by default as requested) */}
+            {/* Show / Hide Map Button */}
             <button
+              type="button"
               onClick={() => setShowMap(!showMap)}
               className={`flex items-center space-x-1.5 h-8 px-3 rounded-sm border text-xs font-semibold transition-colors ${
                 showMap
@@ -317,9 +552,12 @@ const PropertyListings = () => {
             {/* Grid / List Layout Switcher */}
             <div className="flex border border-[var(--color-border)] rounded-sm p-0.5 bg-[var(--color-subtle)]">
               <button
+                type="button"
                 onClick={() => setCardLayout("grid")}
                 className={`p-1 px-1.5 rounded-xs flex items-center space-x-1 ${
-                  cardLayout === "grid" ? "bg-[var(--color-surface)] shadow-xs font-semibold text-[var(--color-foreground)]" : "text-[var(--color-muted-foreground)]"
+                  cardLayout === "grid"
+                    ? "bg-[var(--color-surface)] shadow-xs font-semibold text-[var(--color-foreground)]"
+                    : "text-[var(--color-muted-foreground)]"
                 }`}
                 title="Grid Layout"
               >
@@ -327,9 +565,12 @@ const PropertyListings = () => {
               </button>
 
               <button
+                type="button"
                 onClick={() => setCardLayout("list")}
                 className={`p-1 px-1.5 rounded-xs flex items-center space-x-1 ${
-                  cardLayout === "list" ? "bg-[var(--color-surface)] shadow-xs font-semibold text-[var(--color-foreground)]" : "text-[var(--color-muted-foreground)]"
+                  cardLayout === "list"
+                    ? "bg-[var(--color-surface)] shadow-xs font-semibold text-[var(--color-foreground)]"
+                    : "text-[var(--color-muted-foreground)]"
                 }`}
                 title="List Layout"
               >
@@ -341,28 +582,28 @@ const PropertyListings = () => {
       </div>
 
       {/* ====================================================================
-          PAGE CONTENT: Left Filter Sidebar (Always Open on Desktop) + Properties
+          PAGE CONTENT: Left Filter Sidebar (Always Open on Desktop) + Results Feed
       ==================================================================== */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-24 lg:pb-16 space-y-4">
-        {/* Breadcrumb Trail & Clean Headline Strip */}
+        {/* Breadcrumb Trail & Headline */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[var(--color-border)] pb-3 gap-3">
           <div>
             <div className="flex items-center space-x-2 text-xs text-[var(--color-muted-foreground)] mb-1">
               <Link to="/" className="hover:text-[var(--color-foreground)]">Home</Link>
               <span>/</span>
               <Link to="/properties" className="hover:text-[var(--color-foreground)]">Properties</Link>
-              {city !== "All" && (
+              {primaryCityName !== "India" && (
                 <>
                   <span>/</span>
-                  <span className="text-[var(--color-foreground)] font-medium">{city}</span>
+                  <span className="text-[var(--color-foreground)] font-medium">{primaryCityName}</span>
                 </>
               )}
             </div>
 
             <h1 className="font-editorial text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-[var(--color-foreground)] flex flex-wrap items-center gap-2">
-              <span>Properties for {purpose} in {city === "All" ? "India" : city}</span>
+              <span>{purpose === "All" ? "All Properties" : `Properties for ${purpose}`} in {primaryCityName}</span>
               <span className="text-xs font-mono font-normal text-[var(--color-muted-foreground)] bg-[var(--color-subtle)] px-2 py-0.5 rounded-xs border border-[var(--color-border)]">
-                {properties.length} {properties.length === 1 ? "listing" : "listings"}
+                {filteredProperties.length} {filteredProperties.length === 1 ? "property" : "properties"} found
               </span>
             </h1>
           </div>
@@ -377,6 +618,7 @@ const PropertyListings = () => {
                 >
                   <span>{chip.label}</span>
                   <button
+                    type="button"
                     onClick={chip.onRemove}
                     className="hover:text-red-600 transition-colors"
                     aria-label={`Remove ${chip.label}`}
@@ -386,7 +628,8 @@ const PropertyListings = () => {
                 </span>
               ))}
               <button
-                onClick={resetFilters}
+                type="button"
+                onClick={resetAllFilters}
                 className="text-xs text-[var(--color-terracotta)] hover:underline font-semibold ml-1"
               >
                 Clear All
@@ -395,163 +638,42 @@ const PropertyListings = () => {
           )}
         </div>
 
-        {/* Actual Google Map (Only rendered when user toggles "Show Map") */}
+        {/* Interactive Map (Only rendered when user toggles "Show Map") */}
         {showMap && (
           <section className="w-full h-[480px] sm:h-[540px] rounded-sm overflow-hidden border border-[var(--color-border)] shadow-md animate-fade-in mb-6">
             <InteractiveMap
-              properties={properties}
+              properties={filteredProperties}
               activePropertyId={selectedPropId}
-              centerCity={city !== "All" ? city : "Mumbai"}
+              centerCity={primaryCityName !== "India" ? primaryCityName : "Mumbai"}
               onSelectProperty={(p) => setSelectedPropId(p?.id || p?._id || null)}
             />
           </section>
         )}
 
-        {/* Two-Column Layout: Left Filter Sidebar (Always Open on Desktop) + Right Feed */}
+        {/* Two-Column Layout: Left Filter Sidebar (Desktop) + Right Results */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-1">
           {/* ====================================================================
-              LEFT FILTER SIDEBAR: Always Open for Desktop (lg:block)
+              DESKTOP FILTER SIDEBAR (Always Open on Desktop lg:block)
           ==================================================================== */}
-          <aside className="hidden lg:block lg:col-span-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm p-5 space-y-6 sticky top-28 shadow-xs">
-            <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-3">
-              <div className="flex items-center space-x-1.5">
-                <SlidersHorizontal className="w-4 h-4 text-[var(--color-terracotta)]" />
-                <span className="font-editorial text-base font-bold text-[var(--color-foreground)]">
-                  Filter Catalog
-                </span>
-              </div>
-              {activeFilterCount > 0 && (
-                <button
-                  onClick={resetFilters}
-                  className="text-[11px] font-semibold text-[var(--color-muted-foreground)] hover:text-red-600 flex items-center space-x-1 transition-colors"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Reset ({activeFilterCount})</span>
-                </button>
-              )}
-            </div>
-
-            {/* Keyword / Locality Search */}
-            <div>
-              <label className="block text-[11px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)] mb-1.5">
-                Keyword / Locality
-              </label>
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-[var(--color-muted-foreground)]" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    updateUrl({ search: e.target.value });
-                  }}
-                  placeholder="e.g. Worli, Powai, Bandra..."
-                  className="w-full pl-8 pr-2.5 py-1.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm text-xs text-[var(--color-foreground)] focus:outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Property Category */}
-            <div>
-              <label className="block text-[11px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)] mb-1.5">
-                Property Category
-              </label>
-              <div className="grid grid-cols-2 gap-1.5 text-xs">
-                {PROPERTY_TYPES.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => handleTypeChange(cat.id === "All" ? "All" : cat.id)}
-                    className={`py-1.5 px-2 text-left rounded-xs text-[11px] border transition-colors ${
-                      propertyType.toLowerCase() === cat.id.toLowerCase()
-                        ? "bg-[var(--color-foreground)] font-bold text-[var(--color-surface)] border-[var(--color-foreground)] shadow-xs"
-                        : "border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-subtle)]"
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Bedrooms (BHK) Filter */}
-            {!purpose.includes("Commercial") && (
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)] mb-1.5">
-                  Bedrooms
-                </label>
-                <div className="grid grid-cols-5 gap-1 text-xs">
-                  {["All", "1", "2", "3", "4"].map((bhk) => (
-                    <button
-                      key={bhk}
-                      onClick={() => handleBedroomsChange(bhk)}
-                      className={`py-1.5 rounded-xs border text-center transition-colors text-[11px] ${
-                        bedrooms === bhk
-                          ? "bg-[var(--color-foreground)] text-[var(--color-surface)] font-bold shadow-xs"
-                          : "border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
-                      }`}
-                    >
-                      {bhk === "All" ? "Any" : `${bhk} BHK`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Maximum Budget Slider */}
-            <div>
-              <div className="flex justify-between items-center mb-1.5 text-xs">
-                <span className="text-[11px] uppercase tracking-wider font-semibold text-[var(--color-muted-foreground)]">
-                  Max Budget
-                </span>
-                <span className="font-mono font-bold text-[var(--color-foreground)]">
-                  {maxBudget >= 100000000 ? "Any Budget" : formatRupees(maxBudget)}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="1000000"
-                max="100000000"
-                step="2500000"
-                value={maxBudget}
-                onChange={(e) => setMaxBudget(Number(e.target.value))}
-                className="w-full accent-[var(--color-terracotta)] cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] text-[var(--color-muted-foreground)] font-mono mt-1">
-                <span>₹10 L</span>
-                <span>₹5 Cr</span>
-                <span>₹10 Cr+</span>
-              </div>
-            </div>
-
-            {/* Verified Listings Only Toggle */}
-            <div className="pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-[var(--color-foreground)]">Verified Listings</p>
-                <p className="text-[10px] text-[var(--color-muted-foreground)]">Physically verified on-site</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setVerifiedOnly(!verifiedOnly)}
-                className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors ${
-                  verifiedOnly ? "bg-emerald-600" : "bg-[var(--color-border)]"
-                }`}
-                aria-label="Toggle Verified Only"
-              >
-                <div
-                  className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
-                    verifiedOnly ? "translate-x-4" : ""
-                  }`}
-                />
-              </button>
-            </div>
+          <aside className="hidden lg:block lg:col-span-4 xl:col-span-3 sticky top-28 self-start">
+            <FilterSidebar
+              filters={filters}
+              onChange={handleFilterChange}
+              propertyCount={filteredProperties.length}
+              properties={properties}
+              searchQuery={searchQuery}
+              onSearchChange={(q) => {
+                setSearchQuery(q);
+                updateUrl(filters, purpose, q);
+              }}
+            />
           </aside>
 
           {/* ====================================================================
-              RIGHT RESULTS FEED: Properties (Spacious, No Map Squeeze)
+              RIGHT RESULTS FEED
           ==================================================================== */}
-          <section className="lg:col-span-9 space-y-5">
+          <section id="property-results-feed" className="lg:col-span-8 xl:col-span-9 space-y-5">
             {loading ? (
-              /* Skeletons */
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((n) => (
                   <div
@@ -565,12 +687,11 @@ const PropertyListings = () => {
                   </div>
                 ))}
               </div>
-            ) : properties.length === 0 ? (
-              <EmptyProperties onResetFilters={resetFilters} />
+            ) : filteredProperties.length === 0 ? (
+              <EmptyProperties onResetFilters={resetAllFilters} />
             ) : cardLayout === "list" ? (
-              /* LIST VIEW: Full-Width Horizontal Cards */
               <div className="space-y-4">
-                {properties.map((prop) => (
+                {paginatedProperties.map((prop) => (
                   <PropertyCard
                     key={prop.id || prop._id}
                     property={prop}
@@ -580,15 +701,67 @@ const PropertyListings = () => {
                 ))}
               </div>
             ) : (
-              /* GRID VIEW: 2 or 3 Columns of Standard Property Cards */
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {properties.map((prop) => (
+                {paginatedProperties.map((prop) => (
                   <PropertyCard
                     key={prop.id || prop._id}
                     property={prop}
                     variant="standard"
                   />
                 ))}
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {!loading && filteredProperties.length > 0 && (
+              <div className="mt-8 pt-6 border-t border-[var(--color-border)] flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-xs text-[var(--color-muted-foreground)]">
+                  Showing <span className="font-semibold text-[var(--color-foreground)]">{startIndex + 1}</span> -{" "}
+                  <span className="font-semibold text-[var(--color-foreground)]">
+                    {Math.min(startIndex + itemsPerPage, filteredProperties.length)}
+                  </span>{" "}
+                  of <span className="font-semibold text-[var(--color-foreground)]">{filteredProperties.length}</span> properties
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center space-x-1.5">
+                    {/* Previous Button */}
+                    <button
+                      type="button"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 rounded-sm text-xs font-semibold border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-foreground)] hover:bg-[var(--color-subtle)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Previous
+                    </button>
+
+                    {/* Page Numbers */}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => handlePageChange(page)}
+                        className={`w-7 h-7 rounded-sm text-xs font-semibold transition-colors flex items-center justify-center ${
+                          currentPage === page
+                            ? "bg-[var(--color-foreground)] text-[var(--color-surface)] font-bold shadow-xs"
+                            : "border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-foreground)] hover:bg-[var(--color-subtle)]"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    {/* Next Button */}
+                    <button
+                      type="button"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 rounded-sm text-xs font-semibold border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-foreground)] hover:bg-[var(--color-subtle)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -598,169 +771,20 @@ const PropertyListings = () => {
       {/* ====================================================================
           MOBILE FILTER DRAWER (< lg)
       ==================================================================== */}
-      {isFilterDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs lg:hidden animate-fade-in">
-          <div className="w-full max-w-sm bg-[var(--color-surface)] h-full overflow-y-auto p-6 space-y-6 flex flex-col justify-between shadow-2xl">
-            <div className="space-y-6">
-              {/* Header */}
-              <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-4">
-                <div className="flex items-center space-x-2">
-                  <SlidersHorizontal className="w-4 h-4 text-[var(--color-terracotta)]" />
-                  <span className="font-editorial text-lg font-bold text-[var(--color-foreground)]">
-                    Filter Catalogue
-                  </span>
-                </div>
-                <button
-                  onClick={() => setIsFilterDrawerOpen(false)}
-                  className="p-1.5 hover:text-red-600 rounded-sm transition-colors"
-                  aria-label="Close filters"
-                >
-                  <X className="w-5 h-5 text-[var(--color-foreground)]" />
-                </button>
-              </div>
-
-              {/* City Selection */}
-              <div>
-                <label className="block text-xs font-semibold text-[var(--color-foreground)] mb-1.5">
-                  Metro City
-                </label>
-                <select
-                  value={city}
-                  onChange={(e) => handleCityChange(e.target.value)}
-                  className="w-full p-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm text-xs text-[var(--color-foreground)]"
-                >
-                  {CITIES_LIST.map((c) => (
-                    <option key={c.id} value={c.name === "All Cities" ? "All" : c.name}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Keyword Search */}
-              <div>
-                <label className="block text-xs font-semibold text-[var(--color-foreground)] mb-1.5">
-                  Search Locality / Landmark
-                </label>
-                <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-3 text-[var(--color-muted-foreground)]" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      updateUrl({ search: e.target.value });
-                    }}
-                    placeholder="e.g. Powai, Worli, Bandra..."
-                    className="w-full pl-9 pr-3 py-2 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm text-xs text-[var(--color-foreground)] focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Property Category */}
-              <div>
-                <label className="block text-xs font-semibold text-[var(--color-foreground)] mb-1.5">
-                  Property Category
-                </label>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  {PROPERTY_TYPES.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => handleTypeChange(cat.id === "All" ? "All" : cat.id)}
-                      className={`py-2 px-3 text-left rounded-sm border transition-colors ${
-                        propertyType.toLowerCase() === cat.id.toLowerCase()
-                          ? "bg-[var(--color-foreground)] text-[var(--color-surface)] font-bold shadow-xs"
-                          : "border-[var(--color-border)] text-[var(--color-muted-foreground)]"
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Bedrooms (BHK) */}
-              <div>
-                <label className="block text-xs font-semibold text-[var(--color-foreground)] mb-1.5">
-                  Bedrooms
-                </label>
-                <div className="grid grid-cols-5 gap-1.5 text-xs">
-                  {["All", "1", "2", "3", "4"].map((bhk) => (
-                    <button
-                      key={bhk}
-                      onClick={() => handleBedroomsChange(bhk)}
-                      className={`py-2 rounded-sm border text-center transition-colors ${
-                        bedrooms === bhk
-                          ? "bg-[var(--color-foreground)] text-[var(--color-surface)] font-bold"
-                          : "border-[var(--color-border)] text-[var(--color-muted-foreground)]"
-                      }`}
-                    >
-                      {bhk === "All" ? "Any" : `${bhk}B`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Max Budget Slider */}
-              <div>
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="font-semibold text-[var(--color-foreground)]">Maximum Budget</span>
-                  <span className="font-mono font-bold text-[var(--color-terracotta)]">
-                    {maxBudget >= 100000000 ? "Any Budget" : formatRupees(maxBudget)}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1000000"
-                  max="100000000"
-                  step="2500000"
-                  value={maxBudget}
-                  onChange={(e) => setMaxBudget(Number(e.target.value))}
-                  className="w-full accent-[var(--color-terracotta)]"
-                />
-              </div>
-
-              {/* Verified Toggle */}
-              <div className="pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-[var(--color-foreground)]">Verified Listings</p>
-                  <p className="text-[10px] text-[var(--color-muted-foreground)]">Physically verified on-site</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setVerifiedOnly(!verifiedOnly)}
-                  className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors ${
-                    verifiedOnly ? "bg-emerald-600" : "bg-[var(--color-border)]"
-                  }`}
-                  aria-label="Toggle Verified Only"
-                >
-                  <div
-                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
-                      verifiedOnly ? "translate-x-4" : ""
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            {/* Bottom Actions */}
-            <div className="pt-4 border-t border-[var(--color-border)] flex gap-3">
-              <button
-                onClick={resetFilters}
-                className="flex-1 py-2.5 text-xs font-semibold border border-[var(--color-border)] rounded-sm"
-              >
-                Reset All
-              </button>
-              <button
-                onClick={() => setIsFilterDrawerOpen(false)}
-                className="flex-1 py-2.5 text-xs font-semibold bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-sm"
-              >
-                Show {properties.length} Results
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <FilterSidebar
+        filters={filters}
+        onChange={handleFilterChange}
+        propertyCount={filteredProperties.length}
+        properties={properties}
+        isOpen={isFilterDrawerOpen}
+        onClose={() => setIsFilterDrawerOpen(false)}
+        isMobile={true}
+        searchQuery={searchQuery}
+        onSearchChange={(q) => {
+          setSearchQuery(q);
+          updateUrl(filters, purpose, q);
+        }}
+      />
 
       <Footer />
       <MobileNav />

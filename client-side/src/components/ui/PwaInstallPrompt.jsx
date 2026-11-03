@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Download, X, Smartphone, Sparkles, CheckCircle2 } from "lucide-react";
+import { Download, X } from "lucide-react";
+import { LogoMark } from "./Logo";
 
 const PwaInstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -87,7 +88,7 @@ const PwaInstallPrompt = () => {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="w-10 h-10 rounded-sm bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
-          <img src="/favicon.svg" alt="Makaan4U Emblem" className="w-6 h-6 object-contain" />
+          <LogoMark size={28} animated={false} />
         </div>
 
         <div className="flex-1 min-w-0 pr-1">

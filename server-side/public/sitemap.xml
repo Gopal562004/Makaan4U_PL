@@ -37,6 +37,11 @@
           <priority>1.0</priority>
         </url>
         <url>
+          <loc>https://makaan4u-clean.vercel.app/property/affordable-2bhk-in-thane</loc>
+          <changefreq>weekly</changefreq>
+          <priority>1.0</priority>
+        </url>
+        <url>
           <loc>https://makaan4u-clean.vercel.app/property/modern-2bhk-apartment-in-bandra-mumbai</loc>
           <changefreq>weekly</changefreq>
           <priority>1.0</priority>
@@ -47,17 +52,12 @@
           <priority>1.0</priority>
         </url>
         <url>
-          <loc>https://makaan4u-clean.vercel.app/property/compact-1bhk-studio-in-andheri-mumbai</loc>
-          <changefreq>weekly</changefreq>
-          <priority>1.0</priority>
-        </url>
-        <url>
           <loc>https://makaan4u-clean.vercel.app/property/spacious-4bhk-villa-in-powai-mumbai</loc>
           <changefreq>weekly</changefreq>
           <priority>1.0</priority>
         </url>
         <url>
-          <loc>https://makaan4u-clean.vercel.app/property/affordable-2bhk-in-thane</loc>
+          <loc>https://makaan4u-clean.vercel.app/property/compact-1bhk-studio-in-andheri-mumbai</loc>
           <changefreq>weekly</changefreq>
           <priority>1.0</priority>
         </url>

@@ -277,16 +277,16 @@ const PostProperty = () => {
               specifications: {
                 ...prev.specifications,
                 ...(typeof raw.specifications === "object" ? raw.specifications : {}),
-                bedrooms: raw.specifications?.bedrooms !== undefined ? String(raw.specifications.bedrooms) : (raw.bedrooms !== undefined ? String(raw.bedrooms) : "1"),
-                bathrooms: raw.specifications?.bathrooms !== undefined ? String(raw.specifications.bathrooms) : (raw.bathrooms !== undefined ? String(raw.bathrooms) : "1"),
-                balconies: raw.specifications?.balconies !== undefined ? String(raw.specifications.balconies) : "0",
-                area: raw.specifications?.area !== undefined ? String(raw.specifications.area) : (raw.area !== undefined ? String(raw.area) : ""),
+                bedrooms: raw.specifications?.bedrooms != null && raw.specifications.bedrooms !== "null" ? String(raw.specifications.bedrooms) : (raw.bedrooms != null && raw.bedrooms !== "null" ? String(raw.bedrooms) : "1"),
+                bathrooms: raw.specifications?.bathrooms != null && raw.specifications.bathrooms !== "null" ? String(raw.specifications.bathrooms) : (raw.bathrooms != null && raw.bathrooms !== "null" ? String(raw.bathrooms) : "1"),
+                balconies: raw.specifications?.balconies != null && raw.specifications.balconies !== "null" ? String(raw.specifications.balconies) : "0",
+                area: raw.specifications?.area != null && raw.specifications.area !== "null" ? String(raw.specifications.area) : (raw.area != null && raw.area !== "null" ? String(raw.area) : ""),
                 areaUnit: raw.specifications?.areaUnit || "sqft",
-                carpetArea: raw.specifications?.carpetArea !== undefined ? String(raw.specifications.carpetArea) : "",
-                builtUpArea: raw.specifications?.builtUpArea !== undefined ? String(raw.specifications.builtUpArea) : "",
-                superBuiltUpArea: raw.specifications?.superBuiltUpArea !== undefined ? String(raw.specifications.superBuiltUpArea) : "",
-                builtYear: raw.specifications?.builtYear || "",
-                ageOfConstruction: raw.specifications?.ageOfConstruction || "",
+                carpetArea: raw.specifications?.carpetArea != null && raw.specifications.carpetArea !== "null" ? String(raw.specifications.carpetArea) : "",
+                builtUpArea: raw.specifications?.builtUpArea != null && raw.specifications.builtUpArea !== "null" ? String(raw.specifications.builtUpArea) : "",
+                superBuiltUpArea: raw.specifications?.superBuiltUpArea != null && raw.specifications.superBuiltUpArea !== "null" ? String(raw.specifications.superBuiltUpArea) : "",
+                builtYear: raw.specifications?.builtYear && raw.specifications.builtYear !== "null" ? String(raw.specifications.builtYear) : "",
+                ageOfConstruction: raw.specifications?.ageOfConstruction && raw.specifications.ageOfConstruction !== "null" ? String(raw.specifications.ageOfConstruction) : "",
                 constructionStatus: (() => {
                   const cs = String(raw.specifications?.constructionStatus || "ready-to-move").toLowerCase();
                   if (cs.includes("under")) return "under-construction";
@@ -294,8 +294,8 @@ const PostProperty = () => {
                   if (cs.includes("resale")) return "resale";
                   return "ready-to-move";
                 })(),
-                floor: raw.specifications?.floor !== undefined ? String(raw.specifications.floor) : "",
-                totalFloors: raw.specifications?.totalFloors !== undefined ? String(raw.specifications.totalFloors) : "",
+                floor: raw.specifications?.floor != null && raw.specifications.floor !== "null" ? String(raw.specifications.floor) : "",
+                totalFloors: raw.specifications?.totalFloors != null && raw.specifications.totalFloors !== "null" ? String(raw.specifications.totalFloors) : "",
                 facing: raw.specifications?.facing || "north",
                 furnishing: (() => {
                   const f = String(raw.specifications?.furnishing || raw.furnishing || "unfurnished").toLowerCase();
@@ -312,7 +312,7 @@ const PostProperty = () => {
                   if (["none", "open", "covered", "basement", "multiple"].includes(p)) return p;
                   return "none";
                 })(),
-                parkingCount: raw.specifications?.parkingCount !== undefined ? String(raw.specifications.parkingCount) : "",
+                parkingCount: raw.specifications?.parkingCount != null && raw.specifications.parkingCount !== "null" ? String(raw.specifications.parkingCount) : "0",
                 lift: !!raw.specifications?.lift,
                 powerBackup: !!raw.specifications?.powerBackup,
                 waterSupply: raw.specifications?.waterSupply || "corporation",
@@ -325,11 +325,11 @@ const PostProperty = () => {
               transportation: Array.isArray(raw.transportation) ? raw.transportation : [],
               priceNegotiable: !!raw.priceNegotiable,
               maintenanceCharges: {
-                amount: raw.maintenanceCharges?.amount !== undefined ? String(raw.maintenanceCharges.amount) : "",
+                amount: raw.maintenanceCharges?.amount != null && raw.maintenanceCharges.amount !== "null" ? String(raw.maintenanceCharges.amount) : "0",
                 period: raw.maintenanceCharges?.period || "monthly",
               },
-              securityDeposit: raw.securityDeposit !== undefined ? String(raw.securityDeposit) : "",
-              bookingAmount: raw.bookingAmount !== undefined ? String(raw.bookingAmount) : "",
+              securityDeposit: raw.securityDeposit != null && raw.securityDeposit !== "null" ? String(raw.securityDeposit) : "0",
+              bookingAmount: raw.bookingAmount != null && raw.bookingAmount !== "null" ? String(raw.bookingAmount) : "0",
               assignedAgent: raw.assignedAgent?._id || raw.assignedAgent || raw.postedBy?._id || raw.postedBy || "",
               images: [],
               existingImages: Array.isArray(raw.images) ? raw.images : (raw.image ? [raw.image] : []),
@@ -487,7 +487,82 @@ const PostProperty = () => {
       ...prev,
       images: prev.images.filter((_, i) => i !== index),
     }));
-    toast.info("Image removed");
+    toast.info("New image removed");
+  }, []);
+
+  // Remove existing image from database list
+  const removeExistingImage = useCallback((index) => {
+    setFormData((prev) => ({
+      ...prev,
+      existingImages: (prev.existingImages || []).filter((_, i) => i !== index),
+    }));
+    toast.info("Existing image removed (click Update to save)");
+  }, []);
+
+  // Rearrange existing images
+  const moveExistingImage = useCallback((index, direction) => {
+    setFormData((prev) => {
+      const list = prev.existingImages || [];
+      const targetIndex = direction === "left" ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= list.length) return prev;
+      const updated = [...list];
+      const temp = updated[index];
+      updated[index] = updated[targetIndex];
+      updated[targetIndex] = temp;
+      return {
+        ...prev,
+        existingImages: updated,
+      };
+    });
+  }, []);
+
+  // Set an existing image as primary cover
+  const setExistingAsCover = useCallback((index) => {
+    if (index === 0) return;
+    setFormData((prev) => {
+      const list = prev.existingImages || [];
+      const updated = [...list];
+      const [selected] = updated.splice(index, 1);
+      updated.unshift(selected);
+      return {
+        ...prev,
+        existingImages: updated,
+      };
+    });
+    toast.success("Set as Primary Cover photo");
+  }, []);
+
+  // Rearrange newly uploaded images
+  const moveNewImage = useCallback((index, direction) => {
+    setFormData((prev) => {
+      const list = prev.images || [];
+      const targetIndex = direction === "left" ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= list.length) return prev;
+      const updated = [...list];
+      const temp = updated[index];
+      updated[index] = updated[targetIndex];
+      updated[targetIndex] = temp;
+      return {
+        ...prev,
+        images: updated,
+      };
+    });
+  }, []);
+
+  // Set a newly uploaded image as primary new image
+  const setNewAsCover = useCallback((index) => {
+    if (index === 0) return;
+    setFormData((prev) => {
+      const list = prev.images || [];
+      const updated = [...list];
+      const [selected] = updated.splice(index, 1);
+      updated.unshift(selected);
+      return {
+        ...prev,
+        images: updated,
+      };
+    });
+    toast.success("Moved new image to front");
   }, []);
 
   // Options for dropdowns
@@ -741,21 +816,48 @@ const PostProperty = () => {
     const toastId = toast.loading(isEditMode ? "Updating property..." : "Posting your property...");
 
     try {
+      // Clean specifications numeric fields to avoid cast errors on "null", null, or empty string
+      const cleanSpecifications = { ...formData.specifications };
+      const specNumKeys = [
+        "bedrooms",
+        "bathrooms",
+        "balconies",
+        "area",
+        "carpetArea",
+        "builtUpArea",
+        "superBuiltUpArea",
+        "floor",
+        "totalFloors",
+        "parkingCount",
+      ];
+      specNumKeys.forEach((key) => {
+        const val = cleanSpecifications[key];
+        if (val === "" || val === null || val === "null" || val === undefined) {
+          cleanSpecifications[key] = key === "bedrooms" || key === "bathrooms" ? 1 : 0;
+        } else {
+          const parsed = Number(val);
+          cleanSpecifications[key] = isNaN(parsed) ? 0 : parsed;
+        }
+      });
+
       // Prepare data according to backend schema - using JSON.stringify for complex objects
       const propertyData = {
         title: formData.title,
         description: formData.description,
-        price: Number(formData.price),
+        price: Number(formData.price) || 0,
         type: formData.type,
         category: formData.category,
         location: JSON.stringify(formData.location),
-        specifications: JSON.stringify(formData.specifications),
+        specifications: JSON.stringify(cleanSpecifications),
         amenities: JSON.stringify(formData.amenities),
         features: JSON.stringify(formData.features),
         nearbyPlaces: JSON.stringify(formData.nearbyPlaces),
         transportation: JSON.stringify(formData.transportation),
         priceNegotiable: formData.priceNegotiable,
-        maintenanceCharges: JSON.stringify(formData.maintenanceCharges),
+        maintenanceCharges: JSON.stringify({
+          amount: Number(formData.maintenanceCharges?.amount) || 0,
+          period: formData.maintenanceCharges?.period || "monthly",
+        }),
         securityDeposit: Number(formData.securityDeposit) || 0,
         bookingAmount: Number(formData.bookingAmount) || 0,
         status: formData.status,
@@ -763,6 +865,7 @@ const PostProperty = () => {
         priority: formData.priority,
         contactInfo: JSON.stringify(formData.contactInfo),
         images: formData.images,
+        existingImages: formData.existingImages,
       };
 
       // Add agent assignment
@@ -1938,26 +2041,100 @@ const PostProperty = () => {
           </label>
         </div>
 
-        {/* Existing Images from Database */}
+        {/* Existing Images from Database with Reorder & Delete */}
         {formData.existingImages?.length > 0 && (
-          <div className="mt-4">
-            <h3 className="text-sm font-medium text-foreground mb-3 flex items-center justify-between">
-              <span>Current Property Photos ({formData.existingImages.length})</span>
-              <span className="text-xs text-muted-foreground font-normal">Active on live database</span>
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="mt-6 border-t border-border pt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <span>Current Property Photos ({formData.existingImages.length})</span>
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-normal">
+                    Reorderable
+                  </span>
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Use the arrows to rearrange positions. First photo is always the Primary Cover image.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {formData.existingImages.map((image, index) => {
                 const imgUrl = typeof image === "string" ? image : image?.url;
                 if (!imgUrl) return null;
+                const isPrimary = index === 0;
+
                 return (
-                  <div key={index} className="relative group border border-border rounded overflow-hidden">
+                  <div
+                    key={index}
+                    className={`relative group border rounded-md overflow-hidden bg-background shadow-xs transition-all hover:shadow-md ${
+                      isPrimary ? "border-amber-500 ring-2 ring-amber-500/20" : "border-border"
+                    }`}
+                  >
                     <img
                       src={imgUrl}
-                      alt={`Current Property ${index + 1}`}
-                      className="w-full h-24 object-cover"
+                      alt={`Property photo ${index + 1}`}
+                      className="w-full h-28 object-cover transition-transform group-hover:scale-105"
                     />
-                    <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-0.5 text-[10px] text-white truncate">
-                      {index === 0 ? "Primary Cover" : `Photo ${index + 1}`}
+
+                    {/* Badge: Primary Cover / Photo Number */}
+                    <div className="absolute top-1.5 left-1.5 flex items-center gap-1 z-10 pointer-events-none">
+                      {isPrimary ? (
+                        <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm flex items-center gap-1">
+                          <Icon name="Star" size={10} className="fill-white" />
+                          Cover
+                        </span>
+                      ) : (
+                        <span className="bg-black/60 text-white text-[10px] font-medium px-1.5 py-0.5 rounded backdrop-blur-xs">
+                          #{index + 1}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Delete / Remove Button */}
+                    <button
+                      type="button"
+                      onClick={() => removeExistingImage(index)}
+                      title="Delete this image"
+                      className="absolute top-1.5 right-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-md transition-all z-10 hover:scale-110"
+                    >
+                      <Icon name="Trash2" size={12} />
+                    </button>
+
+                    {/* Control Bar for Reordering */}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/60 to-transparent p-1.5 pt-4 flex items-center justify-between text-white z-10">
+                      <div className="flex items-center space-x-0.5">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => moveExistingImage(index, "left")}
+                          title="Move Earlier / Left"
+                          className="p-1 rounded hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <Icon name="ChevronLeft" size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={index === formData.existingImages.length - 1}
+                          onClick={() => moveExistingImage(index, "right")}
+                          title="Move Later / Right"
+                          className="p-1 rounded hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <Icon name="ChevronRight" size={14} />
+                        </button>
+                      </div>
+
+                      {!isPrimary && (
+                        <button
+                          type="button"
+                          onClick={() => setExistingAsCover(index)}
+                          className="text-[9px] font-semibold bg-white/20 hover:bg-white/30 px-1.5 py-0.5 rounded transition-colors flex items-center space-x-1"
+                          title="Set as Primary Cover photo"
+                        >
+                          <Icon name="Star" size={10} />
+                          <span>Make Cover</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -1966,26 +2143,76 @@ const PostProperty = () => {
           </div>
         )}
 
+        {/* Newly Uploaded Images with Reorder & Delete */}
         {formData.images.length > 0 && (
-          <div className="mt-4">
-            <h3 className="text-sm font-medium text-foreground mb-3">
-              New Images to Add ({formData.images.length}/10)
+          <div className="mt-6 border-t border-border pt-4">
+            <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center justify-between">
+              <span>New Images to Add ({formData.images.length}/10)</span>
+              <span className="text-xs text-muted-foreground">Will be appended to current images</span>
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {formData.images.map((image, index) => (
-                <div key={index} className="relative group">
+                <div
+                  key={index}
+                  className="relative group border border-border rounded-md overflow-hidden bg-background shadow-xs transition-all hover:shadow-md"
+                >
                   <img
                     src={URL.createObjectURL(image)}
-                    alt={`Property ${index + 1}`}
-                    className="w-full h-24 object-cover rounded"
+                    alt={`New Property ${index + 1}`}
+                    className="w-full h-28 object-cover transition-transform group-hover:scale-105"
                   />
+
+                  {/* Position badge */}
+                  <div className="absolute top-1.5 left-1.5 z-10 pointer-events-none">
+                    <span className="bg-sky-600 text-white text-[10px] font-medium px-1.5 py-0.5 rounded shadow-xs">
+                      New #{index + 1}
+                    </span>
+                  </div>
+
+                  {/* Remove Button */}
                   <button
                     type="button"
                     onClick={() => removeImage(index)}
-                    className="absolute -top-2 -right-2 bg-error text-error-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Remove this file"
+                    className="absolute top-1.5 right-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-md transition-all z-10 hover:scale-110"
                   >
-                    <Icon name="X" size={12} />
+                    <Icon name="Trash2" size={12} />
                   </button>
+
+                  {/* Rearrange Bar */}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/60 to-transparent p-1.5 pt-4 flex items-center justify-between text-white z-10">
+                    <div className="flex items-center space-x-0.5">
+                      <button
+                        type="button"
+                        disabled={index === 0}
+                        onClick={() => moveNewImage(index, "left")}
+                        title="Move Earlier"
+                        className="p-1 rounded hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Icon name="ChevronLeft" size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={index === formData.images.length - 1}
+                        onClick={() => moveNewImage(index, "right")}
+                        title="Move Later"
+                        className="p-1 rounded hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Icon name="ChevronRight" size={14} />
+                      </button>
+                    </div>
+
+                    {index !== 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setNewAsCover(index)}
+                        className="text-[9px] font-semibold bg-white/20 hover:bg-white/30 px-1.5 py-0.5 rounded transition-colors"
+                        title="Move to first new position"
+                      >
+                        Move to First
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

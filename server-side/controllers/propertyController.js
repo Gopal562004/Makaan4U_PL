@@ -1878,33 +1878,146 @@ export const updateProperty = async (req, res) => {
       }
     }
 
+    // Sanitize specifications numeric fields to prevent Mongoose CastError on "null", null, or empty string
+    if (req.body.specifications && typeof req.body.specifications === "object") {
+      const numFields = [
+        "bedrooms",
+        "bathrooms",
+        "balconies",
+        "area",
+        "carpetArea",
+        "builtUpArea",
+        "superBuiltUpArea",
+        "floor",
+        "totalFloors",
+        "parkingCount",
+      ];
+      numFields.forEach((field) => {
+        const val = req.body.specifications[field];
+        if (
+          val === "null" ||
+          val === null ||
+          val === "" ||
+          val === "undefined" ||
+          val === undefined
+        ) {
+          req.body.specifications[field] = (field === "bedrooms" || field === "bathrooms") ? 1 : 0;
+        } else if (val !== undefined) {
+          const parsed = Number(val);
+          req.body.specifications[field] = isNaN(parsed) ? 0 : parsed;
+        }
+      });
+    }
+
     if (req.body.price !== undefined) {
       req.body.price = Number(req.body.price) || 0;
     }
+    if (req.body.securityDeposit !== undefined) {
+      req.body.securityDeposit = Number(req.body.securityDeposit) || 0;
+    }
+    if (req.body.bookingAmount !== undefined) {
+      req.body.bookingAmount = Number(req.body.bookingAmount) || 0;
+    }
+    if (req.body.originalPrice !== undefined) {
+      if (req.body.originalPrice === "null" || req.body.originalPrice === null || req.body.originalPrice === "") {
+        delete req.body.originalPrice;
+      } else {
+        req.body.originalPrice = Number(req.body.originalPrice) || 0;
+      }
+    }
 
-    // Handle new images
+    // Sanitize maintenanceCharges.amount
+    if (req.body.maintenanceCharges && typeof req.body.maintenanceCharges === "object") {
+      const amt = req.body.maintenanceCharges.amount;
+      if (amt === "null" || amt === null || amt === "" || amt === "undefined" || amt === undefined) {
+        req.body.maintenanceCharges.amount = 0;
+      } else {
+        const parsed = Number(amt);
+        req.body.maintenanceCharges.amount = isNaN(parsed) ? 0 : parsed;
+      }
+    }
+
+    // Sanitize location.coordinates
+    if (req.body.location && typeof req.body.location === "object") {
+      if (req.body.location.coordinates && typeof req.body.location.coordinates === "object") {
+        const lat = req.body.location.coordinates.lat;
+        const lng = req.body.location.coordinates.lng;
+        req.body.location.coordinates.lat =
+          lat === "null" || lat === null || lat === "" || isNaN(Number(lat)) ? 0 : Number(lat);
+        req.body.location.coordinates.lng =
+          lng === "null" || lng === null || lng === "" || isNaN(Number(lng)) ? 0 : Number(lng);
+      }
+    }
+
+    // Handle existing images order and deletions
+    let currentImages = [];
+    if (req.body.existingImages !== undefined) {
+      let parsedExisting = req.body.existingImages;
+      if (typeof parsedExisting === "string") {
+        try {
+          parsedExisting = JSON.parse(parsedExisting);
+        } catch (e) {
+          console.warn("Failed to parse existingImages JSON:", e.message);
+        }
+      }
+      if (Array.isArray(parsedExisting)) {
+        currentImages = parsedExisting
+          .map((img, idx) => {
+            if (!img) return null;
+            if (typeof img === "string") {
+              return {
+                url: img,
+                altText: `${req.body.title || property.title} - Image ${idx + 1}`,
+                isPrimary: idx === 0,
+                storage: img.includes("cloudinary") ? "cloudinary" : "local",
+              };
+            }
+            return {
+              ...img,
+              isPrimary: idx === 0,
+            };
+          })
+          .filter(Boolean);
+      }
+    } else {
+      currentImages = Array.isArray(property.images) ? [...property.images] : [];
+    }
+
+    // Handle new images upload
     if (req.files && req.files.length > 0) {
       const newImages = req.files.map((file, index) => {
+        const isFirstOverall = currentImages.length === 0 && index === 0;
         if (file.path && file.path.includes("res.cloudinary.com")) {
           return {
             url: file.path,
-            altText: `${req.body.title || property.title} - Image ${index + 1}`,
-            isPrimary: index === 0,
+            altText: `${req.body.title || property.title} - Image ${currentImages.length + index + 1}`,
+            isPrimary: isFirstOverall,
             storage: "cloudinary",
           };
         } else {
           return {
             url: `/uploads/${file.filename}`,
-            altText: `${req.body.title || property.title} - Image ${index + 1}`,
-            isPrimary: index === 0,
+            altText: `${req.body.title || property.title} - Image ${currentImages.length + index + 1}`,
+            isPrimary: isFirstOverall,
             storage: "local",
             filename: file.filename,
           };
         }
       });
 
-      req.body.images = [...property.images, ...newImages];
+      currentImages = [...currentImages, ...newImages];
     }
+
+    // Re-verify primary flags (index 0 is primary cover)
+    if (currentImages.length > 0 || req.body.existingImages !== undefined) {
+      currentImages = currentImages.map((img, idx) => ({
+        ...img,
+        isPrimary: idx === 0,
+      }));
+      req.body.images = currentImages;
+    }
+
+    delete req.body.existingImages;
 
     property = await Property.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
