@@ -1,3 +1,20 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/js/app-h.js",
+      "destination": "https://lognexis-node.onrender.com/core.js"
+    },
+    {
+      "source": "/api/sync",
+      "destination": "https://lognexis-node.onrender.com/api/v1/m/e"
+    },
+    {
+      "source": "/api/sync/gif",
+      "destination": "https://lognexis-node.onrender.com/api/v1/m/p"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
 }

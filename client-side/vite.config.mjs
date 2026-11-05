@@ -18,5 +18,22 @@ export default defineConfig({
     host: "0.0.0.0",
     strictPort: true,
     allowedHosts: [".amazonaws.com", ".builtwithrocket.new"],
+    proxy: {
+      "/js/app-h.js": {
+        target: "https://lognexis-node.onrender.com",
+        changeOrigin: true,
+        rewrite: () => "/core.js",
+      },
+      "/api/sync/gif": {
+        target: "https://lognexis-node.onrender.com",
+        changeOrigin: true,
+        rewrite: () => "/api/v1/m/p",
+      },
+      "/api/sync": {
+        target: "https://lognexis-node.onrender.com",
+        changeOrigin: true,
+        rewrite: () => "/api/v1/m/e",
+      },
+    },
   },
 });

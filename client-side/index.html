@@ -12,16 +12,14 @@
       gtag('config', 'G-BKYZF93DS4');
     </script>
     
+    <!-- LogNexis RUM & Error Tracking (First-Party Proxy) -->
     <script>
       (function(w,d,s,k){
-        w['_rumConfig']={
-          apiKey:k,
-          baseUrl:'https://lognexis-node.onrender.com',
-          endpoint:'https://lognexis-node.onrender.com/api/v1/m/e/'+k
-        };
+        var o=location.origin;
+        w['_rumConfig']={apiKey:k,firstParty:true};
         var f=d.getElementsByTagName(s)[0],j=d.createElement(s);j.async=true;
-        j.src='https://lognexis-node.onrender.com/core.js';f.parentNode.insertBefore(j,f);
-      })(window,document,'script','ak_32f29668ba7b43d5aa55187acea93316');
+        j.src=o+'/js/app-h.js';f.parentNode.insertBefore(j,f);
+      })(window,document,'script','ak_46d8b687d92b463582f1bf8b7be9ad41');
     </script>
 
     <!-- Title & Viewport -->

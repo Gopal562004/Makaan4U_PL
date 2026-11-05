@@ -69,13 +69,19 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// LogNexis API Monitoring SDK
-if (process.env.MONITOR_API_KEY) {
-  app.use(expressMiddleware({ 
-    apiKey: process.env.MONITOR_API_KEY,
-    baseUrl: "https://lognexis-node.onrender.com",
-    debug: process.env.NODE_ENV === "development"
-  }));
+// LogNexis API Monitoring SDK — place BEFORE routes
+const logNexisApiKey = process.env.MONITOR_API_KEY || "ak_46d8b687d92b463582f1bf8b7be9ad41";
+if (logNexisApiKey) {
+  app.use(
+    expressMiddleware({
+      apiKey: logNexisApiKey,
+      baseUrl: "https://lognexis-node.onrender.com",
+      captureBody: true,
+      captureHeaders: true,
+      excludePaths: ["/health", "/favicon.ico"],
+      debug: process.env.NODE_ENV === "development",
+    })
+  );
 }
 
 // Enable GZIP compression
