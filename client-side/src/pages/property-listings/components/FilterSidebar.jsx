@@ -33,21 +33,21 @@ const TYPE_ICONS = {
 
 // Stable top-level FilterSection component to prevent DOM remounting & scroll-jumping
 const FilterSection = React.memo(({ title, children, isExpanded, onToggle, count = 0 }) => (
-  <div className="border-b border-[var(--color-border)] pb-3 mb-3 last:border-b-0 last:pb-0 last:mb-0">
+  <div className="border-b border-[var(--color-border)] pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0">
     <button
       type="button"
       onClick={(e) => {
         e.preventDefault();
         onToggle();
       }}
-      className="w-full flex items-center justify-between py-1.5 text-left rounded transition-colors group cursor-pointer"
+      className="w-full flex items-center justify-between py-1 text-left rounded transition-colors group cursor-pointer"
     >
       <div className="flex items-center space-x-2">
-        <h3 className="font-semibold text-xs text-[var(--color-foreground)] group-hover:text-[var(--color-terracotta)]">
+        <h3 className="font-semibold text-xs tracking-wide text-[var(--color-foreground)] group-hover:text-[var(--color-terracotta)]">
           {title}
         </h3>
         {count > 0 && (
-          <span className="text-[9px] bg-[var(--color-terracotta)] text-white px-1.5 py-0.2 rounded-full font-bold">
+          <span className="text-[10px] bg-[var(--color-terracotta)] text-white px-2 py-0.5 rounded-full font-semibold">
             {count}
           </span>
         )}
@@ -55,16 +55,16 @@ const FilterSection = React.memo(({ title, children, isExpanded, onToggle, count
       {isExpanded ? (
         <ChevronUp
           size={14}
-          className="text-[var(--color-muted-foreground)] group-hover:text-[var(--color-foreground)]"
+          className="text-[var(--color-muted-foreground)] group-hover:text-[var(--color-foreground)] transition-colors"
         />
       ) : (
         <ChevronDown
           size={14}
-          className="text-[var(--color-muted-foreground)] group-hover:text-[var(--color-foreground)]"
+          className="text-[var(--color-muted-foreground)] group-hover:text-[var(--color-foreground)] transition-colors"
         />
       )}
     </button>
-    {isExpanded && <div className="mt-2 space-y-2">{children}</div>}
+    {isExpanded && <div className="mt-3 space-y-2.5">{children}</div>}
   </div>
 ));
 
@@ -89,14 +89,14 @@ const FilterSidebar = ({
     agent: filters?.agent || "",
   }));
 
-  // Smart collapsible sections: keep most frequent open, others collapsed
+  // Smart collapsible sections: keep Price & Type open by default, others clean and uncluttered
   const [expandedSections, setExpandedSections] = useState({
     price: true,
-    location: true,
+    location: (filters?.location?.length || 0) > 0,
     type: true,
-    bedrooms: true,
+    bedrooms: Boolean(filters?.bedrooms),
     bathrooms: false,
-    amenities: true,
+    amenities: false,
     agent: false,
   });
 
@@ -459,10 +459,10 @@ const FilterSidebar = ({
             </div>
 
             <div>
-              <p className="text-[10px] font-medium text-[var(--color-muted-foreground)] mb-1">
+              <p className="text-[10px] font-medium text-[var(--color-muted-foreground)] mb-1.5">
                 Quick select:
               </p>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {realPriceRanges.map((range) => {
                   const isSelected =
                     String(localFilters.priceRange?.min) === String(range.min) &&
@@ -481,18 +481,20 @@ const FilterSidebar = ({
                           });
                         }
                       }}
-                      className={`w-full text-left px-2 py-1 text-[11px] rounded border transition-colors flex items-center justify-between ${
+                      className={`w-full text-left px-2.5 py-1.5 text-xs rounded transition-colors flex items-center justify-between ${
                         isSelected
-                          ? "bg-[var(--color-terracotta)]/15 text-[var(--color-terracotta)] border-[var(--color-terracotta)] font-semibold"
-                          : "bg-[var(--color-surface)] text-[var(--color-foreground)] border-[var(--color-border)] hover:bg-[var(--color-subtle)]"
+                          ? "bg-[var(--color-terracotta)]/15 text-[var(--color-terracotta)] border border-[var(--color-terracotta)] font-semibold"
+                          : "bg-[var(--color-surface)] text-[var(--color-foreground)] border border-[var(--color-border)] hover:bg-[var(--color-subtle)]"
                       }`}
                     >
                       <span>{range.label}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-[var(--color-muted-foreground)]">
-                          ({range.count})
-                        </span>
-                        {isSelected && <Check size={11} className="text-[var(--color-terracotta)]" />}
+                        {range.count > 0 && (
+                          <span className="text-[10px] text-[var(--color-muted-foreground)]">
+                            {range.count}
+                          </span>
+                        )}
+                        {isSelected && <Check size={12} className="text-[var(--color-terracotta)]" />}
                       </div>
                     </button>
                   );
@@ -509,28 +511,28 @@ const FilterSidebar = ({
           onToggle={() => toggleSection("location")}
           count={localFilters.location?.length || 0}
         >
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <div className="relative">
               <Search
                 size={12}
-                className="absolute left-2 top-2 text-[var(--color-muted-foreground)]"
+                className="absolute left-2.5 top-2.5 text-[var(--color-muted-foreground)]"
               />
               <input
                 type="text"
                 value={locationSearch}
                 onChange={(e) => setLocationSearch(e.target.value)}
                 placeholder="Search city..."
-                className="w-full pl-6 pr-2 py-1 text-xs bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-[var(--color-foreground)] focus:outline-none"
+                className="w-full pl-7 pr-2.5 py-1.5 text-xs bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-[var(--color-foreground)] focus:outline-none"
               />
             </div>
 
-            <div className="max-h-40 overflow-y-auto space-y-0.5 pr-1 custom-filter-scrollbar">
+            <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-filter-scrollbar">
               {filteredLocations.map((loc) => {
                 const isChecked = (localFilters.location || []).includes(loc.name);
                 return (
                   <label
                     key={loc.name}
-                    className="flex items-center justify-between px-1.5 py-1 rounded hover:bg-[var(--color-subtle)] cursor-pointer text-xs"
+                    className="flex items-center justify-between px-2 py-1.5 rounded hover:bg-[var(--color-subtle)] cursor-pointer text-xs"
                   >
                     <div className="flex items-center space-x-2">
                       <input
@@ -553,9 +555,11 @@ const FilterSidebar = ({
                         {loc.name}
                       </span>
                     </div>
-                    <span className="text-[10px] text-[var(--color-muted-foreground)]">
-                      ({loc.count})
-                    </span>
+                    {loc.count > 0 && (
+                      <span className="text-[10px] text-[var(--color-muted-foreground)]">
+                        {loc.count}
+                      </span>
+                    )}
                   </label>
                 );
               })}
@@ -570,16 +574,16 @@ const FilterSidebar = ({
           onToggle={() => toggleSection("type")}
           count={localFilters.propertyType?.length || 0}
         >
-          <div className="max-h-44 overflow-y-auto space-y-0.5 pr-1 custom-filter-scrollbar">
+          <div className="max-h-52 overflow-y-auto space-y-1 pr-1 custom-filter-scrollbar">
             {realPropertyTypes.map((type) => {
               const isChecked = (localFilters.propertyType || []).includes(type.value);
               const IconComp = TYPE_ICONS[type.label] || Building2;
               return (
                 <label
                   key={type.value}
-                  className="flex items-center justify-between px-1.5 py-1 rounded hover:bg-[var(--color-subtle)] cursor-pointer text-xs"
+                  className="flex items-center justify-between px-2 py-1.5 rounded hover:bg-[var(--color-subtle)] cursor-pointer text-xs"
                 >
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2.5">
                     <input
                       type="checkbox"
                       checked={isChecked}
@@ -593,7 +597,7 @@ const FilterSidebar = ({
                       className="rounded border-[var(--color-border)] accent-[var(--color-terracotta)]"
                     />
                     <IconComp
-                      size={13}
+                      size={14}
                       className="text-[var(--color-muted-foreground)] flex-shrink-0"
                     />
                     <span
@@ -604,9 +608,11 @@ const FilterSidebar = ({
                       {type.label}
                     </span>
                   </div>
-                  <span className="text-[10px] text-[var(--color-muted-foreground)]">
-                    ({type.count})
-                  </span>
+                  {type.count > 0 && (
+                    <span className="text-[10px] text-[var(--color-muted-foreground)]">
+                      {type.count}
+                    </span>
+                  )}
                 </label>
               );
             })}
@@ -620,7 +626,7 @@ const FilterSidebar = ({
           onToggle={() => toggleSection("bedrooms")}
           count={localFilters.bedrooms ? 1 : 0}
         >
-          <div className="grid grid-cols-5 gap-1">
+          <div className="grid grid-cols-5 gap-1.5">
             {[1, 2, 3, 4, "5+"].map((bhk) => {
               const isSelected = String(localFilters.bedrooms) === String(bhk);
               const count = bedroomCounts[bhk] || 0;
@@ -631,20 +637,22 @@ const FilterSidebar = ({
                   onClick={() =>
                     handleFilterChange("bedrooms", isSelected ? "" : bhk)
                   }
-                  className={`py-1.5 text-xs font-semibold rounded border transition-colors flex flex-col items-center justify-center ${
+                  className={`py-2 text-xs font-semibold rounded border transition-colors flex flex-col items-center justify-center ${
                     isSelected
                       ? "bg-[var(--color-terracotta)] text-white border-[var(--color-terracotta)] shadow-xs"
                       : "bg-[var(--color-surface)] text-[var(--color-foreground)] border-[var(--color-border)] hover:bg-[var(--color-subtle)]"
                   }`}
                 >
                   <span>{bhk} BHK</span>
-                  <span
-                    className={`text-[9px] ${
-                      isSelected ? "text-white/80" : "text-[var(--color-muted-foreground)]"
-                    }`}
-                  >
-                    ({count})
-                  </span>
+                  {count > 0 && (
+                    <span
+                      className={`text-[9px] mt-0.5 ${
+                        isSelected ? "text-white/80" : "text-[var(--color-muted-foreground)]"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -658,7 +666,7 @@ const FilterSidebar = ({
           onToggle={() => toggleSection("bathrooms")}
           count={localFilters.bathrooms ? 1 : 0}
         >
-          <div className="grid grid-cols-5 gap-1">
+          <div className="grid grid-cols-5 gap-1.5">
             {[1, 2, 3, 4, "5+"].map((bath) => {
               const isSelected = String(localFilters.bathrooms) === String(bath);
               const count = bathroomCounts[bath] || 0;
@@ -669,20 +677,22 @@ const FilterSidebar = ({
                   onClick={() =>
                     handleFilterChange("bathrooms", isSelected ? "" : bath)
                   }
-                  className={`py-1.5 text-xs font-semibold rounded border transition-colors flex flex-col items-center justify-center ${
+                  className={`py-2 text-xs font-semibold rounded border transition-colors flex flex-col items-center justify-center ${
                     isSelected
                       ? "bg-[var(--color-terracotta)] text-white border-[var(--color-terracotta)] shadow-xs"
                       : "bg-[var(--color-surface)] text-[var(--color-foreground)] border-[var(--color-border)] hover:bg-[var(--color-subtle)]"
                   }`}
                 >
                   <span>{bath} Bath</span>
-                  <span
-                    className={`text-[9px] ${
-                      isSelected ? "text-white/80" : "text-[var(--color-muted-foreground)]"
-                    }`}
-                  >
-                    ({count})
-                  </span>
+                  {count > 0 && (
+                    <span
+                      className={`text-[9px] mt-0.5 ${
+                        isSelected ? "text-white/80" : "text-[var(--color-muted-foreground)]"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -696,22 +706,22 @@ const FilterSidebar = ({
           onToggle={() => toggleSection("amenities")}
           count={localFilters.amenities?.length || 0}
         >
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <div className="relative">
               <Search
                 size={12}
-                className="absolute left-2 top-2 text-[var(--color-muted-foreground)]"
+                className="absolute left-2.5 top-2.5 text-[var(--color-muted-foreground)]"
               />
               <input
                 type="text"
                 value={amenitySearch}
                 onChange={(e) => setAmenitySearch(e.target.value)}
                 placeholder="Search amenities..."
-                className="w-full pl-6 pr-2 py-1 text-xs bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-[var(--color-foreground)] focus:outline-none"
+                className="w-full pl-7 pr-2.5 py-1.5 text-xs bg-[var(--color-subtle)] border border-[var(--color-border)] rounded text-[var(--color-foreground)] focus:outline-none"
               />
             </div>
 
-            <div className="max-h-40 overflow-y-auto space-y-0.5 pr-1 custom-filter-scrollbar">
+            <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-filter-scrollbar">
               {filteredAmenities.length === 0 ? (
                 <p className="text-[11px] text-[var(--color-muted-foreground)] py-1 italic">
                   No matching amenities
@@ -724,7 +734,7 @@ const FilterSidebar = ({
                   return (
                     <label
                       key={amenity.name}
-                      className="flex items-center justify-between px-1.5 py-1 rounded hover:bg-[var(--color-subtle)] cursor-pointer text-xs"
+                      className="flex items-center justify-between px-2 py-1.5 rounded hover:bg-[var(--color-subtle)] cursor-pointer text-xs"
                     >
                       <div className="flex items-center space-x-2">
                         <input
@@ -749,9 +759,11 @@ const FilterSidebar = ({
                           {amenity.name}
                         </span>
                       </div>
-                      <span className="text-[10px] text-[var(--color-muted-foreground)]">
-                        ({amenity.count})
-                      </span>
+                      {amenity.count > 0 && (
+                        <span className="text-[10px] text-[var(--color-muted-foreground)]">
+                          {amenity.count}
+                        </span>
+                      )}
                     </label>
                   );
                 })
@@ -767,7 +779,7 @@ const FilterSidebar = ({
           onToggle={() => toggleSection("agent")}
           count={localFilters.agent ? 1 : 0}
         >
-          <div className="max-h-40 overflow-y-auto space-y-1 pr-1 custom-filter-scrollbar">
+          <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 custom-filter-scrollbar">
             {realAgents.map((ag) => {
               const isSelected =
                 String(localFilters.agent).toLowerCase() === String(ag.id).toLowerCase() ||
@@ -778,13 +790,13 @@ const FilterSidebar = ({
                   onClick={() =>
                     handleFilterChange("agent", isSelected ? "" : ag.id || ag.name)
                   }
-                  className={`p-2 rounded border cursor-pointer transition-colors text-xs flex items-center justify-between ${
+                  className={`p-2.5 rounded border cursor-pointer transition-colors text-xs flex items-center justify-between ${
                     isSelected
                       ? "bg-[var(--color-terracotta)]/15 border-[var(--color-terracotta)] text-[var(--color-terracotta)]"
                       : "bg-[var(--color-surface)] border-[var(--color-border)] hover:bg-[var(--color-subtle)] text-[var(--color-foreground)]"
                   }`}
                 >
-                  <div className="flex items-center space-x-2 min-w-0">
+                  <div className="flex items-center space-x-2.5 min-w-0">
                     {ag.image ? (
                       <img
                         src={ag.image}
@@ -797,19 +809,22 @@ const FilterSidebar = ({
                       </div>
                     )}
                     <div className="truncate">
-                      <span className="font-semibold block text-[11px] truncate">
+                      <span className="font-medium block text-xs truncate">
                         {ag.name}
                       </span>
-                      <span className="text-[10px] text-[var(--color-muted-foreground)] flex items-center gap-1">
-                        <Star size={9} className="fill-amber-400 text-amber-400" />
-                        {ag.rating} • {ag.agency}
-                      </span>
+                      {ag.agency && (
+                        <span className="text-[10px] text-[var(--color-muted-foreground)] truncate block">
+                          {ag.agency}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <span className="text-[10px] text-[var(--color-muted-foreground)]">
-                      ({ag.count})
-                    </span>
+                    {ag.count > 0 && (
+                      <span className="text-[10px] text-[var(--color-muted-foreground)]">
+                        {ag.count}
+                      </span>
+                    )}
                     {isSelected && <Check size={12} className="text-[var(--color-terracotta)]" />}
                   </div>
                 </div>

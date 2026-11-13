@@ -10,10 +10,8 @@ import {
   BedDouble,
   Bath,
   Building,
-  CheckCircle,
-  Clock,
   ArrowUpRight,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import { useShortlist } from "../../contexts/ShortlistContext";
 import { toast } from "react-toastify";
@@ -24,13 +22,16 @@ const PropertyCard = ({
   className = "",
   onSelectOnMap,
 }) => {
-  const { isSaved, toggleSaveProperty, removeSavedProperty, isInCompare, toggleCompare, removeFromCompare } = useShortlist();
+  const { isSaved, toggleSaveProperty, removeSavedProperty, isInCompare, toggleCompare } = useShortlist();
 
   if (!property) return null;
 
   const saved = isSaved(property.id || property._id);
   const compared = isInCompare(property.id || property._id);
-  const mainImage = property.images?.[0] || property.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80";
+  const mainImage =
+    property.images?.[0] ||
+    property.image ||
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80";
   const propertyUrl = `/properties/${property.slug || property._id || property.id}`;
 
   const handleShare = (e) => {
@@ -94,7 +95,7 @@ const PropertyCard = ({
             {property.locality}, {property.city}
           </p>
           <div className="flex items-center justify-between pt-1 border-t border-[var(--color-border)] text-[10px] text-[var(--color-muted-foreground)]">
-            <span>{property.bedrooms} BHK • {property.carpetArea}</span>
+            <span>{property.bedrooms ? `${property.bedrooms} BHK` : ""} {property.carpetArea ? `• ${property.carpetArea}` : ""}</span>
             <Link to={propertyUrl} className="font-semibold text-[var(--color-terracotta)] hover:underline">
               View →
             </Link>
@@ -120,7 +121,7 @@ const PropertyCard = ({
             {property.title}
           </p>
           <p className="text-[10px] text-[var(--color-muted-foreground)] truncate">
-            {property.bedrooms} BHK • {property.locality}
+            {property.bedrooms ? `${property.bedrooms} BHK • ` : ""}{property.locality || property.city}
           </p>
         </div>
       </Link>
@@ -143,10 +144,7 @@ const PropertyCard = ({
           <div>
             <div className="flex items-center justify-between">
               <span className="text-[11px] uppercase tracking-wider text-[var(--color-terracotta)] font-semibold">
-                {property.propertyType} • {property.listingType}
-              </span>
-              <span className="text-[11px] text-emerald-600 font-mono">
-                RERA: {property.reraId || "Verified"}
+                {property.propertyType} • {property.listingType || "Sale"}
               </span>
             </div>
             <Link to={propertyUrl} className="block mt-1">
@@ -156,14 +154,18 @@ const PropertyCard = ({
             </Link>
             <p className="text-xs text-[var(--color-muted-foreground)] flex items-center mt-1">
               <MapPin className="w-3.5 h-3.5 mr-1 text-[var(--color-terracotta)]" />
-              {property.address || `${property.locality}, ${property.city}`}
+              {property.address || `${property.locality ? `${property.locality}, ` : ""}${property.city}`}
             </p>
-            <div className="flex items-center space-x-4 mt-3 text-xs text-[var(--color-foreground)]">
-              <span><strong>{property.bedrooms}</strong> BHK</span>
-              <span>•</span>
-              <span><strong>{property.carpetArea}</strong> Carpet</span>
-              <span>•</span>
-              <span>{property.furnishing}</span>
+            <div className="flex items-center space-x-3 mt-3 text-xs text-[var(--color-foreground)]">
+              {property.bedrooms && <span><strong>{property.bedrooms}</strong> BHK</span>}
+              {property.bedrooms && (property.carpetArea || property.area) && <span>•</span>}
+              {(property.carpetArea || property.area) && <span><strong>{property.carpetArea || property.area}</strong> sq.ft</span>}
+              {property.furnishing && (
+                <>
+                  <span>•</span>
+                  <span>{property.furnishing}</span>
+                </>
+              )}
             </div>
           </div>
           <div className="flex items-center justify-between mt-4 pt-3 border-t border-[var(--color-border)] text-xs">
@@ -211,26 +213,13 @@ const PropertyCard = ({
               loading="lazy"
             />
           </Link>
-          {/* Status Badges */}
-          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 pointer-events-none">
-            {property.verified && (
-              <span className="inline-flex items-center space-x-1 px-2 py-0.5 bg-emerald-900/90 text-emerald-100 text-[10px] font-semibold tracking-wide uppercase rounded-xs backdrop-blur-xs">
-                <ShieldCheck className="w-3 h-3 text-emerald-300" />
-                <span>Verified</span>
-              </span>
-            )}
-            {property.featured && (
-              <span className="inline-flex items-center px-2 py-0.5 bg-stone-900/90 text-stone-100 text-[10px] font-semibold tracking-wide uppercase rounded-xs backdrop-blur-xs">
-                Featured
-              </span>
-            )}
-          </div>
+
           {/* Quick Action Overlay */}
-          <div className="absolute top-2.5 right-2.5 flex items-center space-x-1">
+          <div className="absolute top-3 right-3 flex items-center space-x-1.5">
             <button
               onClick={handleSave}
-              className={`p-1.5 rounded-full transition-colors ${
-                saved ? "bg-[var(--color-terracotta)] text-white" : "bg-black/40 text-white hover:bg-black/70"
+              className={`p-2 rounded-full transition-colors ${
+                saved ? "bg-[var(--color-terracotta)] text-white" : "bg-black/50 text-white hover:bg-black/80"
               }`}
               title="Save to shortlist"
               aria-label="Save to shortlist"
@@ -239,8 +228,8 @@ const PropertyCard = ({
             </button>
             <button
               onClick={handleCompare}
-              className={`p-1.5 rounded-full transition-colors ${
-                compared ? "bg-stone-900 text-white" : "bg-black/40 text-white hover:bg-black/70"
+              className={`p-2 rounded-full transition-colors ${
+                compared ? "bg-stone-900 text-white" : "bg-black/50 text-white hover:bg-black/80"
               }`}
               title="Compare"
               aria-label="Compare property"
@@ -249,104 +238,104 @@ const PropertyCard = ({
             </button>
             <button
               onClick={handleShare}
-              className="p-1.5 bg-black/40 text-white hover:bg-black/70 rounded-full transition-colors"
+              className="p-2 bg-black/50 text-white hover:bg-black/80 rounded-full transition-colors"
               title="Share"
               aria-label="Share property"
             >
               <Share2 className="w-3.5 h-3.5" />
             </button>
           </div>
-          {property.possession && (
-            <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 text-white text-[10px] font-mono tracking-tight rounded-xs backdrop-blur-xs">
-              {property.possession}
-            </div>
-          )}
+
+          {/* Property Type Badge */}
+          <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-black/60 text-white text-xs font-medium rounded-xs backdrop-blur-xs">
+            {property.propertyType || "Residential"}
+          </div>
         </div>
 
-        {/* Info Section */}
-        <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-          <div>
-            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--color-border)] pb-3">
-              <div>
-                <span className="font-mono text-xl sm:text-2xl font-bold text-[var(--color-foreground)] tracking-tight">
+        {/* Info Section with Generous Breathing Room */}
+        <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+          <div className="space-y-3">
+            {/* Price & Status Row */}
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <div className="flex items-baseline space-x-2">
+                <span className="font-mono text-2xl font-bold text-[var(--color-foreground)] tracking-tight">
                   {property.price}
                 </span>
                 {property.pricePerSqFt && (
-                  <span className="ml-2 text-xs font-mono text-[var(--color-muted-foreground)]">
+                  <span className="text-xs font-mono text-[var(--color-muted-foreground)]">
                     ({property.pricePerSqFt})
                   </span>
                 )}
               </div>
-              {property.reraId ? (
-                <span className="text-[11px] font-mono text-[var(--color-muted-foreground)]">
-                  RERA: <span className="text-[var(--color-foreground)] font-medium">{property.reraId}</span>
-                </span>
-              ) : (
-                <span className="text-[10px] font-semibold text-[var(--color-terracotta)] uppercase tracking-wider">
-                  {property.propertyType}
+              {property.possession && (
+                <span className="text-xs font-medium text-[var(--color-muted-foreground)] bg-[var(--color-subtle)] px-2.5 py-1 rounded-xs border border-[var(--color-border)]">
+                  {property.possession}
                 </span>
               )}
             </div>
 
-            <Link to={propertyUrl} className="block mt-2.5">
-              <h3 className="font-semibold text-base sm:text-lg text-[var(--color-foreground)] group-hover:text-[var(--color-terracotta)] transition-colors leading-snug">
+            {/* Title */}
+            <Link to={propertyUrl} className="block">
+              <h3 className="font-semibold text-lg sm:text-xl text-[var(--color-foreground)] group-hover:text-[var(--color-terracotta)] transition-colors leading-relaxed">
                 {property.title}
               </h3>
             </Link>
 
-            <p className="text-xs text-[var(--color-muted-foreground)] flex items-center mt-1">
-              <MapPin className="w-3.5 h-3.5 mr-1 text-[var(--color-terracotta)] flex-shrink-0" />
-              <span>{property.locality}, {property.city}</span>
-              {property.developer && (
-                <span className="ml-2 pl-2 border-l border-[var(--color-border)] text-[var(--color-secondary)]">
-                  by {property.developer}
+            {/* Location */}
+            <p className="text-xs text-[var(--color-muted-foreground)] flex items-center">
+              <MapPin className="w-3.5 h-3.5 mr-1.5 text-[var(--color-terracotta)] flex-shrink-0" />
+              <span>{property.locality ? `${property.locality}, ` : ""}{property.city}</span>
+              {property.address && property.address !== property.locality && (
+                <span className="ml-2 pl-2 border-l border-[var(--color-border)] text-[var(--color-muted-foreground)] truncate max-w-xs">
+                  {property.address}
                 </span>
               )}
             </p>
 
-            {/* Spec Highlights Grid */}
-            <div className="grid grid-cols-3 gap-2 mt-4 py-2 px-3 bg-[var(--color-subtle)] rounded-xs text-xs">
-              <div>
-                <p className="text-[10px] text-[var(--color-muted-foreground)] uppercase tracking-wider">
-                  {property.isCommercial ? "Space Type" : "Bedrooms"}
-                </p>
-                <p className="font-semibold text-[var(--color-foreground)] mt-0.5">
-                  {property.isCommercial ? (property.propertyType || "Commercial") : property.bedrooms ? `${property.bedrooms} BHK` : "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-[var(--color-muted-foreground)] uppercase tracking-wider">Carpet Area</p>
-                <p className="font-semibold text-[var(--color-foreground)] mt-0.5">
-                  {property.carpetArea || (property.area ? `${property.area.toLocaleString()} sq.ft` : "—")}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-[var(--color-muted-foreground)] uppercase tracking-wider">
-                  {property.parking ? "Parking" : property.builtYear ? "Built Year" : property.bathrooms ? "Bathrooms" : property.floor ? "Floor" : "Status"}
-                </p>
-                <p className="font-semibold text-[var(--color-foreground)] mt-0.5 truncate">
-                  {property.parking || property.builtYear || (property.bathrooms ? `${property.bathrooms} Baths` : property.floor || property.status)}
-                </p>
-              </div>
+            {/* Clean Property Specifications Row */}
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              {!property.isCommercial && property.bedrooms ? (
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[var(--color-subtle)] rounded text-xs text-[var(--color-foreground)] font-medium">
+                  <BedDouble className="w-4 h-4 text-[var(--color-terracotta)]" />
+                  <span>{property.bedrooms} Bedrooms</span>
+                </span>
+              ) : null}
+
+              {(property.carpetArea || property.area) ? (
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[var(--color-subtle)] rounded text-xs text-[var(--color-foreground)] font-medium">
+                  <Maximize2 className="w-4 h-4 text-[var(--color-terracotta)]" />
+                  <span>{property.carpetArea || `${property.area?.toLocaleString()} sq.ft`}</span>
+                </span>
+              ) : null}
+
+              {property.bathrooms ? (
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[var(--color-subtle)] rounded text-xs text-[var(--color-foreground)] font-medium">
+                  <Bath className="w-4 h-4 text-[var(--color-terracotta)]" />
+                  <span>{property.bathrooms} Baths</span>
+                </span>
+              ) : null}
+
+              {property.parking ? (
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[var(--color-subtle)] rounded text-xs text-[var(--color-foreground)] font-medium">
+                  <Building className="w-4 h-4 text-[var(--color-terracotta)]" />
+                  <span>{property.parking}</span>
+                </span>
+              ) : null}
             </div>
           </div>
 
           {/* Footer of Card */}
-          <div className="flex items-center justify-between mt-4 pt-3 border-t border-[var(--color-border)] text-xs">
-            <div className="flex items-center space-x-2">
-              {property.agent?.image && (
-                <img src={property.agent.image} alt={property.agent.name} className="w-6 h-6 rounded-full object-cover" />
-              )}
-              <span className="text-[11px] text-[var(--color-muted-foreground)]">
-                {property.agent?.name || "Direct Advisor"}
-              </span>
-            </div>
+          <div className="flex items-center justify-between pt-3 border-t border-[var(--color-border)] text-xs">
+            <span className="text-[var(--color-muted-foreground)]">
+              {property.furnishing ? `${property.furnishing} • ` : ""}{property.propertyType || "Residential"}
+            </span>
+
             <Link
               to={propertyUrl}
-              className="inline-flex items-center space-x-1 font-semibold text-xs text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] transition-colors"
+              className="inline-flex items-center space-x-1.5 font-semibold text-xs text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] transition-colors group-hover:translate-x-0.5 duration-200"
             >
-              <span>Explore Details</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span>View Property</span>
+              <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
@@ -367,19 +356,6 @@ const PropertyCard = ({
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-          {/* Top Badges */}
-          <div className="absolute top-4 left-4 flex items-center space-x-2">
-            <span className="px-2.5 py-1 bg-[var(--color-terracotta)] text-white text-[11px] font-semibold uppercase tracking-wider rounded-xs">
-              Marquee Listing
-            </span>
-            {property.verified && (
-              <span className="px-2.5 py-1 bg-emerald-950/90 text-emerald-200 text-[11px] font-semibold tracking-wider rounded-xs flex items-center space-x-1 backdrop-blur-xs">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Verified</span>
-              </span>
-            )}
-          </div>
 
           {/* Top Actions */}
           <div className="absolute top-4 right-4 flex items-center space-x-1.5">
@@ -404,25 +380,25 @@ const PropertyCard = ({
           </div>
 
           {/* Bottom Overlay Content */}
-          <div className="absolute bottom-4 left-4 right-4 text-white">
+          <div className="absolute bottom-5 left-5 right-5 text-white space-y-2">
             <p className="text-xs font-mono uppercase tracking-widest text-amber-300">
-              {property.locality}, {property.city}
+              {property.locality ? `${property.locality}, ` : ""}{property.city}
             </p>
-            <Link to={propertyUrl} className="block mt-1">
+            <Link to={propertyUrl} className="block">
               <h2 className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-white hover:underline">
                 {property.title}
               </h2>
             </Link>
-            <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-white/20 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/20 text-xs">
               <div className="flex items-center space-x-4">
                 <span className="font-mono text-xl font-bold">{property.price}</span>
-                <span className="text-white/80">{property.bedrooms} BHK • {property.carpetArea}</span>
+                <span className="text-white/80">{property.bedrooms ? `${property.bedrooms} BHK` : ""} {property.carpetArea ? `• ${property.carpetArea}` : ""}</span>
               </div>
               <Link
                 to={propertyUrl}
-                className="px-4 py-1.5 bg-white text-stone-950 font-semibold text-xs rounded-xs hover:bg-stone-100 transition-colors"
+                className="px-4 py-2 bg-white text-stone-950 font-semibold text-xs rounded-xs hover:bg-stone-100 transition-colors"
               >
-                Inquire & Tour →
+                View Details →
               </Link>
             </div>
           </div>
@@ -437,7 +413,7 @@ const PropertyCard = ({
   return (
     <article className={`group bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-muted-foreground)] transition-all duration-200 rounded-sm overflow-hidden flex flex-col ${className}`}>
       {/* Photo */}
-      <div className="relative h-52 sm:h-56 w-full overflow-hidden bg-[var(--color-subtle)]">
+      <div className="relative h-56 sm:h-60 w-full overflow-hidden bg-[var(--color-subtle)]">
         <Link to={propertyUrl} className="block w-full h-full">
           <img
             src={mainImage}
@@ -446,19 +422,13 @@ const PropertyCard = ({
             loading="lazy"
           />
         </Link>
-        <div className="absolute top-2.5 left-2.5 flex items-center space-x-1.5">
-          {property.verified && (
-            <span className="px-2 py-0.5 bg-emerald-900/90 text-emerald-100 text-[10px] font-semibold uppercase tracking-wider rounded-xs backdrop-blur-xs flex items-center space-x-1">
-              <ShieldCheck className="w-3 h-3 text-emerald-300" />
-              <span>Verified</span>
-            </span>
-          )}
-        </div>
-        <div className="absolute top-2.5 right-2.5 flex items-center space-x-1">
+
+        {/* Top Actions */}
+        <div className="absolute top-3 right-3 flex items-center space-x-1.5">
           <button
             onClick={handleSave}
-            className={`p-1.5 rounded-full backdrop-blur-xs transition-colors ${
-              saved ? "bg-[var(--color-terracotta)] text-white" : "bg-black/40 text-white hover:bg-black/70"
+            className={`p-2 rounded-full backdrop-blur-xs transition-colors ${
+              saved ? "bg-[var(--color-terracotta)] text-white" : "bg-black/50 text-white hover:bg-black/80"
             }`}
             title="Save"
           >
@@ -466,73 +436,96 @@ const PropertyCard = ({
           </button>
           <button
             onClick={handleCompare}
-            className={`p-1.5 rounded-full backdrop-blur-xs transition-colors ${
-              compared ? "bg-stone-900 text-white" : "bg-black/40 text-white hover:bg-black/70"
+            className={`p-2 rounded-full backdrop-blur-xs transition-colors ${
+              compared ? "bg-stone-900 text-white" : "bg-black/50 text-white hover:bg-black/80"
             }`}
             title="Compare"
           >
             <Scale className="w-3.5 h-3.5" />
           </button>
         </div>
-        <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 text-white text-[10px] font-mono rounded-xs backdrop-blur-xs">
-          {property.propertyType}
+
+        {/* Property Type Badge */}
+        <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-black/60 text-white text-xs font-medium rounded-xs backdrop-blur-xs">
+          {property.propertyType || "Residential"}
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4 flex-1 flex flex-col justify-between">
-        <div>
+      {/* Content with comfortable breathing room */}
+      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+        <div className="space-y-2.5">
+          {/* Price & Sqft */}
           <div className="flex items-baseline justify-between flex-wrap gap-1">
-            <span className="font-mono text-lg font-bold text-[var(--color-foreground)]">
+            <span className="font-mono text-xl font-bold text-[var(--color-foreground)] tracking-tight">
               {property.price}
             </span>
             {property.pricePerSqFt && (
-              <span className="text-[11px] font-mono text-[var(--color-muted-foreground)]">
+              <span className="text-xs font-mono text-[var(--color-muted-foreground)]">
                 {property.pricePerSqFt}
               </span>
             )}
           </div>
 
-          <Link to={propertyUrl} className="block mt-1.5">
-            <h3 className="font-semibold text-sm sm:text-base text-[var(--color-foreground)] group-hover:text-[var(--color-terracotta)] transition-colors line-clamp-1">
+          {/* Title */}
+          <Link to={propertyUrl} className="block">
+            <h3 className="font-semibold text-base text-[var(--color-foreground)] group-hover:text-[var(--color-terracotta)] transition-colors leading-snug line-clamp-1">
               {property.title}
             </h3>
           </Link>
 
-          <p className="text-xs text-[var(--color-muted-foreground)] flex items-center mt-1">
-            <MapPin className="w-3 h-3 mr-1 text-[var(--color-terracotta)] flex-shrink-0" />
-            <span className="truncate">{property.locality}, {property.city}</span>
+          {/* Location */}
+          <p className="text-xs text-[var(--color-muted-foreground)] flex items-center">
+            <MapPin className="w-3.5 h-3.5 mr-1.5 text-[var(--color-terracotta)] flex-shrink-0" />
+            <span className="truncate">{property.locality ? `${property.locality}, ` : ""}{property.city}</span>
           </p>
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 pt-2.5 border-t border-[var(--color-border)] text-xs text-[var(--color-foreground)]">
-            {property.isCommercial ? (
-              <span className="flex items-center font-medium">
-                <Building className="w-3.5 h-3.5 mr-1 text-[var(--color-muted-foreground)]" />
-                {property.propertyType || "Commercial"}
-              </span>
-            ) : property.bedrooms ? (
+          {/* Key Specs: Clean & Readable */}
+          <div className="flex items-center gap-3 pt-2 text-xs text-[var(--color-foreground)] font-medium">
+            {!property.isCommercial && property.bedrooms ? (
               <span className="flex items-center">
-                <BedDouble className="w-3.5 h-3.5 mr-1 text-[var(--color-muted-foreground)]" />
+                <BedDouble className="w-4 h-4 mr-1 text-[var(--color-muted-foreground)]" />
                 {property.bedrooms} BHK
               </span>
-            ) : null}
-            {property.bedrooms && (property.carpetArea || property.area) && <span>•</span>}
-            {(property.carpetArea || property.area) && (
+            ) : (
               <span className="flex items-center">
-                <Maximize2 className="w-3.5 h-3.5 mr-1 text-[var(--color-muted-foreground)]" />
-                {property.carpetArea || `${property.area?.toLocaleString()} sq.ft`}
+                <Building className="w-4 h-4 mr-1 text-[var(--color-muted-foreground)]" />
+                {property.propertyType || "Property"}
               </span>
+            )}
+
+            {(property.carpetArea || property.area) && (
+              <>
+                <span className="text-[var(--color-border)]">•</span>
+                <span className="flex items-center">
+                  <Maximize2 className="w-4 h-4 mr-1 text-[var(--color-muted-foreground)]" />
+                  {property.carpetArea || `${property.area?.toLocaleString()} sq.ft`}
+                </span>
+              </>
+            )}
+
+            {property.bathrooms && (
+              <>
+                <span className="text-[var(--color-border)]">•</span>
+                <span className="flex items-center">
+                  <Bath className="w-4 h-4 mr-1 text-[var(--color-muted-foreground)]" />
+                  {property.bathrooms} Bath
+                </span>
+              </>
             )}
           </div>
         </div>
 
-        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-[var(--color-border)] text-[11px] text-[var(--color-muted-foreground)]">
-          <span className="truncate max-w-[130px] sm:max-w-[160px]">
-            {property.parking || property.furnishing || property.possession || ""}
+        {/* Card Footer */}
+        <div className="flex items-center justify-between pt-3 border-t border-[var(--color-border)] text-xs text-[var(--color-muted-foreground)]">
+          <span className="truncate max-w-[150px]">
+            {property.possession || property.furnishing || property.parking || "Verified"}
           </span>
-          <Link to={propertyUrl} className="font-semibold text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] flex items-center flex-shrink-0 ml-1">
-            <span>Details</span>
-            <ArrowUpRight className="w-3 h-3 ml-0.5" />
+          <Link
+            to={propertyUrl}
+            className="font-semibold text-xs text-[var(--color-foreground)] hover:text-[var(--color-terracotta)] flex items-center flex-shrink-0 ml-1 transition-colors"
+          >
+            <span>View Details</span>
+            <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
           </Link>
         </div>
       </div>

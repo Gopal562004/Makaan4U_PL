@@ -468,10 +468,10 @@ const PropertyListings = () => {
       {/* ====================================================================
           TOP FILTER CONTROLS BAR (Sticky below Header)
       ==================================================================== */}
-      <div className="sticky top-16 sm:top-20 z-30 bg-[var(--color-surface)]/95 backdrop-blur-md border-b border-[var(--color-border)] px-4 sm:px-6 lg:px-8 py-2.5 shadow-xs transition-colors">
+      <div className="sticky top-16 sm:top-20 z-30 bg-[var(--color-surface)]/95 backdrop-blur-md border-b border-[var(--color-border)] px-4 sm:px-6 lg:px-8 py-3 shadow-xs transition-colors">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Left Controls: Purpose + Quick City Picker */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* Purpose Selector */}
             <div className="flex border border-[var(--color-border)] rounded-sm p-0.5 text-xs font-semibold bg-[var(--color-subtle)]">
               {["All", "Buy", "Rent", "Commercial", "Plots"].map((p) => (
@@ -479,7 +479,7 @@ const PropertyListings = () => {
                   key={p}
                   type="button"
                   onClick={() => handlePurposeChange(p)}
-                  className={`px-3 py-1 rounded-xs transition-colors ${
+                  className={`px-3 py-1.5 rounded-xs transition-colors ${
                     purpose === p
                       ? "bg-[var(--color-foreground)] text-[var(--color-surface)] shadow-xs font-bold"
                       : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
@@ -524,7 +524,7 @@ const PropertyListings = () => {
           </div>
 
           {/* Right Controls: Sort, Show Map Toggle & View Mode */}
-          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5">
             {/* Show / Hide Map Button */}
             <button
               type="button"
@@ -543,7 +543,7 @@ const PropertyListings = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="h-8 px-2 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm text-xs text-[var(--color-foreground)] focus:outline-none cursor-pointer max-w-[140px] sm:max-w-none truncate"
+              className="h-8 px-2.5 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-sm text-xs text-[var(--color-foreground)] focus:outline-none cursor-pointer max-w-[150px] sm:max-w-none truncate"
             >
               <option value="price-desc">Price: High to Low</option>
               <option value="price-asc">Price: Low to High</option>
@@ -584,11 +584,11 @@ const PropertyListings = () => {
       {/* ====================================================================
           PAGE CONTENT: Left Filter Sidebar (Always Open on Desktop) + Results Feed
       ==================================================================== */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-24 lg:pb-16 space-y-4">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-20 space-y-6">
         {/* Breadcrumb Trail & Headline */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[var(--color-border)] pb-3 gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[var(--color-border)] pb-4 gap-4">
           <div>
-            <div className="flex items-center space-x-2 text-xs text-[var(--color-muted-foreground)] mb-1">
+            <div className="flex items-center space-x-2 text-xs text-[var(--color-muted-foreground)] mb-1.5">
               <Link to="/" className="hover:text-[var(--color-foreground)]">Home</Link>
               <span>/</span>
               <Link to="/properties" className="hover:text-[var(--color-foreground)]">Properties</Link>
@@ -600,9 +600,9 @@ const PropertyListings = () => {
               )}
             </div>
 
-            <h1 className="font-editorial text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-[var(--color-foreground)] flex flex-wrap items-center gap-2">
+            <h1 className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-foreground)] flex flex-wrap items-center gap-2.5">
               <span>{purpose === "All" ? "All Properties" : `Properties for ${purpose}`} in {primaryCityName}</span>
-              <span className="text-xs font-mono font-normal text-[var(--color-muted-foreground)] bg-[var(--color-subtle)] px-2 py-0.5 rounded-xs border border-[var(--color-border)]">
+              <span className="text-xs font-mono font-medium text-[var(--color-muted-foreground)] bg-[var(--color-subtle)] px-2.5 py-1 rounded-xs border border-[var(--color-border)]">
                 {filteredProperties.length} {filteredProperties.length === 1 ? "property" : "properties"} found
               </span>
             </h1>
@@ -610,17 +610,17 @@ const PropertyListings = () => {
 
           {/* Active Chips Strip */}
           {activeChips.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-2">
               {activeChips.map((chip, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-full text-xs font-medium text-[var(--color-foreground)] shadow-2xs"
+                  className="inline-flex items-center space-x-1.5 px-3 py-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-full text-xs font-medium text-[var(--color-foreground)] shadow-2xs"
                 >
                   <span>{chip.label}</span>
                   <button
                     type="button"
                     onClick={chip.onRemove}
-                    className="hover:text-red-600 transition-colors"
+                    className="hover:text-red-600 transition-colors cursor-pointer"
                     aria-label={`Remove ${chip.label}`}
                   >
                     <X className="w-3 h-3" />
@@ -630,7 +630,7 @@ const PropertyListings = () => {
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="text-xs text-[var(--color-terracotta)] hover:underline font-semibold ml-1"
+                className="text-xs text-[var(--color-terracotta)] hover:underline font-semibold ml-1 cursor-pointer"
               >
                 Clear All
               </button>
@@ -672,9 +672,9 @@ const PropertyListings = () => {
           {/* ====================================================================
               RIGHT RESULTS FEED
           ==================================================================== */}
-          <section id="property-results-feed" className="lg:col-span-8 xl:col-span-9 space-y-5">
+          <section id="property-results-feed" className="lg:col-span-8 xl:col-span-9 space-y-6">
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-7">
                 {[1, 2, 3, 4, 5, 6].map((n) => (
                   <div
                     key={n}
@@ -690,7 +690,7 @@ const PropertyListings = () => {
             ) : filteredProperties.length === 0 ? (
               <EmptyProperties onResetFilters={resetAllFilters} />
             ) : cardLayout === "list" ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {paginatedProperties.map((prop) => (
                   <PropertyCard
                     key={prop.id || prop._id}
@@ -701,7 +701,7 @@ const PropertyListings = () => {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-7">
                 {paginatedProperties.map((prop) => (
                   <PropertyCard
                     key={prop.id || prop._id}

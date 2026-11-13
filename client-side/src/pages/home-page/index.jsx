@@ -43,12 +43,11 @@ import {
 
 // Phrases for the auto-typing headline effect
 const TYPEWRITER_PHRASES = [
-  "Forensic verification.",
-  "Zero spam advisors.",
-  "100% physically audited.",
-  "Direct owner mandates.",
-  "Clear statutory RERA titles.",
-  "Institutional diligence."
+  "Verified luxury residences.",
+  "New project launches.",
+  "Villas, penthouses & plots.",
+  "Prime localities across India.",
+  "Transparent prices & plans."
 ];
 
 const HomePage = () => {
@@ -256,13 +255,13 @@ const HomePage = () => {
                 <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[var(--color-subtle)] border border-[var(--color-border)] rounded-full text-xs">
                   <span className="w-2 h-2 rounded-full bg-[var(--color-terracotta)] animate-pulse" />
                   <span className="font-medium text-[var(--color-foreground)]">
-                    Q3 2026 Residential Market Dispatch Active
+                    Verified Property Portal
                   </span>
                 </div>
 
                 {/* Auto-Typing Headline */}
-                <h1 className="font-editorial text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--color-foreground)] leading-[1.12]">
-                  Architectural homes. <br />
+                <h1 className="font-editorial text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--color-foreground)] leading-[1.15]">
+                  Find your next home. <br />
                   <span className="italic font-normal text-[var(--color-terracotta)] inline-block min-h-[1.2em] break-words">
                     {displayText}
                     <span className="animate-typewriter-cursor font-light not-italic ml-0.5 text-[var(--color-terracotta)]">
@@ -272,7 +271,7 @@ const HomePage = () => {
                 </h1>
 
                 <p className="text-sm sm:text-base text-[var(--color-muted-foreground)] max-w-xl leading-relaxed">
-                  Makaan4U provides discerning buyers, owners, and capital allocators with 100% physically inspected properties, clear RERA title registries, and deep micro-market valuations across India’s primary economic hubs.
+                  Discover verified apartments, villas, plots, and commercial spaces across India's top cities with accurate pricing, floor plans, and direct contacts.
                 </p>
 
                 {/* Purpose Tab Switcher & Integrated Search Form */}
@@ -474,7 +473,7 @@ const HomePage = () => {
                         </Link>
 
                         <p className="text-xs text-[var(--color-muted-foreground)] line-clamp-2 leading-relaxed">
-                          {activeSpotlightProp.description || "Forensically verified residential listing with clear title."}
+                          {activeSpotlightProp.description || "Verified residential listing with accurate details and clear title."}
                         </p>
 
                         <div className="flex items-center justify-between pt-3 border-t border-[var(--color-border)] text-xs">
@@ -635,13 +634,13 @@ const HomePage = () => {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
             <div>
               <span className="text-[11px] uppercase tracking-widest font-semibold text-[var(--color-terracotta)]">
-                Curated Shortlist
+                Featured Properties
               </span>
               <h2 className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-foreground)] mt-1">
-                Verified Residences of Distinction
+                Handpicked Verified Residences
               </h2>
               <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
-                Forensically audited residences featuring genuine carpet areas, verified RERA certificates, and authorized advisors.
+                Explore quality homes with verified prices, floor plans, and ready-to-move options.
               </p>
             </div>
 
@@ -752,13 +751,13 @@ const HomePage = () => {
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
               <div>
                 <span className="text-[11px] uppercase tracking-widest font-semibold text-[var(--color-terracotta)]">
-                  Tier-1 Master Developments
+                  Upcoming Developments
                 </span>
                 <h2 className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-foreground)] mt-1">
-                  New Project Launches & Estates
+                  New Project Launches
                 </h2>
                 <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
-                  Direct developer allocations with verified RERA construction timelines and payment milestones.
+                  Explore upcoming and newly launched residential and commercial developments with verified approvals.
                 </p>
               </div>
               <Link
@@ -925,44 +924,53 @@ const HomePage = () => {
         </section>
 
         {/* ====================================================================
-            SECTION 07: VERIFICATION MANIFESTO (Trust Signals - No Clichés)
+            SECTION 07: WHY MAKAAN4U (Clean & Direct)
         ==================================================================== */}
-        <section className="py-14 sm:py-20 bg-[var(--color-subtle)] border-b border-[var(--color-border)]">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
+        <section className="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[var(--color-border)]">
+          <div className="max-w-2xl mb-10">
             <span className="text-[11px] uppercase tracking-widest font-semibold text-[var(--color-terracotta)]">
-              The Makaan4U Standard
+              Real Estate Made Simple
             </span>
-            <h2 className="font-editorial text-3xl sm:text-4xl font-bold tracking-tight text-[var(--color-foreground)] leading-tight">
-              "We do not publish properties we have not physically stepped inside and verified against state title archives."
+            <h2 className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-foreground)] mt-1.5">
+              Verified listings, transparent pricing, and direct contacts.
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-left pt-6 text-xs border-t border-[var(--color-border)]">
-              <div className="space-y-1">
-                <p className="font-semibold text-sm text-[var(--color-foreground)] flex items-center space-x-1.5">
-                  <FileCheck2 className="w-4 h-4 text-emerald-600" />
-                  <span>RERA Cross-Reference</span>
-                </p>
-                <p className="text-[var(--color-muted-foreground)] leading-relaxed">
-                  Every listed development is verified against sanctioned building plans and state authority quarterly escrow disclosures.
-                </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="p-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm space-y-2.5">
+              <div className="w-9 h-9 rounded-sm bg-[var(--color-subtle)] flex items-center justify-center text-emerald-600 mb-2">
+                <FileCheck2 className="w-4 h-4" />
               </div>
-              <div className="space-y-1">
-                <p className="font-semibold text-sm text-[var(--color-foreground)] flex items-center space-x-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>Physical Inspection</span>
-                </p>
-                <p className="text-[var(--color-muted-foreground)] leading-relaxed">
-                  Real carpet areas, acoustic levels, actual window orientations, and maintenance conditions verified on-site.
-                </p>
+              <h3 className="font-semibold text-sm sm:text-base text-[var(--color-foreground)]">
+                Verified Listings
+              </h3>
+              <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed">
+                Genuine property specifications, realistic carpet areas, and verified details for peace of mind.
+              </p>
+            </div>
+
+            <div className="p-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm space-y-2.5">
+              <div className="w-9 h-9 rounded-sm bg-[var(--color-subtle)] flex items-center justify-center text-emerald-600 mb-2">
+                <Scale className="w-4 h-4" />
               </div>
-              <div className="space-y-1">
-                <p className="font-semibold text-sm text-[var(--color-foreground)] flex items-center space-x-1.5">
-                  <Scale className="w-4 h-4 text-emerald-600" />
-                  <span>Price Transparency</span>
-                </p>
-                <p className="text-[var(--color-muted-foreground)] leading-relaxed">
-                  No artificial inflated quotations. Benchmark ₹/sq.ft analytics calibrated from registered stamp duty registry transactions.
-                </p>
+              <h3 className="font-semibold text-sm sm:text-base text-[var(--color-foreground)]">
+                Transparent Pricing
+              </h3>
+              <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed">
+                Clear prices and per-square-foot benchmarks calibrated from actual local market registries.
+              </p>
+            </div>
+
+            <div className="p-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-sm space-y-2.5">
+              <div className="w-9 h-9 rounded-sm bg-[var(--color-subtle)] flex items-center justify-center text-emerald-600 mb-2">
+                <ShieldCheck className="w-4 h-4" />
               </div>
+              <h3 className="font-semibold text-sm sm:text-base text-[var(--color-foreground)]">
+                Direct Connections
+              </h3>
+              <p className="text-xs text-[var(--color-muted-foreground)] leading-relaxed">
+                Directly connect with property owners, authorized consultants, and verified developers.
+              </p>
             </div>
           </div>
         </section>
